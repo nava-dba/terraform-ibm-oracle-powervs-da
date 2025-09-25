@@ -15,6 +15,7 @@ variable "iaas_classic_api_key" {
   description = "IBM Cloud Classic IaaS API key. Remove after testing. Todo"
   type        = string
   sensitive   = true
+  default = ""
 }
 
 variable "region" {
