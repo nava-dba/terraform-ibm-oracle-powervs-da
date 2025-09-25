@@ -1,0 +1,173 @@
+# ------------------------------------------------------------------------
+# This playbook uses the ibm.power_aix_oracle collection. This collection is
+# available on ansible galaxy
+# https://galaxy.ansible.com/ui/repo/published/ibm/power_aix_oracle/ and can
+# be installed using 'ansible-galaxy collection install ibm.power_aix_oracle'
+# ------------------------------------------------------------------------
+
+---
+- name: Ansible play to install Oracle and Grid software on AIX
+  hosts: all
+  gather_facts: yes
+  collections:
+    - ibm.power_aix_oracle
+
+  vars:
+    ora_nfs_host: "${ORA_NFS_HOST}"
+    ora_nfs_device: "${ORA_NFS_DEVICE}"
+    database_sw: "${DATABASE_SW}"
+    grid_sw: "${GRID_SW}"
+    ru_file: "${RU_FILE}"
+    opatch_file: "${OPATCH_FILE}"
+    ora_sid: "${ORA_SID}"
+    apply_ru: true
+    oracle_install_type: "${ORACLE_INSTALL_TYPE}"
+
+    # Static variables
+
+    # Provide the ansible work directory on target system.
+    work_dir: /tmp/ansible
+
+    # Oracle Version which is going to be installed. Supported value: 19c
+    ora_version: 19c
+
+    # Setting this to true will backup /etc/resolv.conf file and copies the file roles/preconfig/files/resolv.conf to /etc.
+    # Make sure to update the nameserver details in roles/precofig/files/resolv.conf.
+    # If set false no changes will be done to /etc/resolv.conf file
+    modify_nameserv: false
+
+    preconfig:
+      linux:
+        tools: ['unzip','bash','sudo']
+        optional_tools: []
+
+    # Provide optional nfs details for filesets installation. The values are blank by default.
+    nfsfilesetMountPoint:
+    nfsfilesetExportDir:
+    nfsfilesetServerIP:
+
+    # If nim filesystem mounted on target host, specify use_std_nim to true. On PowerVS VMs, the standard path is /usr/sys/inst.images/installp/ppc
+    use_std_nim: true
+    powernim_local_path: '/usr/sys/inst.images/installp/ppc'
+
+    # Specify os paging size in MB
+    os_paging_size: 16384
+
+    # Required OS Groups
+
+    ora_oinstall_group: oinstall
+    ora_oinstall_group_gid: 501
+    ora_group: dba
+    ora_group_gid: 500
+    ora_oper_group: oper
+    ora_oper_group_gid: 503
+    ora_asmdba_group: asmdba
+    ora_asmoper_group: asmoper
+    ora_asmadmin_group: asmadmin
+    ora_asmdba_group_gid: 504
+    ora_asmoper_group_gid: 505
+    ora_asmadmin_group_gid: 506
+
+    # Grid s/w owner
+    ora_grid_user: grid
+    ora_grid_user_uid: 601
+
+    # RDBMS s/w owner
+    ora_user: oracle
+    ora_user_uid: 600
+
+    # Provide the mount point path where the Grid & Database s/w must be installed
+
+    ora_sw_vg: oravg
+    ora_sw_fs: "/u01"
+    ora_sw_fs_size: 199G
+
+    # Software staging: Binary staging location can be remote|local|nfs
+    # remote : Ansible Controller location defined in oracledbaix19c & oraclegridaix19c
+    # local: Local location of Target Hosts
+    # nfs: Network File system location
+    ora_binary_location: nfs
+
+    # Set the below values if  "ora_binary_location=nfs"
+    ora_nfs_filesystem: /repos
+
+    # Provide the path for Oracle Base & Inventory directories.
+
+    ora_base: "{{ora_sw_fs}}/base"
+    ora_inventory: "{{ora_sw_fs}}/oraInventory"
+
+    # Provide the path where the Grid Infrastructure for Standalone needs to be installed.
+    grid_ora_home: "{{ ora_sw_fs }}/19c/grid/home"
+
+    # Provide the path where the Release update (RU) patches should be extracted.
+    ru_stage: "{{ora_sw_fs}}/RU19"
+
+    # Installation Precheck true/false. When set to True, during the installation, all the precheck failures will be ignored.
+    ignoreprecheck: false
+
+    # Fill these parameters when the database must be created on ASM. When set to True, Grid Standalone will be installed and Diskgroup is created.
+    grid_asm_flag: false
+    asm_sys_password: "${ORA_DB_PASSWORD}"
+    asm_diskgroup_name: DATA
+    asm_diskgroup_redundancy: EXTERNAL
+    asm_diskgroup_ausize: 4
+    asm_disk_loc_prefix: "/dev/r"
+    asm_diskdiscoverystring: "{{asm_disk_loc_prefix}}hdisk*"
+    asm_asmsnmp_password: "${ORA_DB_PASSWORD}"
+
+    # Provide the JFS path for the database files if ASM is NOT required. Make sure to set grid_asm_flag to false.
+    ora_data_vg: oradatavg
+    ora_data_fs: /oradata
+    ora_data_fs_size: 5G
+    ora_db_fs_list:
+      - { fs_name: "/datafiles", size: "8G" }
+      - { fs_name: "/controlfiles", size: "2G" }
+      - { fs_name: "/redologs", size: "4G", bs: 512  }
+
+    # Provide the path where the Oracle RDBMS should be installed and the database details.
+    databases:
+      - ora_home: "{{ora_sw_fs}}/19c/database/home"
+
+    # Provide DB name, password & characterset
+    ora_pwd: "${ORA_DB_PASSWORD}"
+    ora_character_set: WE8MSWIN1252
+  
+  pre_tasks:
+    - name: Discover disks for oravg (Oracle software VG)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep oravg | tr -s ' ' | cut -d' ' -f1
+      register: oravg_disks
+      changed_when: false
+
+    - name: Discover disks for DATA (ASM/Data VG)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep DATA | tr -s ' ' | cut -d' ' -f1
+      register: data_disks
+      changed_when: false
+
+    - name: Set discovered disk lists
+      ansible.builtin.set_fact:
+        ora_sw_vg_disk: "{{ oravg_disks.stdout_lines }}"
+        ora_data_vg_disk: "{{ data_disks.stdout_lines }}"
+        asm_diskgroup_disk: "{{ data_disks.stdout_lines }}"
+
+    - name: Debug disk vars
+      ansible.builtin.debug:
+        msg:
+          - "ora_sw_vg_disk = {{ ora_sw_vg_disk }}"
+          - "ora_data_vg_disk = {{ ora_data_vg_disk }}"
+          - "asm_diskgroup_disk = {{ asm_diskgroup_disk }}"
+
+  roles:
+    - role: ibm.power_aix_oracle.preconfig
+      tags: preconfig
+
+    - role: ibm.power_aix_oracle.oracle_install_gi
+      tags: oracle_install_gi
+      when: oracle_install_type == "ASM"
+
+    - role: ibm.power_aix_oracle.oracle_install_db
+      tags: oracle_install_db
+
+    - role: ibm.power_aix_oracle.oracle_createdb
+      tags: oracle_createdb

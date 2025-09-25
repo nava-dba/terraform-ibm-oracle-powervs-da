@@ -1,0 +1,109 @@
+# ------------------------------------------------------------------------
+# This playbook performs the prerequisite for oracle installation
+# ------------------------------------------------------------------------
+
+---
+- name: Unified Pre-requisites for AIX Setup
+  hosts: all
+  gather_facts: false
+  become: true
+  become_method: ansible.builtin.su
+  become_user: root
+
+  vars:
+    EXTEND_ROOT_VOLUME_WWN: "${EXTEND_ROOT_VOLUME_WWN}"
+    PROXY_IP_PORT: "${PROXY_IP_PORT}"
+    NO_PROXY: "${NO_PROXY}"
+    done_file_dir: "/var/tmp/ansible_flags"
+
+  tasks:
+
+    - name: Create done file directory
+      ansible.builtin.file:
+        path: "{{ done_file_dir }}"
+        state: directory
+        mode: '0755'
+
+    ##############################################################
+    # 1. Extend rootvg
+    ##############################################################
+    - name: Check if VG setup was already done
+      ansible.builtin.stat:
+        path: "{{ done_file_dir }}/root_vg_extended.done"
+      register: vg_done_flag
+
+    - name: "Run cfgmgr and VG setup"
+      when: not vg_done_flag.stat.exists
+      block:
+
+        - name: Discover hdisk by WWN for rootvg extension (run cfgmgr first)
+          ansible.builtin.shell: |
+            cfgmgr >/dev/null 2>&1
+            lspv -u | tr '[:upper:]' '[:lower:]' |
+            awk -v w="{{ EXTEND_ROOT_VOLUME_WWN | lower }}" 'index($0,w){print $1; exit}'
+          register: hdisk_name
+          changed_when: false
+
+        - name: Get current MAX PPs per PV for rootvg
+          ansible.builtin.shell: "lsvg rootvg | grep 'MAX PPs per PV' | awk '{print $5}'"
+          register: chvg_limit
+          changed_when: false
+
+        - name: Update rootvg partition limit if less than 1024
+          ansible.builtin.shell: "chvg -t 16 rootvg"
+          when: chvg_limit.stdout | int < 1024
+          changed_when: false
+
+        - name: Mark hdisk as physical volume
+          ansible.builtin.command: "chdev -l {{ hdisk_name.stdout }} -a pv=yes"
+          when: hdisk_name.stdout != ""
+          changed_when: false
+
+        - name: Extend rootvg with new disk
+          ibm.power_aix.lvg:
+            vg_name: rootvg
+            pvs: ["{{ hdisk_name.stdout }}"]
+            force: true
+            state: present
+          when: hdisk_name.stdout != ""
+        
+        - name: Mark rootvg entension as done
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/root_vg_extended.done"
+            state: touch
+
+    #################################################################
+    # 2. Proxy Setup
+    #################################################################
+    - name: Proxy Setup
+      block:
+        - name: Set proxy environment variables in /etc/profile for interactive shell
+          ansible.builtin.blockinfile:
+            path: /etc/profile
+            marker: "# {mark} PROXY SETTINGS"
+            block: |
+                export http_proxy=http://{{ PROXY_IP_PORT }}
+                export https_proxy=http://{{ PROXY_IP_PORT }}
+                export HTTP_PROXY=http://{{ PROXY_IP_PORT }}
+                export HTTPS_PROXY=http://{{ PROXY_IP_PORT }}
+                export no_proxy={{ NO_PROXY }}
+        
+        - name: Set proxy environment variables in /etc/environment for non-interactive shell
+          ansible.builtin.blockinfile:
+            path: /etc/environment
+            marker: "# {mark} PROXY SETTINGS"
+            block: |
+                http_proxy=http://{{ PROXY_IP_PORT }}
+                https_proxy=http://{{ PROXY_IP_PORT }}
+                HTTP_PROXY=http://{{ PROXY_IP_PORT }}
+                HTTPS_PROXY=http://{{ PROXY_IP_PORT }}
+                no_proxy={{ NO_PROXY }}
+
+        - name: Export proxy variables for current session
+          ansible.builtin.shell: |
+            export http_proxy=http://{{ PROXY_IP_PORT }}
+            export https_proxy=http://{{ PROXY_IP_PORT }}
+            export HTTP_PROXY=http://{{ PROXY_IP_PORT }}
+            export HTTPS_PROXY=http://{{ PROXY_IP_PORT }}
+            export no_proxy={{ NO_PROXY }}
+          changed_when: false
