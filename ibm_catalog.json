@@ -297,15 +297,13 @@
             },
             {
               "key": "ibmcloud_cos_service_credentials",
-              "type": "multiline_secure_value",
-              "display_name": "ibmcloud_cos_service_credentials",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "multiline_secure_value"
+                "type": "code_editor"
               }
-            },
+            },            
             {
               "key": "ibmcloud_cos_configuration",
               "required": true,
