@@ -253,7 +253,7 @@ module "ibmcloud_cos_grid" {
 locals {
   playbook_oracle_grid_install_vars = {
     ORA_NFS_HOST   = module.pi_instance_rhel.pi_instance_primary_ip
-    ORA_NFS_DEVICE = var.ora_nfs_device
+    ORA_NFS_DEVICE =  local.nfs_mount
     DATABASE_SW    = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_database_sw_path}"
     GRID_SW        = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path}"
     RU_FILE        = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_ru_file_path}"

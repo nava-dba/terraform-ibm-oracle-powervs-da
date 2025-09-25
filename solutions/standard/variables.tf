@@ -2,11 +2,13 @@ variable "ibmcloud_api_key" {
   description = "API Key of IBM Cloud Account."
   type        = string
   sensitive   = true
+  default = "8LSSlu4g_gHpzX8-GCbSPt-kfUEVEjiS_SC_Hj3C1Oih"
 }
 
 variable "iaas_classic_username" {
   description = "IBM Cloud Classic IaaS username. Remove after testing. Todo"
   type        = string
+  default = "1d2d5e521b504072bbfa58a5ebf7f03d"
 }
 
 variable "iaas_classic_api_key" {
@@ -36,11 +38,13 @@ variable "prefix" {
 variable "pi_existing_workspace_guid" {
   description = "Existing Power Virtual Server Workspace GUID."
   type        = string
+  default = "9e666805-b237-4e9b-8f6f-efdb8c4398c7"
 }
 
 variable "pi_ssh_public_key_name" {
   description = "Name of the SSH key pair to associate with the instance"
   type        = string
+  default = "Permanent-VPC-VM-Key"
 }
 
 variable "ssh_private_key" {
@@ -52,16 +56,19 @@ variable "ssh_private_key" {
 variable "pi_rhel_management_server_type" {
   description = "Server type for the management instance."
   type        = string
+  default     = "s922"
 }
 
 variable "pi_rhel_image_name" {
   description = "Name of the IBM PowerVS RHEL boot image to use for provisioning the instance. Must reference a valid RHEL image."
   type        = string
+  default    = "RHEL9-SP4"
 }
 
 variable "pi_aix_image_name" {
   description = "Name of the IBM PowerVS AIX boot image used to deploy and host Oracle Database Appliance."
   type        = string
+  default = "7300-03-01"
 }
 
 variable "pi_aix_instance" {
@@ -91,7 +98,16 @@ variable "pi_networks" {
     name = string
     id   = string
   }))
-  default = []
+  default = [
+  {
+    name = "ora_10_80_40"
+    id   = "081a5d02-bf8c-4931-aa6a-d04b8146ec6f"
+  }#,
+ # {
+ #   name = ""
+ #   id   = ""
+ # }
+]
 }
 
 
@@ -175,7 +191,7 @@ variable "pi_oravg_volume" {
   })
   default = {
     "name" : "oravg",
-    "size" : "100",
+    "size" : "200",
     "count" : "1",
     "tier" : "tier1"
   }
@@ -193,7 +209,7 @@ variable "pi_data_volume" {
   default = {
     "name" : "DATA",
     "size" : "20",
-    "count" : "1",
+    "count" : "4",
     "tier" : "tier1"
   }
 }
@@ -227,13 +243,6 @@ variable "use_rhel_as_proxy" {
   description = "Whether to use RHEL VM as proxy if it has public internet access. If false, fallback to bastion."
   type        = bool
   default     = false
-}
-
-
-
-variable "ora_nfs_device" {
-  description = "NFS Mount directory. TODO"
-  type        = string
 }
 
 variable "apply_ru" {

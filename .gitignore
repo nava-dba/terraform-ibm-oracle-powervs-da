@@ -1,0 +1,12 @@
+# Ignore the ci/ directory and everything inside it
+ci/
+
+# Ignore the module-assets/ directory and everything inside it
+module-assets/
+
+.terraform/
+.terraform.lock.hcl
+.pre-commit-config.yaml
+.secrets.baseline
+.DS_Store
+input.auto.tfvars
