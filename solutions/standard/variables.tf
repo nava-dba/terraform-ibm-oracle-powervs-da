@@ -2,7 +2,6 @@ variable "ibmcloud_api_key" {
   description = "API Key of IBM Cloud Account."
   type        = string
   sensitive   = true
-  default = "8LSSlu4g_gHpzX8-GCbSPt-kfUEVEjiS_SC_Hj3C1Oih"
 }
 
 variable "iaas_classic_username" {
