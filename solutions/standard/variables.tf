@@ -34,7 +34,7 @@ variable "zone" {
 variable "prefix" {
   description = "A unique identifier for resources. Must contain only lowercase letters, numbers, and - characters. This prefix will be prepended to any resources provisioned by this template. Prefixes must be 16 or fewer characters."
   type        = string
-  default = "da-ora-dnd"
+  default = "da-ora-cat"
 }
 
 variable "pi_existing_workspace_guid" {
@@ -223,7 +223,6 @@ variable "pi_data_volume" {
 variable "pi_user_tags" {
   description = "List of Tag names for IBM Cloud PowerVS instance and volumes. Can be set to null."
   type        = list(string)
-  default     = ["tag01","tag02"] 
 }
 
 
@@ -234,13 +233,11 @@ variable "pi_user_tags" {
 variable "bastion_host_ip" {
   description = "Jump/Bastion server public IP address to reach the ansible host which has private IP."
   type        = string
-  default = "52.118.217.11"
 }
 
 variable "squid_server_ip" {
   description = "Squid server IP address to reach the internet from private network, mandatory if private cloud is targeted"
   type        = string
-  default = "10.240.64.5"
 }
 
 variable "use_rhel_as_proxy" {
@@ -258,18 +255,15 @@ variable "apply_ru" {
 variable "ora_sid" {
   description = "Name for the oracle database DB SID."
   type        = string
-  default = "orcl"
 }
 
 variable "ora_db_password" {
   description = "Oracle DB user password"
   type        = string
   sensitive   = true
-  default = "PW4oracleteam19#"
 }
 
 variable "oracle_install_type" {
   description = "Oracle install type, value would be either ASM or JFS"
   type        = string
-  default = "ASM"
 }
