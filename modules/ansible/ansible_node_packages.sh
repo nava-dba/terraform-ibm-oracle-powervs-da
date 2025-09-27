@@ -108,8 +108,42 @@ main::install_packages() {
 }
 
 ############################################################
+# Setup proxy                                              #
+############################################################
+main::setup_proxy() {
+  local proxy_url="http://${squid_server_ip}:3128"
+
+  # Export for current shell (so script itself uses proxy)
+  export http_proxy="$proxy_url"
+  export https_proxy="$proxy_url"
+  export HTTP_PROXY="$proxy_url"
+  export HTTPS_PROXY="$proxy_url"
+
+  # Persist in /etc/profile for interactive shells
+  if ! grep -q "http_proxy" /etc/profile; then
+    cat <<EOF >> /etc/profile
+
+# Proxy Settings
+export http_proxy=$proxy_url
+export https_proxy=$proxy_url
+export HTTP_PROXY=$proxy_url
+export HTTPS_PROXY=$proxy_url
+export no_proxy=localhost,127.0.0.1,::1
+EOF
+  fi
+
+  main::log_info "Proxy configured: $proxy_url"
+}
+
+############################################################
 # Main start here                                          #
 ############################################################
+if [[ "$use_rhel_as_proxy" != "true" ]]; then
+  main::setup_proxy
+else
+  main::log_info "Skipping proxy setup because use_rhel_as_proxy is true."
+fi
 main::get_os_version
 main::log_system_info
 main::install_packages
+

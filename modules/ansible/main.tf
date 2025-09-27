@@ -23,45 +23,6 @@ locals {
 # 1. Execute shell script to install ansible roles/collections
 ##############################################################
 
-resource "terraform_data" "setup_rhel_proxy" {
-  count = (!var.use_rhel_as_proxy && var.configure_ansible_host) ? 1 : 0
-  
-  connection {
-    type         = "ssh"
-    user         = "root"
-    bastion_host = var.bastion_host_ip
-    host         = var.ansible_host_or_ip
-    private_key  = var.ssh_private_key
-    agent        = false
-    timeout      = "5m"
-  }
-
-  provisioner "remote-exec" {
-    inline = ["mkdir -p ${local.dst_files_dir}", "chmod 777 ${local.dst_files_dir}", ]
-  }
-
-  provisioner "file" {
-    source      = local.ansible_node_config_script
-    destination = "${local.dst_files_dir}/ansible_node_proxy_setup.sh"
-  }
-  
-  provisioner "remote-exec" {
-  inline = [
-    "chmod +x ${local.dst_files_dir}/ansible_node_proxy_setup.sh",
-    "squid_server_ip=${var.squid_server_ip} ${local.dst_files_dir}/ansible_node_proxy_setup.sh",
-  ]
-}
-
-
-  # Execute ansible_node_proxy_setup.sh shell script to configure proxy on ansible host 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x ${local.dst_files_dir}/ansible_node_proxy_setup.sh",
-      "${local.dst_files_dir}/ansible_node_proxy_setup.sh",
-    ]
-  }
-}
-
 resource "terraform_data" "setup_ansible_host" {
   count = var.configure_ansible_host ? 1 : 0
 
@@ -90,7 +51,7 @@ resource "terraform_data" "setup_ansible_host" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x ${local.dst_files_dir}/ansible_node_packages.sh",
-      "${local.dst_files_dir}/ansible_node_packages.sh",
+      "use_rhel_as_proxy=${var.use_rhel_as_proxy} squid_server_ip=${var.squid_server_ip} ${local.dst_files_dir}/ansible_node_packages.sh"
     ]
   }
 }

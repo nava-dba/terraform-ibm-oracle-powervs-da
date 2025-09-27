@@ -33,7 +33,6 @@ variable "zone" {
 variable "prefix" {
   description = "A unique identifier for resources. Must contain only lowercase letters, numbers, and - characters. This prefix will be prepended to any resources provisioned by this template. Prefixes must be 16 or fewer characters."
   type        = string
-  default = "da-ora-cat"
 }
 
 variable "pi_existing_workspace_guid" {
@@ -222,6 +221,7 @@ variable "pi_data_volume" {
 variable "pi_user_tags" {
   description = "List of Tag names for IBM Cloud PowerVS instance and volumes. Can be set to null."
   type        = list(string)
+  default     = null
 }
 
 

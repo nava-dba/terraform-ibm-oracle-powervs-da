@@ -87,7 +87,7 @@ module "pi_instance_rhel_init" {
   ssh_private_key        = var.ssh_private_key
   configure_ansible_host = true
   use_rhel_as_proxy      = var.use_rhel_as_proxy
-  squid_server_ip               = local.squid_server_ip
+  squid_server_ip        = var.use_rhel_as_proxy ? module.pi_instance_rhel.pi_instance_primary_ip : var.squid_server_ip
 
   src_script_template_name = "configure-rhel-management/ansible_exec.sh.tftpl"
   dst_script_file_name     = "configure-rhel-management.sh"
