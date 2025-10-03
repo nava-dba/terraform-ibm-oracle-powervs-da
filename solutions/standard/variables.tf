@@ -62,13 +62,13 @@ variable "pi_rhel_management_server_type" {
 variable "pi_rhel_image_name" {
   description = "Name of the IBM PowerVS RHEL boot image to use for provisioning the instance. Must reference a valid RHEL image."
   type        = string
-  default    = "RHEL9-SP4"
+  default     = "03663b9a-498e-4f9f-9a2a-b3af03fa2dd2"
 }
 
 variable "pi_aix_image_name" {
   description = "Name of the IBM PowerVS AIX boot image used to deploy and host Oracle Database Appliance."
   type        = string
-  default = "7300-03-01"
+  default     = "ea576c75-98bd-42b3-82e5-5f8567bae6c7"
 }
 
 variable "pi_aix_instance" {
