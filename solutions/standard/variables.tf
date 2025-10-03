@@ -221,7 +221,7 @@ variable "pi_data_volume" {
 variable "pi_user_tags" {
   description = "List of Tag names for IBM Cloud PowerVS instance and volumes. Can be set to null."
   type        = list(string)
-  default     = null
+  default     = ["Tag-001","Tag-002"]
 }
 
 
