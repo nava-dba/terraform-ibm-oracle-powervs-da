@@ -303,7 +303,7 @@
                 "original_grouping": "deployment",
                 "type": "code_editor"
               }
-            },            
+            },
             {
               "key": "ibmcloud_cos_configuration",
               "required": true,
@@ -332,7 +332,7 @@
               "key": "pi_user_tags",
               "required": false,
               "type": "string",
-              "default_value": ""
+              "default_value": "[\"Tag-003\",\"Tag-004\"]"
             }
           ],
           "outputs": [
