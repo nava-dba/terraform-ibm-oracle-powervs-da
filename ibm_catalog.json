@@ -264,7 +264,11 @@
               "default_value": "",
               "type": "string",
               "required": true,
-              "sensitive": true,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "multiline_secure_value"
+              },
               "value_constraints": [
                 {
                   "type": "regex",
@@ -276,8 +280,7 @@
                   "value": "^.{8,30}$",
                   "description": "the specified value length should be between 8 and 30 characters."
                 }
-              ],
-              "custom_config": {}
+              ]
             },
             {
               "key": "oracle_install_type",
@@ -303,7 +306,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "code_editor"
+                "type": "multiline_secure_value"
               }
             },
             {
@@ -313,7 +316,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "code_editor"
+                "type": "multiline_secure_value"
               }
             },
             {
