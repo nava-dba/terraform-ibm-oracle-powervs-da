@@ -14,7 +14,7 @@ variable "iaas_classic_api_key" {
   description = "IBM Cloud Classic IaaS API key. Remove after testing. Todo"
   type        = string
   sensitive   = true
-  default = ""
+  default     = ""
 }
 
 variable "region" {
@@ -112,6 +112,7 @@ variable "pi_networks" {
 
 
 variable "ibmcloud_cos_configuration" {
+  sensitive   = true
   description = "Cloud Object Storage instance containing Oracle installation files that will be downloaded to NFS share. 'db-sw/cos_oracle_database_sw_path' must contain only binaries required for Oracle Database installation. 'grid-sw/cos_oracle_grid_sw_path' must contain only binaries required for oracle grid installation when ASM. Leave it empty when JFS. 'patch/cos_oracle_ru_file_path' must contain only binaries required to apply RU patch.'opatch/cos_oracle_opatch_file_path' must contain only binaries required for opatch minimum version install. The binaries required for installation can be found [here](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery or https://www.oracle.com/database/technologies/oracle19c-aix-193000-downloads.html).Avoid inserting '/' at the beginning for 'cos_oracle_database_sw_path', 'cos_oracle_grid_sw_path' and 'cos_oracle_ru_file_path', and 'cos_oracle_opatch_file_path'. Follow exactly same directory structure as prescribed"
   type = object({
     cos_region                        = string
@@ -136,6 +137,7 @@ variable "ibmcloud_cos_configuration" {
 }
 
 variable "ibmcloud_cos_service_credentials" {
+  sensitive   = true
   description = "IBM Cloud Object Storage instance service credentials to access the bucket in the instance (IBM Cloud > Cloud Object Storage > Instances > cos-instance-name > Service Credentials).[json example of service credential](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials)"
   type = object({
     apikey                      = string
