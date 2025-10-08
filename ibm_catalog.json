@@ -264,6 +264,7 @@
               "default_value": "",
               "type": "string",
               "required": true,
+              "sensitive": true,
               "value_constraints": [
                 {
                   "type": "regex",
@@ -298,6 +299,7 @@
             {
               "key": "ibmcloud_cos_service_credentials",
               "required": true,
+              "sensitive": true,
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
@@ -307,6 +309,7 @@
             {
               "key": "ibmcloud_cos_configuration",
               "required": true,
+              "sensitive": true,
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
