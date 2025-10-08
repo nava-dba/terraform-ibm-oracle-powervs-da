@@ -262,13 +262,8 @@
               "key": "ora_db_password",
               "display_name": "oracle_db_main_password",
               "default_value": "",
-              "type": "string",
+              "type": "password",
               "required": true,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "multiline_secure_value"
-              },
               "value_constraints": [
                 {
                   "type": "regex",
@@ -280,7 +275,8 @@
                   "value": "^.{8,30}$",
                   "description": "the specified value length should be between 8 and 30 characters."
                 }
-              ]
+              ],
+              "custom_config": {}
             },
             {
               "key": "oracle_install_type",
@@ -302,21 +298,19 @@
             {
               "key": "ibmcloud_cos_service_credentials",
               "required": true,
-              "sensitive": true,
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "multiline_secure_value"
+                "type": "code_editor"
               }
             },
             {
               "key": "ibmcloud_cos_configuration",
               "required": true,
-              "sensitive": true,
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "multiline_secure_value"
+                "type": "code_editor"
               }
             },
             {
