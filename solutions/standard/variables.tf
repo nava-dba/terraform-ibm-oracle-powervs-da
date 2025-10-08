@@ -7,7 +7,7 @@ variable "ibmcloud_api_key" {
 variable "iaas_classic_username" {
   description = "IBM Cloud Classic IaaS username. Remove after testing. Todo"
   type        = string
-  default = "1d2d5e521b504072bbfa58a5ebf7f03d"
+  default     = "1d2d5e521b504072bbfa58a5ebf7f03d"
 }
 
 variable "iaas_classic_api_key" {
@@ -38,13 +38,13 @@ variable "prefix" {
 variable "pi_existing_workspace_guid" {
   description = "Existing Power Virtual Server Workspace GUID."
   type        = string
-  default = "9e666805-b237-4e9b-8f6f-efdb8c4398c7"
+  default     = "9e666805-b237-4e9b-8f6f-efdb8c4398c7"
 }
 
 variable "pi_ssh_public_key_name" {
   description = "Name of the SSH key pair to associate with the instance"
   type        = string
-  default = "Permanent-VPC-VM-Key"
+  default     = "Permanent-VPC-VM-Key"
 }
 
 variable "ssh_private_key" {
@@ -99,36 +99,35 @@ variable "pi_networks" {
     id   = string
   }))
   default = [
-  {
-    name = "ora_10_80_40"
-    id   = "081a5d02-bf8c-4931-aa6a-d04b8146ec6f"
-  }#,
- # {
- #   name = ""
- #   id   = ""
- # }
-]
+    {
+      name = "ora_10_80_40"
+      id   = "081a5d02-bf8c-4931-aa6a-d04b8146ec6f"
+    } #,
+    # {
+    #   name = ""
+    #   id   = ""
+    # }
+  ]
 }
 
 
 variable "ibmcloud_cos_configuration" {
-  sensitive   = true
   description = "Cloud Object Storage instance containing Oracle installation files that will be downloaded to NFS share. 'db-sw/cos_oracle_database_sw_path' must contain only binaries required for Oracle Database installation. 'grid-sw/cos_oracle_grid_sw_path' must contain only binaries required for oracle grid installation when ASM. Leave it empty when JFS. 'patch/cos_oracle_ru_file_path' must contain only binaries required to apply RU patch.'opatch/cos_oracle_opatch_file_path' must contain only binaries required for opatch minimum version install. The binaries required for installation can be found [here](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery or https://www.oracle.com/database/technologies/oracle19c-aix-193000-downloads.html).Avoid inserting '/' at the beginning for 'cos_oracle_database_sw_path', 'cos_oracle_grid_sw_path' and 'cos_oracle_ru_file_path', and 'cos_oracle_opatch_file_path'. Follow exactly same directory structure as prescribed"
   type = object({
-    cos_region                        = string
-    cos_bucket_name                   = string
-    cos_oracle_database_sw_path       = string
-    cos_oracle_grid_sw_path           = optional(string)
-    cos_oracle_ru_file_path           = string
-    cos_oracle_opatch_file_path       = string
+    cos_region                  = string
+    cos_bucket_name             = string
+    cos_oracle_database_sw_path = string
+    cos_oracle_grid_sw_path     = optional(string)
+    cos_oracle_ru_file_path     = string
+    cos_oracle_opatch_file_path = string
   })
   default = {
-    "cos_region":"us-west",
-    "cos_bucket_name":"bkt-011",
-    "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
-    "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
-    "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
-    "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
+    "cos_region" : "us-west",
+    "cos_bucket_name" : "bkt-011",
+    "cos_oracle_database_sw_path" : "V982583-01_193000_db.zip",
+    "cos_oracle_grid_sw_path" : "V982588-01_193000_grid.zip",
+    "cos_oracle_ru_file_path" : "p37641958_190000_AIX64-5L.zip",
+    "cos_oracle_opatch_file_path" : "p6880880_190000_AIX64-5L.zip"
   }
   validation {
     condition     = var.oracle_install_type == "ASM" ? (var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path != null && length(var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path) > 0) : true
@@ -137,28 +136,27 @@ variable "ibmcloud_cos_configuration" {
 }
 
 variable "ibmcloud_cos_service_credentials" {
-  sensitive   = true
   description = "IBM Cloud Object Storage instance service credentials to access the bucket in the instance (IBM Cloud > Cloud Object Storage > Instances > cos-instance-name > Service Credentials).[json example of service credential](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials)"
   type = object({
-    apikey                      = string
-    endpoints                   = string
-    iam_apikey_description      = string
-    iam_apikey_id               = string
-    iam_apikey_name             = string
-    iam_role_crn                = string
-    iam_serviceid_crn           = string
-    resource_instance_id        = string
+    apikey                 = string
+    endpoints              = string
+    iam_apikey_description = string
+    iam_apikey_id          = string
+    iam_apikey_name        = string
+    iam_role_crn           = string
+    iam_serviceid_crn      = string
+    resource_instance_id   = string
   })
-  default =  {
-    "apikey": "zVmNQKm3Z3Z4G3lQQhUlTQhUP_QPPQJis4R_lrESk94V",
-    "endpoints": "https://control.cloud-object-storage.test.cloud.ibm.com/v2/endpoints",
-    "iam_apikey_description": "Auto-generated for key crn:v1:staging:public:cloud-object-storage:global:a/72ddef7673c94603ac4b06b74c426e0a:e1b7c24c-584d-49c0-81f9-2d336ca3569d:resource-key:d6da2bc3-f281-406b-9689-ec8469fd85e3",
-    "iam_apikey_id": "ApiKey-d2be8181-8134-40dc-a4f8-f5226238efc2",
-    "iam_apikey_name": "sc-002",
-    "iam_role_crn": "crn:v1:bluemix:public:iam::::serviceRole:Manager",
-    "iam_serviceid_crn": "crn:v1:staging:public:iam-identity::a/72ddef7673c94603ac4b06b74c426e0a::serviceid:ServiceId-72be8856-4c57-4e7e-b51b-e16ba9e369c0",
-    "resource_instance_id": "crn:v1:staging:public:cloud-object-storage:global:a/72ddef7673c94603ac4b06b74c426e0a:e1b7c24c-584d-49c0-81f9-2d336ca3569d::"
-   }
+  default = {
+    "apikey" : "zVmNQKm3Z3Z4G3lQQhUlTQhUP_QPPQJis4R_lrESk94V",
+    "endpoints" : "https://control.cloud-object-storage.test.cloud.ibm.com/v2/endpoints",
+    "iam_apikey_description" : "Auto-generated for key crn:v1:staging:public:cloud-object-storage:global:a/72ddef7673c94603ac4b06b74c426e0a:e1b7c24c-584d-49c0-81f9-2d336ca3569d:resource-key:d6da2bc3-f281-406b-9689-ec8469fd85e3",
+    "iam_apikey_id" : "ApiKey-d2be8181-8134-40dc-a4f8-f5226238efc2",
+    "iam_apikey_name" : "sc-002",
+    "iam_role_crn" : "crn:v1:bluemix:public:iam::::serviceRole:Manager",
+    "iam_serviceid_crn" : "crn:v1:staging:public:iam-identity::a/72ddef7673c94603ac4b06b74c426e0a::serviceid:ServiceId-72be8856-4c57-4e7e-b51b-e16ba9e369c0",
+    "resource_instance_id" : "crn:v1:staging:public:cloud-object-storage:global:a/72ddef7673c94603ac4b06b74c426e0a:e1b7c24c-584d-49c0-81f9-2d336ca3569d::"
+  }
 }
 
 #####################################################
@@ -223,7 +221,7 @@ variable "pi_data_volume" {
 variable "pi_user_tags" {
   description = "List of Tag names for IBM Cloud PowerVS instance and volumes. Can be set to null."
   type        = list(string)
-  default     = ["Tag-001","Tag-002"]
+  default     = ["Tag-001", "Tag-002"]
 }
 
 
