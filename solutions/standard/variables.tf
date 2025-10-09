@@ -7,7 +7,7 @@ variable "ibmcloud_api_key" {
 variable "iaas_classic_username" {
   description = "IBM Cloud Classic IaaS username. Remove after testing. Todo"
   type        = string
-  default = "96f925a37d236c8abd126579c5abb214"
+  default = ""
 }
 
 variable "iaas_classic_api_key" {
@@ -62,7 +62,7 @@ variable "pi_rhel_management_server_type" {
 variable "pi_rhel_image_name" {
   description = "Name of the IBM PowerVS RHEL boot image to use for provisioning the instance. Must reference a valid RHEL image."
   type        = string
-  default     = "RHEL9-SP4"
+  default     = "RHEL9-SP6"
 }
 
 variable "pi_aix_image_name" {
@@ -122,8 +122,8 @@ variable "ibmcloud_cos_configuration" {
     cos_oracle_opatch_file_path       = string
   })
   default = {
-    "cos_region":"us-west",
-    "cos_bucket_name":"bkt-011",
+    "cos_region":"us-south",
+    "cos_bucket_name":"oracle-sw-123",
     "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
     "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
     "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
@@ -147,16 +147,16 @@ variable "ibmcloud_cos_service_credentials" {
     iam_serviceid_crn           = string
     resource_instance_id        = string
   })
-  default =  {
-    "apikey": "zVmNQKm3Z3Z4G3lQQhUlTQhUP_QPPQJis4R_lrESk94V",
-    "endpoints": "https://control.cloud-object-storage.test.cloud.ibm.com/v2/endpoints",
-    "iam_apikey_description": "Auto-generated for key crn:v1:staging:public:cloud-object-storage:global:a/72ddef7673c94603ac4b06b74c426e0a:e1b7c24c-584d-49c0-81f9-2d336ca3569d:resource-key:d6da2bc3-f281-406b-9689-ec8469fd85e3",
-    "iam_apikey_id": "ApiKey-d2be8181-8134-40dc-a4f8-f5226238efc2",
-    "iam_apikey_name": "sc-002",
-    "iam_role_crn": "crn:v1:bluemix:public:iam::::serviceRole:Manager",
-    "iam_serviceid_crn": "crn:v1:staging:public:iam-identity::a/72ddef7673c94603ac4b06b74c426e0a::serviceid:ServiceId-72be8856-4c57-4e7e-b51b-e16ba9e369c0",
-    "resource_instance_id": "crn:v1:staging:public:cloud-object-storage:global:a/72ddef7673c94603ac4b06b74c426e0a:e1b7c24c-584d-49c0-81f9-2d336ca3569d::"
-   }
+  default = {
+    "apikey": "eRo0StZgtQ1I4uf3DiKL90ybCXMypyxfX35qkS-JXDzn",
+    "endpoints": "https://control.cloud-object-storage.cloud.ibm.com/v2/endpoints",
+    "iam_apikey_description": "Auto-generated for key crn:v1:bluemix:public:cloud-object-storage:global:a/ef292c8841264453a3c43664760ffbeb:d5fe95f3-05ca-4ae4-9d85-c7aebcb25d8a:resource-key:37f08b12-dd63-4fff-a281-1e5aac05a470",
+    "iam_apikey_id": "ApiKey-4bb75796-bcd7-479e-8c8b-0ddfe790dcf4",
+    "iam_apikey_name": "Oracle-Binaries-da",
+    "iam_role_crn": "crn:v1:bluemix:public:iam::::serviceRole:Writer",
+    "iam_serviceid_crn": "crn:v1:bluemix:public:iam-identity::a/ef292c8841264453a3c43664760ffbeb::serviceid:ServiceId-d84fcd1c-4d11-4049-a2d9-91d5b9c99eca",
+    "resource_instance_id": "crn:v1:bluemix:public:cloud-object-storage:global:a/ef292c8841264453a3c43664760ffbeb:d5fe95f3-05ca-4ae4-9d85-c7aebcb25d8a::"
+}
 }
 
 #####################################################
