@@ -8,7 +8,7 @@
 ############################################################
 
 GLOBAL_RHEL_PACKAGES="rhel-system-roles expect perl nfs-utils"
-GLOBAL_GALAXY_COLLECTIONS="ibm.power_linux_sap:>=3.0.0,<4.0.0 ibm.power_aix:2.1.1 ibm.power_aix_oracle:1.3.1 ibm.power_aix_oracle_dba:2.0.8"
+GLOBAL_GALAXY_COLLECTIONS="ibm.power_linux_sap:>=3.0.0,<4.0.0 ibm.power_aix:2.1.1 ibm.power_aix_oracle:1.3.2 ibm.power_aix_oracle_dba:2.0.8"
 
 ############################################################
 # Start functions
@@ -122,6 +122,19 @@ main::setup_proxy() {
   # Persist in /etc/profile for interactive shells
   if ! grep -q "http_proxy" /etc/profile; then
     cat <<EOF >> /etc/profile
+
+# Proxy Settings
+export http_proxy=$proxy_url
+export https_proxy=$proxy_url
+export HTTP_PROXY=$proxy_url
+export HTTPS_PROXY=$proxy_url
+export no_proxy=localhost,127.0.0.1,::1
+EOF
+  fi
+
+    # Persist in /etc/environment for interactive shells
+  if ! grep -q "http_proxy" /etc/environment; then
+    cat <<EOF >> /etc/environment
 
 # Proxy Settings
 export http_proxy=$proxy_url

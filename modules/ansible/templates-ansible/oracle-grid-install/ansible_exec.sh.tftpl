@@ -7,6 +7,8 @@ ansible_inventory=${ansible_inventory}
 ansible_private_key_file=${ansible_private_key_file}
 
 # Create ansible.cfg file
+[ssh_connection]
+ssh_args = -o ForwardAgent=yes -o ControlPersist=30m -o ServerAliveInterval=45 -o ServerAliveCountMax=10
 ansible_playbook_name=$(basename $${ansible_playbook})
 echo -e "[defaults]\nhost_key_checking=False" >ansible.cfg
 export ANSIBLE_LOG_PATH=$${ansible_log_path}/$${ansible_playbook_name}.$(date "+%Y.%m.%d-%H.%M.%S").log

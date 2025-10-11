@@ -251,7 +251,7 @@ module "ibmcloud_cos_grid" {
 ###########################################################
 
 locals {
-  playbook_oracle_grid_install_vars = {
+  playbook_oracle_install_vars = {
     ORA_NFS_HOST   = module.pi_instance_rhel.pi_instance_primary_ip
     ORA_NFS_DEVICE =  local.nfs_mount
     DATABASE_SW    = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_database_sw_path}"
@@ -264,7 +264,7 @@ locals {
   }
 }
 
-module "oracle_grid_install" {
+module "oracle_install" {
   source     = "../../modules/ansible"
     depends_on = [  module.ibmcloud_cos_grid, module.pi_instance_aix_init]
     
@@ -275,11 +275,11 @@ module "oracle_grid_install" {
   squid_server_ip               = local.squid_server_ip
 
   src_script_template_name = "oracle-grid-install/ansible_exec.sh.tftpl"
-  dst_script_file_name     = "oracle_grid_install.sh"
+  dst_script_file_name     = "oracle_install.sh"
 
   src_playbook_template_name = "oracle-grid-install/playbook-install-oracle-grid.yml.tftpl"
   dst_playbook_file_name     = "playbook-install-oracle-grid.yml"
-  playbook_template_vars     = local.playbook_oracle_grid_install_vars
+  playbook_template_vars     = local.playbook_oracle_install_vars
 
   src_inventory_template_name = "inventory.tftpl"
   dst_inventory_file_name     = "oracle-grid-install-inventory"

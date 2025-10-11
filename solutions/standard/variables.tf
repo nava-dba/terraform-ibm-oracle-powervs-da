@@ -148,13 +148,13 @@ variable "ibmcloud_cos_service_credentials" {
     resource_instance_id        = string
   })
   default = {
-    "apikey": "eRo0StZgtQ1I4uf3DiKL90ybCXMypyxfX35qkS-JXDzn",
+    "apikey": "WTW4piGq5WWIDJ0-JiuX7mz3dfHJQb_FXxbKxOXE2VTq",
     "endpoints": "https://control.cloud-object-storage.cloud.ibm.com/v2/endpoints",
-    "iam_apikey_description": "Auto-generated for key crn:v1:bluemix:public:cloud-object-storage:global:a/ef292c8841264453a3c43664760ffbeb:d5fe95f3-05ca-4ae4-9d85-c7aebcb25d8a:resource-key:37f08b12-dd63-4fff-a281-1e5aac05a470",
-    "iam_apikey_id": "ApiKey-4bb75796-bcd7-479e-8c8b-0ddfe790dcf4",
-    "iam_apikey_name": "Oracle-Binaries-da",
+    "iam_apikey_description": "Auto-generated for key crn:v1:bluemix:public:cloud-object-storage:global:a/ef292c8841264453a3c43664760ffbeb:d5fe95f3-05ca-4ae4-9d85-c7aebcb25d8a:resource-key:b9066fa9-7189-4894-b974-aba9522433d0",
+    "iam_apikey_id": "ApiKey-1ded762f-1cdf-4d8a-9fa0-2839b7ab4fd4",
+    "iam_apikey_name": "oracle-bin-da",
     "iam_role_crn": "crn:v1:bluemix:public:iam::::serviceRole:Writer",
-    "iam_serviceid_crn": "crn:v1:bluemix:public:iam-identity::a/ef292c8841264453a3c43664760ffbeb::serviceid:ServiceId-d84fcd1c-4d11-4049-a2d9-91d5b9c99eca",
+    "iam_serviceid_crn": "crn:v1:bluemix:public:iam-identity::a/ef292c8841264453a3c43664760ffbeb::serviceid:ServiceId-5b089940-c95e-4858-bba6-655f4e74a1b9",
     "resource_instance_id": "crn:v1:bluemix:public:cloud-object-storage:global:a/ef292c8841264453a3c43664760ffbeb:d5fe95f3-05ca-4ae4-9d85-c7aebcb25d8a::"
 }
 }

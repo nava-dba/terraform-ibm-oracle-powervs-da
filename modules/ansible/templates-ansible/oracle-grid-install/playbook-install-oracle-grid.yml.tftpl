@@ -106,7 +106,7 @@
     ignoreprecheck: false
 
     # Fill these parameters when the database must be created on ASM. When set to True, Grid Standalone will be installed and Diskgroup is created.
-    grid_asm_flag: false
+    grid_asm_flag: "{{ true if oracle_install_type == 'ASM' else false }}"
     asm_sys_password: "${ORA_DB_PASSWORD}"
     asm_diskgroup_name: DATA
     asm_diskgroup_redundancy: EXTERNAL
