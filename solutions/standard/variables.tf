@@ -14,7 +14,7 @@ variable "iaas_classic_api_key" {
   description = "IBM Cloud Classic IaaS API key. Remove after testing. Todo"
   type        = string
   sensitive   = true
-  default = ""
+  default     = ""
 }
 
 variable "region" {
@@ -38,13 +38,13 @@ variable "prefix" {
 variable "pi_existing_workspace_guid" {
   description = "Existing Power Virtual Server Workspace GUID."
   type        = string
-  default = "7df0219a-9c54-4644-bdd7-d623cb7fd3e4"
+  default     = ""
 }
 
 variable "pi_ssh_public_key_name" {
   description = "Name of the SSH key pair to associate with the instance"
   type        = string
-  default = "bhar-ora-vpc-pub"
+  default     = ""
 }
 
 variable "ssh_private_key" {
@@ -56,7 +56,6 @@ variable "ssh_private_key" {
 variable "pi_rhel_management_server_type" {
   description = "Server type for the management instance."
   type        = string
-  default     = "s922"
 }
 
 variable "pi_rhel_image_name" {
@@ -82,14 +81,6 @@ variable "pi_aix_instance" {
     pin_policy        = string # Pin policy (e.g., hard, soft)
     health_status     = string # Health status (e.g., OK, Warning, Critical)
   })
-  default = {
-    "memory_size" : "8",
-    "number_processors" : "1",
-    "cpu_proc_type" : "shared",
-    "server_type" : "s922",
-    "pin_policy" : "hard",
-    "health_status" : "OK"
-  }
 }
 
 variable "pi_networks" {
@@ -98,37 +89,19 @@ variable "pi_networks" {
     name = string
     id   = string
   }))
-  default = [
-  {
-    name = "ora-net-da"
-    id   = "ab63c23f-e97a-48da-abdc-759d3637210d"
-  }#,
- # {
- #   name = ""
- #   id   = ""
- # }
-]
 }
 
 
 variable "ibmcloud_cos_configuration" {
   description = "Cloud Object Storage instance containing Oracle installation files that will be downloaded to NFS share. 'db-sw/cos_oracle_database_sw_path' must contain only binaries required for Oracle Database installation. 'grid-sw/cos_oracle_grid_sw_path' must contain only binaries required for oracle grid installation when ASM. Leave it empty when JFS. 'patch/cos_oracle_ru_file_path' must contain only binaries required to apply RU patch.'opatch/cos_oracle_opatch_file_path' must contain only binaries required for opatch minimum version install. The binaries required for installation can be found [here](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery or https://www.oracle.com/database/technologies/oracle19c-aix-193000-downloads.html).Avoid inserting '/' at the beginning for 'cos_oracle_database_sw_path', 'cos_oracle_grid_sw_path' and 'cos_oracle_ru_file_path', and 'cos_oracle_opatch_file_path'. Follow exactly same directory structure as prescribed"
   type = object({
-    cos_region                        = string
-    cos_bucket_name                   = string
-    cos_oracle_database_sw_path       = string
-    cos_oracle_grid_sw_path           = optional(string)
-    cos_oracle_ru_file_path           = string
-    cos_oracle_opatch_file_path       = string
+    cos_region                  = string
+    cos_bucket_name             = string
+    cos_oracle_database_sw_path = string
+    cos_oracle_grid_sw_path     = optional(string)
+    cos_oracle_ru_file_path     = string
+    cos_oracle_opatch_file_path = string
   })
-  default = {
-    "cos_region":"us-south",
-    "cos_bucket_name":"oracle-sw-123",
-    "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
-    "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
-    "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
-    "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
-  }
   validation {
     condition     = var.oracle_install_type == "ASM" ? (var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path != null && length(var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path) > 0) : true
     error_message = "For ASM installation, 'cos_oracle_grid_sw_path' must be provided in 'ibmcloud_cos_configuration'."
@@ -138,25 +111,15 @@ variable "ibmcloud_cos_configuration" {
 variable "ibmcloud_cos_service_credentials" {
   description = "IBM Cloud Object Storage instance service credentials to access the bucket in the instance (IBM Cloud > Cloud Object Storage > Instances > cos-instance-name > Service Credentials).[json example of service credential](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials)"
   type = object({
-    apikey                      = string
-    endpoints                   = string
-    iam_apikey_description      = string
-    iam_apikey_id               = string
-    iam_apikey_name             = string
-    iam_role_crn                = string
-    iam_serviceid_crn           = string
-    resource_instance_id        = string
+    apikey                 = string
+    endpoints              = string
+    iam_apikey_description = string
+    iam_apikey_id          = string
+    iam_apikey_name        = string
+    iam_role_crn           = string
+    iam_serviceid_crn      = string
+    resource_instance_id   = string
   })
-  default = {
-    "apikey": "WTW4piGq5WWIDJ0-JiuX7mz3dfHJQb_FXxbKxOXE2VTq",
-    "endpoints": "https://control.cloud-object-storage.cloud.ibm.com/v2/endpoints",
-    "iam_apikey_description": "Auto-generated for key crn:v1:bluemix:public:cloud-object-storage:global:a/ef292c8841264453a3c43664760ffbeb:d5fe95f3-05ca-4ae4-9d85-c7aebcb25d8a:resource-key:b9066fa9-7189-4894-b974-aba9522433d0",
-    "iam_apikey_id": "ApiKey-1ded762f-1cdf-4d8a-9fa0-2839b7ab4fd4",
-    "iam_apikey_name": "oracle-bin-da",
-    "iam_role_crn": "crn:v1:bluemix:public:iam::::serviceRole:Writer",
-    "iam_serviceid_crn": "crn:v1:bluemix:public:iam-identity::a/ef292c8841264453a3c43664760ffbeb::serviceid:ServiceId-5b089940-c95e-4858-bba6-655f4e74a1b9",
-    "resource_instance_id": "crn:v1:bluemix:public:cloud-object-storage:global:a/ef292c8841264453a3c43664760ffbeb:d5fe95f3-05ca-4ae4-9d85-c7aebcb25d8a::"
-}
 }
 
 #####################################################
@@ -172,12 +135,6 @@ variable "pi_boot_volume" {
     count = string
     tier  = string
   })
-  default = {
-    "name" : "exboot",
-    "size" : "40",
-    "count" : "1",
-    "tier" : "tier1"
-  }
 }
 
 # 2. oravg
@@ -189,12 +146,6 @@ variable "pi_oravg_volume" {
     count = string
     tier  = string
   })
-  default = {
-    "name" : "oravg",
-    "size" : "200",
-    "count" : "1",
-    "tier" : "tier1"
-  }
 }
 
 # 3. DATA diskgroup
@@ -206,12 +157,6 @@ variable "pi_data_volume" {
     count = string
     tier  = string
   })
-  default = {
-    "name" : "DATA",
-    "size" : "20",
-    "count" : "4",
-    "tier" : "tier1"
-  }
 }
 
 
@@ -221,7 +166,6 @@ variable "pi_data_volume" {
 variable "pi_user_tags" {
   description = "List of Tag names for IBM Cloud PowerVS instance and volumes. Can be set to null."
   type        = list(string)
-  default     = ["Tag-001","Tag-002"]
 }
 
 
