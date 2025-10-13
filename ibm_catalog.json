@@ -221,7 +221,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "code_editor"
+                "type": "json_editor"
               },
               "default_value": [
                 {
