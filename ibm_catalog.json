@@ -64,25 +64,6 @@
           "dependencies": [],
           "configuration": [
             {
-              "key": "pi_existing_workspace_guid",
-              "type": "string",
-              "required": true,
-              "default_value": "7df0219a-9c54-4644-bdd7-d623cb7fd3e4",
-              "value_constraints": [
-                {
-                  "type": "regex",
-                  "value": "^(([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12})$",
-                  "description": "The specified value shall be valid GUID"
-                }
-              ]
-            },
-            {
-              "key": "pi_ssh_public_key_name",
-              "type": "string",
-              "required": true,
-              "default_value": "bhar-ora-vpc-pub"
-            },
-            {
               "key": "region",
               "type": "string",
               "default_value": "",
@@ -203,6 +184,25 @@
                 }
               ],
               "custom_config": {}
+            },
+            {
+              "key": "pi_existing_workspace_guid",
+              "type": "string",
+              "required": true,
+              "default_value": "7df0219a-9c54-4644-bdd7-d623cb7fd3e4",
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12})$",
+                  "description": "The specified value shall be valid GUID"
+                }
+              ]
+            },
+            {
+              "key": "pi_ssh_public_key_name",
+              "type": "string",
+              "required": true,
+              "default_value": "bhar-ora-vpc-pub"
             },
             {
               "key": "ssh_private_key",
@@ -405,7 +405,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "code_editor"
+                "type": "json_editor"
               },
               "default_value": {
                 "apikey": "WTW4piGq5WWIDJ0-JiuX7mz3dfHJQb_FXxbKxOXE2VTq",
@@ -424,7 +424,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "code_editor"
+                "type": "json_editor"
               },
               "default_value": {
                 "cos_region": "us-south",
@@ -441,7 +441,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "code_editor"
+                "type": "json_editor"
               },
               "default_value": {
                 "memory_size": "8",
@@ -458,7 +458,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "code_editor"
+                "type": "json_editor"
               },
               "default_value": {
                 "name": "exboot",
@@ -473,7 +473,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "code_editor"
+                "type": "json_editor"
               },
               "default_value": {
                 "name": "oravg",
@@ -488,7 +488,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "code_editor"
+                "type": "json_editor"
               },
               "default_value": {
                 "name": "DATA",
