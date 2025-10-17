@@ -510,6 +510,15 @@
               "default_value": "[\"Tag-001\", \"Tag-002\"]"
             }
           ],
+          "scripts": [
+            {
+              "type": "ansible",
+              "short_description": "Running the functional validation for the specific inputs provided in the DA definition",
+              "path": "scripts/pre-print.yaml",
+              "stage": "pre",
+              "action": "validate"
+            }
+          ],
           "outputs": [
             {
               "key": ""

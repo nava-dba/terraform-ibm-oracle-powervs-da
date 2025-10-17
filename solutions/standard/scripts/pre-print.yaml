@@ -1,0 +1,20 @@
+- name: Validate pre playbook
+  hosts: localhost
+  vars:
+    ibmcloud_api_key: "{{ lookup(`ansible.builtin.env`, `ibmcloud_api_key`)}}"
+    pi_networks: "{{ lookup(`ansible.builtin.env`, `pi_networks`)}}"
+    pi_ssh_public_key_name: "{{ lookup(`ansible.builtin.env`, `pi_ssh_public_key_name`)}}"
+    pi_existing_workspace_guid: "{{ lookup(`ansible.builtin.env`, `pi_existing_workspace_guid`)}}"
+  tasks:
+    - name: Print message
+      ansible.builtin.debug:
+        msg: "The workspace id is {{ pi_existing_workspace_guid }}"
+      when: pi_existing_workspace_guid is defined and pi_existing_workspace_guid != ""
+    - name: Print message
+      ansible.builtin.debug:
+        msg: "The cos instance name is {{ cos_instance_name }}"
+      when: cos_instance_name is defined
+    - name: Print result
+      ansible.builtin.debug:
+        msg: "Received api key"
+      when: ibmcloud_api_key is defined and ibmcloud_api_key != ""
