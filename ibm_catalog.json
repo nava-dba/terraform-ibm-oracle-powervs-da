@@ -235,7 +235,7 @@
               "display_name": "server_type_rhel",
               "type": "string",
               "default_value": "s922",
-              "required": true,
+              "required": false,
               "options": [
                 {
                   "displayname": "s1122",
@@ -268,7 +268,7 @@
               "display_name": "image_name_rhel",
               "type": "string",
               "default_value": "RHEL9-SP6",
-              "required": true,
+              "required": false,
               "options": [{ "displayname": "RHEL9-SP6", "value": "RHEL9-SP6" }]
             },
             {
@@ -276,7 +276,7 @@
               "display_name": "image_name_aix",
               "type": "string",
               "default_value": "7300-03-01",
-              "required": true,
+              "required": false,
               "options": [
                 {
                   "displayname": "7200-05-09",
@@ -437,7 +437,7 @@
             },
             {
               "key": "pi_aix_instance",
-              "required": true,
+              "required": false,
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
@@ -454,7 +454,7 @@
             },
             {
               "key": "pi_boot_volume",
-              "required": true,
+              "required": false,
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
@@ -469,7 +469,7 @@
             },
             {
               "key": "pi_oravg_volume",
-              "required": true,
+              "required": false,
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
