@@ -1,10 +1,10 @@
 - name: Validate pre playbook
   hosts: localhost
   vars:
-    ibmcloud_api_key: "{{ lookup(`ansible.builtin.env`, `ibmcloud_api_key`)}}"
-    pi_networks: "{{ lookup(`ansible.builtin.env`, `pi_networks`)}}"
-    pi_ssh_public_key_name: "{{ lookup(`ansible.builtin.env`, `pi_ssh_public_key_name`)}}"
-    pi_existing_workspace_guid: "{{ lookup(`ansible.builtin.env`, `pi_existing_workspace_guid`)}}"
+    ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key')}}"
+    pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks')}}"
+    pi_ssh_public_key_name: "{{ lookup('ansible.builtin.env', 'pi_ssh_public_key_name')}}"
+    pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid')}}"
   tasks:
     - name: Print message
       ansible.builtin.debug:

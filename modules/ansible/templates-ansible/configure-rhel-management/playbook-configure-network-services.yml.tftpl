@@ -27,7 +27,7 @@
 - name: Ansible play to export Software dir as NFS export
   hosts: all
   vars:
-    server_config: ${nfs_config}
+    nfs_config: ${nfs_config}
 
   roles:
-  - { role: ibm.power_linux_sap.configure_network_management_services, when: server_config is defined}
+  - { role: ibm.power_linux_sap.configure_network_management_services, when: nfs_config is defined}

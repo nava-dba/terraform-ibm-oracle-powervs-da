@@ -1,7 +1,7 @@
 - name: IBM Cloud DA Pre-Stage Validation with ibmcloud CLI
   hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: false
 
   vars:
     ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'IBMCLOUD_API_KEY') }}"
@@ -9,21 +9,25 @@
     workspace_id: "{{ lookup('ansible.builtin.env', 'WORKSPACE_ID') }}"
 
   tasks:
-    - name: "Ensure IBM Cloud CLI is available"
-      command: ibmcloud --version
+    - name: Ensure IBM Cloud CLI is available
+      ansible.builtin.command:
+        cmd: ibmcloud --version
       register: ibmcloud_version
-      ignore_errors: no
+      changed_when: false
 
-    - name: "Validate COS instance exists using ibmcloud CLI"
-      shell: ibmcloud resource service-instances --service-name {{ cos_instance_name }} --output json
+    - name: Validate COS instance exists using ibmcloud CLI
+      ansible.builtin.command: >
+        ibmcloud resource service-instances
+        --service-name {{ cos_instance_name }}
+        --output json
       register: cos_check
       changed_when: false
 
-    - name: "Fail if COS instance does not exist"
-      fail:
+    - name: Fail if COS instance does not exist
+      ansible.builtin.fail:
         msg: "COS instance {{ cos_instance_name }} does not exist!"
-      when: cos_check.stdout is not search('"name":"{{ cos_instance_name }}"')
+      when: cos_check.stdout is not search('"name":"%s"' % cos_instance_name)
 
     - name: "Debug COS instance validation output"
-      debug:
+      ansible.builtin.debug:
         var: cos_check.stdout

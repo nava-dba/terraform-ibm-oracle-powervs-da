@@ -4,19 +4,6 @@ variable "ibmcloud_api_key" {
   sensitive   = true
 }
 
-variable "iaas_classic_username" {
-  description = "IBM Cloud Classic IaaS username. Remove after testing. Todo"
-  type        = string
-  default = ""
-}
-
-variable "iaas_classic_api_key" {
-  description = "IBM Cloud Classic IaaS API key. Remove after testing. Todo"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
 variable "region" {
   type        = string
   description = "The IBM Cloud region to deploy resources."
@@ -61,13 +48,11 @@ variable "pi_rhel_management_server_type" {
 variable "pi_rhel_image_name" {
   description = "Name of the IBM PowerVS RHEL boot image to use for provisioning the instance. Must reference a valid RHEL image."
   type        = string
-  default     = "RHEL9-SP6"
 }
 
 variable "pi_aix_image_name" {
   description = "Name of the IBM PowerVS AIX boot image used to deploy and host Oracle Database Appliance."
   type        = string
-  default     = "7300-03-01"
 }
 
 variable "pi_aix_instance" {
