@@ -1,7 +1,8 @@
 ---
 - name: Validate pre playbook
-  hosts: all
+  hosts: localhost
   gather_facts: true
+  connection: local
   vars:
     region: "{{ lookup('ansible.builtin.env', 'region') }}"
     ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key') }}"
