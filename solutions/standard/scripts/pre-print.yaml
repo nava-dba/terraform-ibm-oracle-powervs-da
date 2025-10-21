@@ -11,7 +11,7 @@
     pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid') }}"
 
   tasks:
-    - name: Validate IBM Cloud API key and region
+    - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
         cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} -r {{ region }}
       register: login_output
@@ -63,7 +63,7 @@
         - ssh_output.stdout | from_json is not mapping
       when:
         - pi_ssh_public_key_name | default('') | length > 0
-      no_log: true
+      no_log: false
 
     - name: Debug Public SSH key
       ansible.builtin.debug:
