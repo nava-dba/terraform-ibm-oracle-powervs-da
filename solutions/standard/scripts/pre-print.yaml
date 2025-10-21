@@ -1,44 +1,79 @@
+---
 - name: Validate pre playbook
-  hosts: 10.2
+  hosts: all
   gather_facts: true
   vars:
     region: "{{ lookup('ansible.builtin.env', 'region') }}"
-    ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key')}}"
-    pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks')}}"
-    pi_ssh_public_key_name: "{{ lookup('ansible.builtin.env', 'pi_ssh_public_key_name')}}"
-    pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid')}}"
-  tasks:
-    - name: Log in to IBM Cloud
-      ansible.builtin.fail:
-        msg: "Either IBM Cloud API Key or Region is invalid"
-      ansible.builtin.shell: >
-        ibmcloud login --apikey {{ ibmcloud_api_key }} -r {{ region }}
-      register: login_output
-      when: ibmcloud_api_key is defined and ibmcloud_api_key != "" and region is defined and region != ""
+    ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key') }}"
+    pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') }}"
+    pi_ssh_public_key_name: "{{ lookup('ansible.builtin.env', 'pi_ssh_public_key_name') }}"
+    pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid') }}"
 
-    - name: Validate the supplied workspace-id
-      ansible.builtin.fail:
-        msg: "Unable to set the target Workspace ID {{ pi_existing_workspace_guid }}"
+  tasks:
+    - name: Validate IBM Cloud API key and region
+      ansible.builtin.command:
+        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} -r {{ region }}
+      register: login_output
+      changed_when: false
+      failed_when: login_output.rc != 0
+      when:
+        - ibmcloud_api_key | default('') | length > 0
+        - region | default('') | length > 0
+      no_log: true
+
+    - name: Debug login success
       ansible.builtin.debug:
-        msg: "The Workspace ID is {{ pi_existing_workspace_guid }}"
-      ansible.builtin.shell: >
-        ibmcloud pi ws tg `ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json | jq -r '.details.crn'`
-      when: pi_existing_workspace_guid is defined and pi_existing_workspace_guid != ""
+        msg: "Successfully logged in to IBM Cloud region {{ region }}"
+      changed_when: false
+
+    - name: Validate the supplied Workspace ID (JSON fetch)
+      ansible.builtin.command:
+        cmd: ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json
+      register: ws_output
+      changed_when: false
+      failed_when:
+        - ws_output.rc != 0
+        - ws_output.stdout | from_json is not mapping
+      when:
+        - pi_existing_workspace_guid | default('') | length > 0
+      no_log: true
+
+    - name: Extract Workspace CRN
+      ansible.builtin.set_fact:
+        workspace_crn: "{{ (ws_output.stdout | from_json).details.crn | default('N/A') }}"
+      when:
+        - ws_output is defined
+        - ws_output.rc == 0
+      changed_when: false
+      no_log: true
+
+    - name: Debug Workspace ID
+      ansible.builtin.debug:
+        msg: "The Workspace ID {{ pi_existing_workspace_guid }} is valid. CRN: {{ workspace_crn }}"
+      changed_when: false
 
     - name: Validate the supplied Public SSH key
-      ansible.builtin.fail:
-        msg: "The Public SSH key name {{ pi_ssh_public_key_name }} is not valid"
-      ansible.builtin.shell: >
-        ibmcloud pi ssh get {{ pi_ssh_public_key_name }}  --json
-      ansible.builtin.debug:
-        msg: "The Public SSH key name is {{ pi_ssh_public_key_name }}"
-      when: pi_ssh_public_key_name is defined and pi_ssh_public_key_name != ""
+      ansible.builtin.command:
+        cmd: ibmcloud pi ssh get {{ pi_ssh_public_key_name }} --json
+      register: ssh_output
+      changed_when: false
+      failed_when:
+        - ssh_output.rc != 0
+        - ssh_output.stdout | from_json is not mapping
+      when:
+        - pi_ssh_public_key_name | default('') | length > 0
+      no_log: true
 
-    # - name: Validate the supplied sub-nets (or) networks
-    #  ansible.builtin.fail:
-    #    msg: "One or more network-ids are invalid"
-    #  ansible.builtin.shell: >
-    #    for i in $(echo {{ pi_networks }} | jq -r '.[].id'); do command "ibmcloud pi ni list --network-id $i"; done
-    #  ansible.builtin.debug:
-    #    msg: "The sub-nets or networks are {{ pi_networks }}"
-    #  when: pi_networks is defined and pi_networks != ""
+    - name: Debug Public SSH key
+      ansible.builtin.debug:
+        msg: "The Public SSH key {{ pi_ssh_public_key_name }} is valid."
+      changed_when: false
+
+    - name: All IBM Cloud pre-validations passed
+      ansible.builtin.debug:
+        msg: "IBM Cloud API, workspace, and SSH key validations completed successfully."
+      when:
+        - login_output.rc == 0
+        - ws_output.rc == 0
+        - ssh_output.rc == 0
+      changed_when: false

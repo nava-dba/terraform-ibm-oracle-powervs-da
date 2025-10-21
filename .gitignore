@@ -10,3 +10,4 @@ module-assets/
 .secrets.baseline
 .DS_Store
 input.auto.tfvars
+.lock
