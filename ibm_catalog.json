@@ -64,6 +64,12 @@
           "dependencies": [],
           "configuration": [
             {
+              "key": "prefix",
+              "default_value": "",
+              "type": "string",
+              "required": true
+            },
+            {
               "key": "region",
               "type": "string",
               "default_value": "",
@@ -338,12 +344,6 @@
               ]
             },
             {
-              "key": "prefix",
-              "default_value": "",
-              "type": "string",
-              "required": true
-            },
-            {
               "key": "ora_sid",
               "display_name": "oracle_db_name",
               "default_value": "",
@@ -401,11 +401,13 @@
             },
             {
               "key": "ibmcloud_cos_service_credentials",
+              "type": "multiline_secure_value",
+              "display_name": "ibmcloud_cos_service_credentials",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "json_editor"
+                "type": "multiline_secure_value"
               },
               "default_value": {
                 "apikey": "WTW4piGq5WWIDJ0-JiuX7mz3dfHJQb_FXxbKxOXE2VTq",
@@ -424,7 +426,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "json_editor"
+                "type": "code_editor"
               },
               "default_value": {
                 "cos_region": "us-south",

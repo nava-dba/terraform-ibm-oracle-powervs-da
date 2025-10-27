@@ -9,7 +9,8 @@
     pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') }}"
     pi_ssh_public_key_name: "{{ lookup('ansible.builtin.env', 'pi_ssh_public_key_name') }}"
     pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid') }}"
-
+    cos_service_apikey: "{{ (lookup('ansible.builtin.env', 'ibmcloud_cos_service_credentials') | from_json).apikey }}"
+    cos_bucket_name: "{{ (lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') | from_json).cos_bucket_name }}"
   tasks:
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
@@ -70,11 +71,40 @@
         msg: "The Public SSH key {{ pi_ssh_public_key_name }} is valid."
       changed_when: false
 
+    - name: Connect to the COS Instance using the API key
+      ansible.builtin.debug:
+        msg: "The COS apikey {{ cos_service_apikey }} is being vaidated; Bucket: {{ cos_bucket_name }}"
+      ansible.builtin.command:
+        cmd: ibmcloud login --apikey {{ cos_service_apikey }} -r {{ region }}
+      register: cos_login_output
+      changed_when: false
+      failed_when:
+        - cos_login_output.rc != 0
+        - cos_login_output.stdout | from_json is not mapping
+      when:
+        - cos_service_apikey | default('') | length > 0
+      no_log: false
+
+    - name: Check if the supplied COS bucket configuration is correct
+      ansible.builtin.command:
+        cmd: ibmcloud cos list-buckets --json | jq -r '.Buckets.[].Name' | grep {{ cos_bucket_name }}
+      register: cos_bucket_list_check_output
+      changed_when: false
+      failed_when:
+        - cos_bucket_list_check_output.rc != 0
+        - cos_bucket_list_check_output.stdout | from_json is not mapping
+      when:
+        - cos_service_apikey | default('') | length > 0
+        - cos_bucket_name | default('') | length > 0
+      no_log: false
+
     - name: All IBM Cloud pre-validations passed
       ansible.builtin.debug:
-        msg: "IBM Cloud API, workspace, and SSH key validations completed successfully."
+        msg: "IBM Cloud API, workspace, SSH key, COS Connetivity and Bucket name validations completed successfully."
       when:
         - login_output.rc == 0
         - ws_output.rc == 0
         - ssh_output.rc == 0
+        - cos_login_output.rc == 0
+        - cos_bucket_list_check_output.rc == 0
       changed_when: false
