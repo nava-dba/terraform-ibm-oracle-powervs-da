@@ -407,7 +407,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "multiline_secure_value"
+                "type": "json_editor"
               },
               "default_value": {
                 "apikey": "WTW4piGq5WWIDJ0-JiuX7mz3dfHJQb_FXxbKxOXE2VTq",
@@ -426,7 +426,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "code_editor"
+                "type": "json_editor"
               },
               "default_value": {
                 "cos_region": "us-south",
