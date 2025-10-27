@@ -1,6 +1,6 @@
 ---
 - name: Validate pre playbook
-  hosts: localhost
+  hosts: all
   gather_facts: true
   connection: local
   vars:
@@ -72,8 +72,6 @@
       changed_when: false
 
     - name: Connect to the COS Instance using the API key
-      ansible.builtin.debug:
-        msg: "The COS apikey {{ cos_service_apikey }} is being vaidated; Bucket: {{ cos_bucket_name }}"
       ansible.builtin.command:
         cmd: ibmcloud login --apikey {{ cos_service_apikey }} -r {{ region }}
       register: cos_login_output
