@@ -1,6 +1,5 @@
----
 - name: Validate pre playbook
-  hosts: all
+  hosts: localhost
   gather_facts: true
   connection: local
   vars:
