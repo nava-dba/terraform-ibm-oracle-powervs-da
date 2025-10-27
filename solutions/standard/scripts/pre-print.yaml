@@ -13,7 +13,7 @@
   tasks:
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
-        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} -r {{ region }}
+        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} -r {{ region }} -a test.cloud.ibm.com
       register: login_output
       changed_when: false
       failed_when: login_output.rc != 0
