@@ -25,19 +25,28 @@
 
     - name: Debug login success
       ansible.builtin.debug:
-        msg: "Successfully logged in to IBM Cloud region {{ region }}"
+        msg: "Successfully logged in IBM Cloud"
       changed_when: false
+
+    - name: Capture the output of get workspace command
+      ansible.builtin.command:
+        cmd: ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json
+      register: get_ws_output
+      changed_when: false
+      failed_when: get_ws_output.rc != 0
+      when:
+        - pi_existing_workspace_guid | default('') | length > 0
+      no_log: false
 
     - name: Extract the CRN of the given Workspace ID (JSON fetch)
       ansible.builtin.set_fact:
-        workspace_crn: ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json | jq -r ".details.crn"
-      register: ws_output
+        workspace_crn: {{ (get_ws_output | from_json).details.crn }}
       when:
         - ws_output is defined
         - ws_output.rc == 0
       changed_when: false
       when:
-        - pi_existing_workspace_guid | default('') | length > 0
+        - get_ws_output | default('') | length > 0
       no_log: false
 
     - name: Debug Workspace ID
