@@ -56,14 +56,14 @@
 
     - name: Setting the target workspace
       ansible.builtin.command:
-        cmd: ibmcloud pi ws tg {{ pi_existing_workspace_guid }}
+        cmd: ibmcloud pi ws tg {{ workspace_crn }}
       register: target_ws_output
       changed_when: false
       failed_when:
         - target_ws_output.rc != 0
         - target_ws_output.stdout | from_json is not mapping
       when:
-        - pi_existing_workspace_guid | default('') | length > 0
+        - workspace_crn | default('') | length > 0
       no_log: false
 
     - name: Validate the supplied Public SSH key
