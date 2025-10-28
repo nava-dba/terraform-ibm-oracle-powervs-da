@@ -3,6 +3,7 @@
   gather_facts: true
   connection: local
   vars:
+    env_type: "test"
     region: "{{ lookup('ansible.builtin.env', 'region') }}"
     ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key') }}"
     pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') }}"
@@ -13,7 +14,7 @@
   tasks:
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
-        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} -r {{ region }} -a test.cloud.ibm.com
+        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}
       register: login_output
       changed_when: false
       failed_when: login_output.rc != 0
@@ -53,14 +54,26 @@
         msg: "The Workspace ID {{ pi_existing_workspace_guid }} is valid. CRN: {{ workspace_crn }}"
       changed_when: false
 
+    - name: Setting the target workspace
+      ansible.builtin.command:
+        cmd: ibmcloud pi ws tg {{ pi_existing_workspace_guid }}
+      register: target_ws_output
+      changed_when: false
+      failed_when:
+        - target_ws_output.rc != 0
+        - target_ws_output.stdout | from_json is not mapping
+      when:
+        - pi_existing_workspace_guid | default('') | length > 0
+      no_log: false
+
     - name: Validate the supplied Public SSH key
       ansible.builtin.command:
         cmd: ibmcloud pi ssh get {{ pi_ssh_public_key_name }} --json
-      register: ssh_output
+      register: validate_ssh_output
       changed_when: false
       failed_when:
-        - ssh_output.rc != 0
-        - ssh_output.stdout | from_json is not mapping
+        - validate_ssh_output.rc != 0
+        - validate_ssh_output.stdout | from_json is not mapping
       when:
         - pi_ssh_public_key_name | default('') | length > 0
       no_log: false
@@ -72,7 +85,7 @@
 
     - name: Connect to the COS Instance using the API key
       ansible.builtin.command:
-        cmd: ibmcloud login --apikey {{ cos_service_apikey }} -r {{ region }}
+        cmd: ibmcloud login --no-region --apikey {{ cos_service_apikey }}
       register: cos_login_output
       changed_when: false
       failed_when:
