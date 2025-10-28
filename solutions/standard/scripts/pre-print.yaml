@@ -28,25 +28,16 @@
         msg: "Successfully logged in to IBM Cloud region {{ region }}"
       changed_when: false
 
-    - name: Validate the supplied Workspace ID (JSON fetch)
-      ansible.builtin.command:
-        cmd: ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json
-      register: ws_output
-      changed_when: false
-      failed_when:
-        - ws_output.rc != 0
-        - ws_output.stdout | from_json is not mapping
-      when:
-        - pi_existing_workspace_guid | default('') | length > 0
-      no_log: false
-
-    - name: Extract Workspace CRN
+    - name: Extract the CRN of the given Workspace ID (JSON fetch)
       ansible.builtin.set_fact:
-        workspace_crn: "{{ (ws_output.stdout | from_json).details.crn | default('N/A') }}"
+        workspace_crn: ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json | jq -r ".details.crn"
+      register: ws_output
       when:
         - ws_output is defined
         - ws_output.rc == 0
       changed_when: false
+      when:
+        - pi_existing_workspace_guid | default('') | length > 0
       no_log: false
 
     - name: Debug Workspace ID
@@ -61,7 +52,6 @@
       changed_when: false
       failed_when:
         - target_ws_output.rc != 0
-        - target_ws_output.stdout | from_json is not mapping
       when:
         - workspace_crn | default('') | length > 0
       no_log: false
@@ -73,7 +63,6 @@
       changed_when: false
       failed_when:
         - validate_ssh_output.rc != 0
-        - validate_ssh_output.stdout | from_json is not mapping
       when:
         - pi_ssh_public_key_name | default('') | length > 0
       no_log: false
@@ -90,7 +79,6 @@
       changed_when: false
       failed_when:
         - cos_login_output.rc != 0
-        - cos_login_output.stdout | from_json is not mapping
       when:
         - cos_service_apikey | default('') | length > 0
       no_log: false
@@ -102,7 +90,6 @@
       changed_when: false
       failed_when:
         - cos_bucket_list_check_output.rc != 0
-        - cos_bucket_list_check_output.stdout | from_json is not mapping
       when:
         - cos_service_apikey | default('') | length > 0
         - cos_bucket_name | default('') | length > 0
