@@ -40,7 +40,7 @@
 
     - name: Extract the CRN of the given Workspace ID (JSON fetch)
       ansible.builtin.set_fact:
-        workspace_crn: {{ (get_ws_output | from_json).details.crn }}
+        workspace_crn: {{ (get_ws_output | from_json).details.crn | default "N/A"  }}
       when:
         - ws_output is defined
         - ws_output.rc == 0
