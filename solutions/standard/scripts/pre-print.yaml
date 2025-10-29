@@ -17,7 +17,7 @@
         cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}
       register: login_output
       changed_when: false
-      failed_when: login_output.rc != 0
+      failed_when: "'FAILED' in login_output.stderr"
       when:
         - ibmcloud_api_key | default('') | length > 0
         - region | default('') | length > 0
@@ -33,7 +33,7 @@
         cmd: ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json
       register: get_ws_output
       changed_when: false
-      failed_when: get_ws_output.rc != 0
+      failed_when: "'FAILED' in get_ws_output.stderr"
       when:
         - pi_existing_workspace_guid | default('') | length > 0
       no_log: false
@@ -61,8 +61,7 @@
         cmd: ibmcloud pi ws tg {{ workspace_crn }}
       register: target_ws_output
       changed_when: false
-      failed_when:
-        - target_ws_output.rc != 0
+      failed_when: "'FAILED' in target_ws_output.stderr"
       when:
         - workspace_crn | default('') | length > 0
       no_log: false
@@ -72,8 +71,7 @@
         cmd: ibmcloud pi ssh get {{ pi_ssh_public_key_name }} --json
       register: validate_ssh_output
       changed_when: false
-      failed_when:
-        - validate_ssh_output.rc != 0
+      failed_when: "'FAILED' in validate_ssh_output.stderr"
       when:
         - pi_ssh_public_key_name | default('') | length > 0
       no_log: false
@@ -93,8 +91,7 @@
         cmd: ibmcloud login --no-region --apikey {{ (ibmcloud_cos_service_credentials | from_json).apikey }}
       register: cos_login_output
       changed_when: false
-      failed_when:
-        - cos_login_output.rc != 0
+      failed_when: "'FAILED' in cos_login_output.stderr"
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
       no_log: false
@@ -109,8 +106,7 @@
         cmd: ibmcloud cos objects --json --bucket {{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}
       register: cos_bucket_list_check_output
       changed_when: false
-      failed_when:
-        - cos_bucket_list_check_output.rc != 0
+      failed_when: "'FAILED' in cos_bucket_list_check_output.stderr"
       when:
         - cos_bucket_name | default('') | length > 0
       no_log: false
@@ -119,10 +115,10 @@
       ansible.builtin.debug:
         msg: "IBM Cloud API, workspace, SSH key, COS Connetivity and Bucket name validations completed successfully."
       when:
-        - login_output.rc == 0
-        - get_ws_output.rc == 0
-        - target_ws_output.rc == 0
-        - validate_ssh_output.rc == 0
-        - cos_login_output.rc == 0
-        - cos_bucket_list_check_output.rc == 0
+        - login_output.rc | default('') == 0
+        - get_ws_output.rc | default('') == 0
+        - target_ws_output.rc | default('') == 0
+        - validate_ssh_output.rc | default('') == 0
+        - cos_login_output.rc | default('') == 0
+        - cos_bucket_list_check_output.rc | default('') == 0
       changed_when: false
