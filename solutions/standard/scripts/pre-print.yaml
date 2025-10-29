@@ -10,7 +10,7 @@
     pi_ssh_public_key_name: "{{ lookup('ansible.builtin.env', 'pi_ssh_public_key_name') }}"
     pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid') }}"
     ibmcloud_cos_service_credentials: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_service_credentials') }}"
-    cos_bucket_name: "{{ (lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') | from_json).cos_bucket_name }}"
+    ibmcloud_cos_configuration: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') }}"
   tasks:
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
@@ -101,7 +101,7 @@
 
     - name: Check if the supplied COS bucket configuration is correct
       ansible.builtin.command:
-        cmd: ibmcloud cos list-buckets --json | jq -r '.Buckets.[].Name' | grep {{ cos_bucket_name }}
+        cmd: ibmcloud cos list-buckets --json | jq -r '.Buckets.[].Name' | grep {{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}
       register: cos_bucket_list_check_output
       changed_when: false
       failed_when:
