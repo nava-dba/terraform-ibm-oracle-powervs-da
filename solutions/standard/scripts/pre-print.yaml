@@ -116,8 +116,9 @@
         msg: "IBM Cloud API, workspace, SSH key, COS Connetivity and Bucket name validations completed successfully."
       when:
         - login_output.rc == 0
-        - ws_output.rc == 0
-        - ssh_output.rc == 0
+        - get_ws_output.rc == 0
+        - target_ws_output.rc == 0
+        - validate_ssh_output.rc == 0
         - cos_login_output.rc == 0
         - cos_bucket_list_check_output.rc == 0
       changed_when: false
