@@ -38,9 +38,14 @@
         - pi_existing_workspace_guid | default('') | length > 0
       no_log: false
 
+    - name: Debug get_ws_output
+      ansible.builtin.debug:
+        msg: "get_ws_output: {{ get_ws_output.stdout }}"
+      changed_when: false
+
     - name: Extract the CRN of the given Workspace ID (JSON fetch)
       ansible.builtin.set_fact:
-        workspace_crn: "{{ get_ws_output.json.details.crn }}"
+        workspace_crn: "{{ (get_ws_output.stdout | from_json).details.crn }}"
       when:
         - get_ws_output.stdout | default('') | length > 0
       changed_when: false
