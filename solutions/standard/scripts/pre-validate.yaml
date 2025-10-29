@@ -3,7 +3,7 @@
   gather_facts: true
   connection: local
   vars:
-    env_type: "test"
+    env_type: "prod"
     region: "{{ lookup('ansible.builtin.env', 'region') }}"
     ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key') }}"
     pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') }}"
