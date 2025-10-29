@@ -99,9 +99,14 @@
         - ibmcloud_cos_service_credentials | default('') | length > 0
       no_log: false
 
+    - name: Debug COS ibmcloud_cos_configuration
+      ansible.builtin.debug:
+        msg: "COS Configuration: {{ ibmcloud_cos_configuration }}"
+      changed_when: false
+
     - name: Check if the supplied COS bucket configuration is correct
       ansible.builtin.command:
-        cmd: ibmcloud cos list-buckets --json | jq -r '.Buckets.[].Name' | grep {{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}
+        cmd: ibmcloud cos objects --json --bucket {{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}
       register: cos_bucket_list_check_output
       changed_when: false
       failed_when:
