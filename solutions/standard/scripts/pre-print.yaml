@@ -90,13 +90,13 @@
 
     - name: Connect to the COS Instance using the API key
       ansible.builtin.command:
-        cmd: ibmcloud login --no-region --apikey {{ (cos_service_apikey | from_json).apikey }}
+        cmd: ibmcloud login --no-region --apikey {{ (ibmcloud_cos_service_credentials | from_json).apikey }}
       register: cos_login_output
       changed_when: false
       failed_when:
         - cos_login_output.rc != 0
       when:
-        - cos_service_apikey | default('') | length > 0
+        - ibmcloud_cos_service_credentials | default('') | length > 0
       no_log: false
 
     - name: Check if the supplied COS bucket configuration is correct
@@ -107,7 +107,6 @@
       failed_when:
         - cos_bucket_list_check_output.rc != 0
       when:
-        - cos_service_apikey | default('') | length > 0
         - cos_bucket_name | default('') | length > 0
       no_log: false
 
