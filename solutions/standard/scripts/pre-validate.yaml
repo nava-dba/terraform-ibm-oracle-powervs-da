@@ -1,33 +1,124 @@
-- name: IBM Cloud DA Pre-Stage Validation with ibmcloud CLI
+- name: Validate pre playbook
   hosts: localhost
+  gather_facts: true
   connection: local
-  gather_facts: false
-
   vars:
-    ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'IBMCLOUD_API_KEY') }}"
-    cos_instance_name: "{{ lookup('ansible.builtin.env', 'COS_INSTANCE_NAME') }}"
-    workspace_id: "{{ lookup('ansible.builtin.env', 'WORKSPACE_ID') }}"
-
+    env_type: "test"
+    region: "{{ lookup('ansible.builtin.env', 'region') }}"
+    ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key') }}"
+    pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') }}"
+    pi_ssh_public_key_name: "{{ lookup('ansible.builtin.env', 'pi_ssh_public_key_name') }}"
+    pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid') }}"
+    ibmcloud_cos_service_credentials: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_service_credentials') }}"
+    ibmcloud_cos_configuration: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') }}"
   tasks:
-    - name: Ensure IBM Cloud CLI is available
+    - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
-        cmd: ibmcloud --version
-      register: ibmcloud_version
+        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}
+      register: login_output
       changed_when: false
+      failed_when: "'FAILED' in login_output.stderr"
+      when:
+        - ibmcloud_api_key | default('') | length > 0
+        - region | default('') | length > 0
+      no_log: false
 
-    - name: Validate COS instance exists using ibmcloud CLI
-      ansible.builtin.command: >
-        ibmcloud resource service-instances
-        --service-name {{ cos_instance_name }}
-        --output json
-      register: cos_check
-      changed_when: false
-
-    - name: Fail if COS instance does not exist
-      ansible.builtin.fail:
-        msg: "COS instance {{ cos_instance_name }} does not exist!"
-      when: cos_check.stdout is not search('"name":"%s"' % cos_instance_name)
-
-    - name: "Debug COS instance validation output"
+    - name: Debug login success
       ansible.builtin.debug:
-        var: cos_check.stdout
+        msg: "Successfully logged in IBM Cloud"
+      changed_when: false
+
+    - name: Capture the output of get workspace command
+      ansible.builtin.command:
+        cmd: ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json
+      register: get_ws_output
+      changed_when: false
+      failed_when: "'FAILED' in get_ws_output.stderr"
+      when:
+        - pi_existing_workspace_guid | default('') | length > 0
+      no_log: false
+
+    - name: Debug get_ws_output
+      ansible.builtin.debug:
+        msg: "get_ws_output: {{ get_ws_output.stdout }}"
+      changed_when: false
+
+    - name: Extract the CRN of the given Workspace ID (JSON fetch)
+      ansible.builtin.set_fact:
+        workspace_crn: "{{ (get_ws_output.stdout | from_json).details.crn }}"
+      when:
+        - get_ws_output.stdout | default('') | length > 0
+      changed_when: false
+      no_log: false
+
+    - name: Debug Workspace ID
+      ansible.builtin.debug:
+        msg: "The Workspace ID {{ pi_existing_workspace_guid }} is valid. CRN: {{ workspace_crn }}"
+      changed_when: false
+
+    - name: Setting the target workspace
+      ansible.builtin.command:
+        cmd: ibmcloud pi ws tg {{ workspace_crn }}
+      register: target_ws_output
+      changed_when: false
+      failed_when: "'FAILED' in target_ws_output.stderr"
+      when:
+        - workspace_crn | default('') | length > 0
+      no_log: false
+
+    - name: Validate the supplied Public SSH key
+      ansible.builtin.command:
+        cmd: ibmcloud pi ssh get {{ pi_ssh_public_key_name }} --json
+      register: validate_ssh_output
+      changed_when: false
+      failed_when: "'FAILED' in validate_ssh_output.stderr"
+      when:
+        - pi_ssh_public_key_name | default('') | length > 0
+      no_log: false
+
+    - name: Debug Public SSH key
+      ansible.builtin.debug:
+        msg: "The Public SSH key {{ pi_ssh_public_key_name }} is valid."
+      changed_when: false
+
+    - name: Debug COS ibmcloud_cos_service_credentials
+      ansible.builtin.debug:
+        msg: "COS Credentials: {{ ibmcloud_cos_service_credentials }}"
+      changed_when: false
+
+    - name: Connect to the COS Instance using the API key
+      ansible.builtin.command:
+        cmd: ibmcloud login --no-region --apikey {{ (ibmcloud_cos_service_credentials | from_json).apikey }}
+      register: cos_login_output
+      changed_when: false
+      failed_when: "'FAILED' in cos_login_output.stderr"
+      when:
+        - ibmcloud_cos_service_credentials | default('') | length > 0
+      no_log: false
+
+    - name: Debug COS ibmcloud_cos_configuration
+      ansible.builtin.debug:
+        msg: "COS Configuration: {{ ibmcloud_cos_configuration }}"
+      changed_when: false
+
+    - name: Check if the supplied COS bucket configuration is correct
+      ansible.builtin.command:
+        cmd: ibmcloud cos objects --json --bucket {{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}
+      register: cos_bucket_list_check_output
+      changed_when: false
+      failed_when: "'FAILED' in cos_bucket_list_check_output.stderr"
+      when:
+        - (ibmcloud_cos_configuration | from_json).cos_bucket_name | default('') | length > 0
+      no_log: false
+
+    - name: All IBM Cloud pre-validations passed
+      ansible.builtin.debug:
+        msg: "IBM Cloud API, workspace, SSH key, COS Connetivity and Bucket name validations completed successfully."
+      when:
+        - login_output.rc | default('') == 0
+        - get_ws_output.rc | default('') == 0
+        - target_ws_output.rc | default('') == 0
+        - validate_ssh_output.rc | default('') == 0
+        - cos_login_output.rc | default('') == 0
+        - cos_bucket_list_check_output.rc | default('') == 0
+      changed_when: false
