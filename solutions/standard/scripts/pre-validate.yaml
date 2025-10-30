@@ -48,7 +48,6 @@
       when:
         - get_ws_output is defined
         - get_ws_output.stdout | default('') | length > 0
-        - get_ws_output.stdout is json
       changed_when: false
       no_log: false
 
