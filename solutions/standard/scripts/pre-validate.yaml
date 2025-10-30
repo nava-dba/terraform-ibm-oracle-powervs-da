@@ -33,7 +33,9 @@
         cmd: ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json
       register: get_ws_output
       changed_when: false
-      failed_when: "'FAILED' in get_ws_output.stderr"
+      failed_when:
+        - "'FAILED' in get_ws_output.stderr"
+        - (get_ws_output.stdout | from_json).status | lower != 'active'
       when:
         - pi_existing_workspace_guid | default('') | length > 0
       no_log: false
