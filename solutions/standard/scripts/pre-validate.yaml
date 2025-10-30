@@ -11,7 +11,8 @@
     pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid') }}"
     ibmcloud_cos_service_credentials: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_service_credentials') }}"
     ibmcloud_cos_configuration: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') }}"
-    ibmcloud_cos_endpoint_url: "https://s3.dal.us.cloud-object-storage.appdomain.cloud"
+    ibmcloud_cos_endpoint_url_prod: "https://s3.dal.us.cloud-object-storage.appdomain.cloud"
+    ibmcloud_cos_endpoint_url_test: "https://s3.us-west.cloud-object-storage.test.appdomain.cloud"
   tasks:
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
@@ -110,7 +111,7 @@
 
     - name: Configure endpoint-url
       ansible.builtin.command:
-        cmd: ibmcloud cos config set endpoint-url "{{ ibmcloud_cos_endpoint_url }}"
+        cmd: ibmcloud cos config set endpoint-url "{{ ibmcloud_cos_endpoint_url_test if env_type == 'test' else ibmcloud_cos_endpoint_url_prod }}"
       changed_when: false
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
