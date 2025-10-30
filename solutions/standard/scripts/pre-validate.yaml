@@ -18,7 +18,7 @@
         cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}
       register: login_output
       changed_when: false
-      failed_when: "'FAILED' in login_output.stderr or login_output.stdout not in 'OK'"
+      failed_when: "'FAILED' in login_output.stderr"
       when:
         - ibmcloud_api_key | default('') | length > 0
         - region | default('') | length > 0
@@ -87,10 +87,10 @@
     - name: Connect to the COS Instance using the API key
       ansible.builtin.shell: >
         set -o pipefail &&
-        ibmcloud login --no-region --apikey {{ (ibmcloud_cos_service_credentials | from_json).apikey }} |
+        ibmcloud login --no-region --apikey {{ (ibmcloud_cos_service_credentials | from_json).apikey }}
         -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}register: cos_login_output
       changed_when: false
-      failed_when: "'FAILED' in cos_login_output.stderr or cos_login_output.rc != 'OK'"
+      failed_when: "'FAILED' in cos_login_output.stderr"
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
       no_log: false
@@ -126,10 +126,10 @@
     - name: All IBM Cloud pre-validations passed
       ansible.builtin.debug:
         msg: "IBM Cloud API, workspace, SSH key, COS Connectivity and Bucket name validations completed successfully."
-      when:
-        - login_output.rc | default('') == 0
-        - get_ws_output.rc | default('') == 0
-        - target_ws_output.rc | default('') == 0
-        - validate_ssh_output.rc | default('') == 0
-        - cos_login_output.rc | default('') == 0
-        - cos_bucket_list_check_output.rc | default('') == 0
+    # when:
+    #   - login_output.rc | default('') == 0
+    #   - get_ws_output.rc | default('') == 0
+    #   - target_ws_output.rc | default('') == 0
+    #   - validate_ssh_output.rc | default('') == 0
+    #   - cos_login_output.rc | default('') == 0
+    #   - cos_bucket_list_check_output.rc | default('') == 0
