@@ -102,7 +102,7 @@
       changed_when: false
 
     - name: Check if the supplied COS bucket exists
-      ansible.builtin.command:
+      ansible.builtin.shell:
         cmd: ibmcloud cos list-buckets | grep "{{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}"
       register: cos_bucket_list_check_output
       changed_when: false
