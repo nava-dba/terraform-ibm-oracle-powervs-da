@@ -103,7 +103,7 @@
 
     - name: Configure COS CRN
       ansible.builtin.command:
-        cmd: ibmcloud cos config crn {{ (ibmcloud_cos_service_credentials | from_json).resource_instance_id }}
+        cmd: ibmcloud cos config set crn {{ (ibmcloud_cos_service_credentials | from_json).resource_instance_id }}
       changed_when: false
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
