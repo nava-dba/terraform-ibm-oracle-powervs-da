@@ -11,13 +11,14 @@
     pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid') }}"
     ibmcloud_cos_service_credentials: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_service_credentials') }}"
     ibmcloud_cos_configuration: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') }}"
+    ibmcloud_cos_endpoint_url: "https://s3.dal.us.cloud-object-storage.appdomain.cloud"
   tasks:
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
         cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}
       register: login_output
       changed_when: false
-      failed_when: "'FAILED' in login_output.stderr or login_output.rc != 0"
+      failed_when: "'FAILED' in login_output.stderr or login_output.stdout not in 'OK'"
       when:
         - ibmcloud_api_key | default('') | length > 0
         - region | default('') | length > 0
@@ -32,7 +33,7 @@
         cmd: ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json
       register: get_ws_output
       changed_when: false
-      failed_when: "'FAILED' in get_ws_output.stderr or get_ws_output.rc != 0"
+      failed_when: "'FAILED' in get_ws_output.stderr"
       when:
         - pi_existing_workspace_guid | default('') | length > 0
       no_log: false
@@ -60,7 +61,7 @@
         cmd: ibmcloud pi ws tg {{ workspace_crn }}
       register: target_ws_output
       changed_when: false
-      failed_when: "'FAILED' in target_ws_output.stderr or target_ws_output.rc != 0"
+      failed_when: "'FAILED' in target_ws_output.stderr"
       when:
         - workspace_crn | default('') | length > 0
       no_log: false
@@ -70,7 +71,7 @@
         cmd: ibmcloud pi ssh get {{ pi_ssh_public_key_name }} --json
       register: validate_ssh_output
       changed_when: false
-      failed_when: "'FAILED' in validate_ssh_output.stderr or validate_ssh_output.rc != 0"
+      failed_when: "'FAILED' in validate_ssh_output.stderr"
       when:
         - pi_ssh_public_key_name | default('') | length > 0
       no_log: false
@@ -84,11 +85,12 @@
         msg: "COS Credentials: {{ ibmcloud_cos_service_credentials }}"
 
     - name: Connect to the COS Instance using the API key
-      ansible.builtin.command:
-        cmd: ibmcloud login --no-region --apikey {{ (ibmcloud_cos_service_credentials | from_json).apikey }}
-      register: cos_login_output
+      ansible.builtin.shell: >
+        set -o pipefail &&
+        ibmcloud login --no-region --apikey {{ (ibmcloud_cos_service_credentials | from_json).apikey }} |
+        -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}register: cos_login_output
       changed_when: false
-      failed_when: "'FAILED' in cos_login_output.stderr"
+      failed_when: "'FAILED' in cos_login_output.stderr or cos_login_output.rc != 'OK'"
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
       no_log: false
@@ -97,23 +99,29 @@
       ansible.builtin.debug:
         msg: "COS Configuration: {{ ibmcloud_cos_configuration }}"
 
-    - name: Configure COS CLI
+    - name: Configure COS CRN
       ansible.builtin.command:
-        cmd: ibmcloud cos config crn --crn {{ (ibmcloud_cos_configuration | from_json).cos_crn }}
+        cmd: ibmcloud cos config crn {{ (ibmcloud_cos_service_credentials | from_json).resource_instance_id }}
       changed_when: false
       when:
-        - ibmcloud_cos_configuration | default('') | length > 0
+        - ibmcloud_cos_service_credentials | default('') | length > 0
+
+    - name: Configure endpoint-url
+      ansible.builtin.command:
+        cmd: ibmcloud cos config set endpoint-url "{{ ibmcloud_cos_endpoint_url }}"
+      changed_when: false
+      when:
+        - ibmcloud_cos_service_credentials | default('') | length > 0
 
     - name: Check if the supplied COS bucket exists
       ansible.builtin.shell:
-        cmd: ibmcloud cos list-buckets | grep "{{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}"
+        cmd: set -o pipefail && ibmcloud cos list-buckets | grep "{{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}"
       register: cos_bucket_list_check_output
       changed_when: false
       failed_when: cos_bucket_list_check_output.stdout == ""
       when:
         - (ibmcloud_cos_configuration | from_json).cos_bucket_name | default('') | length > 0
       no_log: false
-
 
     - name: All IBM Cloud pre-validations passed
       ansible.builtin.debug:
