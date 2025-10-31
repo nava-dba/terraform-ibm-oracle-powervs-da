@@ -118,15 +118,15 @@
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
 
-    # - name: Check if the supplied COS bucket exists
-    #  ansible.builtin.shell:
-    #    cmd: set -o pipefail && ibmcloud cos list-buckets | grep "{{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}"
-    #  register: cos_bucket_list_check_output
-    #  changed_when: false
-    #  failed_when: cos_bucket_list_check_output.stdout == ""
-    #  when:
-    #    - (ibmcloud_cos_configuration | from_json).cos_bucket_name | default('') | length > 0
-    #  no_log: false
+    - name: Check if the supplied COS bucket exists
+      ansible.builtin.shell:
+        cmd: set -o pipefail && ibmcloud cos list-buckets | grep "{{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}"
+      register: cos_bucket_list_check_output
+      changed_when: false
+      failed_when: cos_bucket_list_check_output.stdout == ""
+      when:
+        - (ibmcloud_cos_configuration | from_json).cos_bucket_name | default('') | length > 0
+      no_log: false
 
     - name: Validate that pi_networks exists and is a non-empty list
       ansible.builtin.assert:
@@ -195,7 +195,7 @@
       ansible.builtin.copy:
         dest: "{{ bastion_key_file.path }}"
         content: "{{ ssh_private_key }}"
-        mode: '0600'
+        mode: "0600"
       when:
         - bastion_key_file.path is defined
       no_log: true
