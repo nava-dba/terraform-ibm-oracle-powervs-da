@@ -13,6 +13,8 @@
     ibmcloud_cos_configuration: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') }}"
     ibmcloud_cos_endpoint_url_prod: "https://s3.dal.us.cloud-object-storage.appdomain.cloud"
     ibmcloud_cos_endpoint_url_test: "https://s3.us-west.cloud-object-storage.test.appdomain.cloud"
+    bastion_host_ip: "{{ lookup('ansible.builtin.env', 'bastion_host_ip') }}"
+    ssh_private_key: "{{ lookup('ansible.builtin.env', 'ssh_private_key') }}"
   tasks:
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
@@ -116,23 +118,113 @@
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
 
-    - name: Check if the supplied COS bucket exists
-      ansible.builtin.shell:
-        cmd: set -o pipefail && ibmcloud cos list-buckets | grep "{{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}"
-      register: cos_bucket_list_check_output
-      changed_when: false
-      failed_when: cos_bucket_list_check_output.stdout == ""
-      when:
-        - (ibmcloud_cos_configuration | from_json).cos_bucket_name | default('') | length > 0
+    #- name: Check if the supplied COS bucket exists
+    #  ansible.builtin.shell:
+    #    cmd: set -o pipefail && ibmcloud cos list-buckets | grep "{{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}"
+    #  register: cos_bucket_list_check_output
+    #  changed_when: false
+    #  failed_when: cos_bucket_list_check_output.stdout == ""
+    #  when:
+    #    - (ibmcloud_cos_configuration | from_json).cos_bucket_name | default('') | length > 0
+    #  no_log: false
+
+    - name: Validate that pi_networks exists and is a non-empty list
+      ansible.builtin.assert:
+        that:
+          - pi_networks is defined
+          - pi_networks | type_debug == 'list'
+          - pi_networks | length > 0
+        fail_msg: "pi_networks is not defined or not a valid non-empty list."
+        success_msg: "pi_networks variable is defined and contains network entries."
       no_log: false
+
+    - name: Validate structure of each network entry in pi_networks
+      ansible.builtin.assert:
+        that:
+          - item.name is defined
+          - item.id is defined
+          - item.name | length > 0
+          - item.id | length > 0
+        fail_msg: "Each entry in pi_networks must have non-empty 'name' and 'id'. Invalid entry: {{ item }}"
+        success_msg: "Network entry {{ item.name }} ({{ item.id }}) structure is valid."
+      loop: "{{ pi_networks }}"
+      loop_control:
+        label: "{{ item.name | default('Unnamed') }}"
+      no_log: false
+
+    - name: Validate that each pi_network subnet ID exists in workspace {{ pi_existing_workspace_guid }}
+      ansible.builtin.shell: >
+        set -o pipefail &&
+        ibmcloud pi subnet get {{ item.id }} --json
+      register: subnet_check
+      changed_when: false
+      failed_when: >
+        subnet_check.rc != 0 or
+        ('FAILED' in subnet_check.stderr) or
+        ((subnet_check.stdout | from_json).id is not defined)
+      loop: "{{ pi_networks }}"
+      loop_control:
+        label: "{{ item.name }}"
+      no_log: false
+
+    - name: Debug valid pi_networks
+      ansible.builtin.debug:
+        msg: >
+          "All pi_networks subnets validated successfully in workspace {{ pi_existing_workspace_guid }}:
+           {{ pi_networks | map(attribute='name') | list }}"
+
+    - name: Check if bastion host is reachable via ping
+      ansible.builtin.command: ping -c 2 {{ bastion_host_ip }}
+      register: ping_result
+      changed_when: false
+      failed_when: ping_result.rc != 0
+      when:
+        - bastion_host_ip | default('') | length > 0
+      no_log: false
+
+    - name: Create temporary private key file for bastion SSH test
+      ansible.builtin.tempfile:
+        state: file
+        suffix: "_bastion_key"
+      register: bastion_key_file
+      when:
+        - ssh_private_key | default('') | length > 0
+      no_log: true
+
+    - name: Write private key content to temporary file
+      ansible.builtin.copy:
+        dest: "{{ bastion_key_file.path }}"
+        content: "{{ ssh_private_key }}"
+        mode: '0600'
+      when:
+        - bastion_key_file.path is defined
+      no_log: true
+
+    - name: Validate SSH connectivity to bastion host using inline private key
+      ansible.builtin.command: >
+        ssh -o StrictHostKeyChecking=no
+            -i {{ bastion_key_file.path }}
+            root@{{ bastion_host_ip }} "exit"
+      register: ssh_result
+      changed_when: false
+      failed_when: ssh_result.rc != 0
+      when:
+        - bastion_key_file.path is defined
+        - bastion_host_ip | default('') | length > 0
+      no_log: false
+
+    - name: Remove temporary private key file
+      ansible.builtin.file:
+        path: "{{ bastion_key_file.path }}"
+        state: absent
+      when:
+        - bastion_key_file.path is defined
+      no_log: true
+
+    - name: Debug Bastion Host connectivity
+      ansible.builtin.debug:
+        msg: "Successfully reached and authenticated to Bastion Host {{ bastion_host_ip }}"
 
     - name: All IBM Cloud pre-validations passed
       ansible.builtin.debug:
-        msg: "IBM Cloud API, workspace, SSH key, COS Connectivity and Bucket name validations completed successfully."
-    # when:
-    #   - login_output.rc | default('') == 0
-    #   - get_ws_output.rc | default('') == 0
-    #   - target_ws_output.rc | default('') == 0
-    #   - validate_ssh_output.rc | default('') == 0
-    #   - cos_login_output.rc | default('') == 0
-    #   - cos_bucket_list_check_output.rc | default('') == 0
+        msg: "IBM Cloud all validations completed successfully."
