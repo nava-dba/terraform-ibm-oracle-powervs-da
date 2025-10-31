@@ -139,6 +139,15 @@
       loop_control:
         label: "{{ item.name }}"
 
+    - name: Check if bastion host is reachable via ping
+      ansible.builtin.command: ping -c 2 {{ bastion_host_ip }}
+      register: ping_result
+      changed_when: false
+      failed_when: ping_result.rc != 0
+      when:
+        - bastion_host_ip | default('') | length > 0
+      no_log: false
+
     - name: Validate SSH connectivity to bastion host using inline private key
       ansible.builtin.shell: |
         ssh -o StrictHostKeyChecking=no \
