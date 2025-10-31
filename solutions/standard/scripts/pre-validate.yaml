@@ -6,7 +6,7 @@
     env_type: "prod"
     region: "{{ lookup('ansible.builtin.env', 'region') }}"
     ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key') }}"
-    pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') | from_json }}"
+    pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') }}"
     pi_ssh_public_key_name: "{{ lookup('ansible.builtin.env', 'pi_ssh_public_key_name') }}"
     pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid') }}"
     ibmcloud_cos_service_credentials: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_service_credentials') }}"
@@ -79,7 +79,7 @@
     - name: Connect to the COS Instance using the API key
       ansible.builtin.shell: >
         set -o pipefail &&
-        ibmcloud login --no-region --apikey {{ ibmcloud_cos_service_credentials.apikey }}
+        ibmcloud login --no-region --apikey {{ (ibmcloud_cos_service_credentials | from_json).apikey }}
         -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}
       register: cos_login_output
       changed_when: false
@@ -94,7 +94,7 @@
 
     - name: Configure COS CRN
       ansible.builtin.command:
-        cmd: ibmcloud cos config set crn {{ ibmcloud_cos_service_credentials.resource_instance_id }}
+        cmd: ibmcloud cos config set crn {{ (ibmcloud_cos_service_credentials | from_json).resource_instance_id }}
       changed_when: false
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
@@ -109,12 +109,12 @@
     - name: Check if the supplied COS bucket exists
       ansible.builtin.shell: >
         set -o pipefail &&
-        ibmcloud cos list-buckets | grep "{{ ibmcloud_cos_configuration.cos_bucket_name }}"
+        ibmcloud cos list-buckets | grep "{{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}"
       register: cos_bucket_list_check_output
       changed_when: false
       failed_when: cos_bucket_list_check_output.stdout == ""
       when:
-        - ibmcloud_cos_configuration.cos_bucket_name | default('') | length > 0
+        - (ibmcloud_cos_configuration | from_json).cos_bucket_name | default('') | length > 0
       no_log: false
 
     - name: Create a new IBM Cloud CLI session
