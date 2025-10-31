@@ -6,7 +6,7 @@
     env_type: "prod"
     region: "{{ lookup('ansible.builtin.env', 'region') }}"
     ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key') }}"
-    pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') }}"
+    pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') | from_json }}"
     pi_ssh_public_key_name: "{{ lookup('ansible.builtin.env', 'pi_ssh_public_key_name') }}"
     pi_existing_workspace_guid: "{{ lookup('ansible.builtin.env', 'pi_existing_workspace_guid') }}"
     ibmcloud_cos_service_credentials: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_service_credentials') }}"
@@ -118,7 +118,7 @@
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
 
-    #- name: Check if the supplied COS bucket exists
+    # - name: Check if the supplied COS bucket exists
     #  ansible.builtin.shell:
     #    cmd: set -o pipefail && ibmcloud cos list-buckets | grep "{{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}"
     #  register: cos_bucket_list_check_output
