@@ -152,7 +152,7 @@
       when:
         - ssh_private_key | default('') | length > 0
         - bastion_host_ip | default('') | length > 0
-      no_log: true
+      no_log: false
 
     - name: Debug Bastion Host connectivity
       ansible.builtin.debug:
