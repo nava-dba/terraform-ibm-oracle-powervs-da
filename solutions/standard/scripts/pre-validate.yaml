@@ -119,11 +119,11 @@
         - ibmcloud_cos_service_credentials | default('') | length > 0
 
     - name: Check if the supplied COS bucket exists
-      ansible.builtin.shell:
-        cmd: set -o pipefail && ibmcloud cos list-buckets | grep "{{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}"
+      ansible.builtin.command:
+        cmd: ibmcloud cos objects --json --bucket={{ (ibmcloud_cos_configuration | from_json).cos_bucket_name }}
       register: cos_bucket_list_check_output
       changed_when: false
-      failed_when: cos_bucket_list_check_output.stdout == ""
+      failed_when: "'FAILED' in cos_login_output.stderr"
       when:
         - (ibmcloud_cos_configuration | from_json).cos_bucket_name | default('') | length > 0
       no_log: false
