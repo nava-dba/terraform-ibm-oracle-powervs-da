@@ -128,13 +128,8 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Detect ping path
-      ansible.builtin.command: "command -v ping"
-      register: ping_path
-      changed_when: false
-
     - name: Check if bastion host is reachable via ping
-      ansible.builtin.command: "{{ ping_path.stdout }} -c 2 {{ bastion_host_ip }}"
+      ansible.builtin.command: "$(which ping) -c 2 {{ bastion_host_ip }}"
       register: ping_result
       changed_when: false
       failed_when: ping_result.rc != 0
