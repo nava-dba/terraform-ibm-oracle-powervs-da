@@ -23,7 +23,6 @@
       when:
         - ibmcloud_api_key | default('') | length > 0
         - region | default('') | length > 0
-      no_log: false
 
     - name: Debug login success
       ansible.builtin.debug:
@@ -39,7 +38,6 @@
         ((get_ws_output.stdout | from_json).status | lower != 'active')
       when:
         - pi_existing_workspace_guid | default('') | length > 0
-      no_log: false
 
     - name: Extract the CRN of the given Workspace ID (JSON fetch)
       ansible.builtin.set_fact:
@@ -48,7 +46,6 @@
         - get_ws_output is defined
         - get_ws_output.stdout | default('') | length > 0
       changed_when: false
-      no_log: false
 
     - name: Setting the target workspace
       ansible.builtin.command:
@@ -58,7 +55,6 @@
       failed_when: "'FAILED' in target_ws_output.stderr"
       when:
         - workspace_crn | default('') | length > 0
-      no_log: false
 
     - name: Validate the supplied Public SSH key
       ansible.builtin.command:
@@ -68,7 +64,6 @@
       failed_when: "'FAILED' in validate_ssh_output.stderr"
       when:
         - pi_ssh_public_key_name | default('') | length > 0
-      no_log: false
 
     - name: Debug Public SSH key
       ansible.builtin.debug:
@@ -83,7 +78,6 @@
       failed_when: "'FAILED' in cos_login_output.stderr"
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
-      no_log: false
 
     - name: Debug COS ibmcloud_cos_configuration
       ansible.builtin.debug:
@@ -112,7 +106,6 @@
       failed_when: cos_bucket_list_check_output.stdout == ""
       when:
         - (ibmcloud_cos_configuration | from_json).cos_bucket_name | default('') | length > 0
-      no_log: false
 
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
@@ -123,7 +116,6 @@
       when:
         - ibmcloud_api_key | default('') | length > 0
         - region | default('') | length > 0
-      no_log: false
 
     - name: Validate each subnet ID in workspace {{ pi_existing_workspace_guid }}
       ansible.builtin.shell: >
@@ -136,14 +128,19 @@
       loop_control:
         label: "{{ item.name }}"
 
+    - name: Detect ping path
+      ansible.builtin.command: "command -v ping"
+      register: ping_path
+      changed_when: false
+
     - name: Check if bastion host is reachable via ping
-      ansible.builtin.command: ping -c 2 {{ bastion_host_ip }}
+      ansible.builtin.command: "{{ ping_path.stdout }} -c 2 {{ bastion_host_ip }}"
       register: ping_result
       changed_when: false
       failed_when: ping_result.rc != 0
       when:
+        - ping_path.stdout != ""
         - bastion_host_ip | default('') | length > 0
-      no_log: false
 
     - name: Validate SSH connectivity to bastion host using inline private key
       ansible.builtin.shell: |
@@ -158,7 +155,6 @@
       when:
         - ssh_private_key | default('') | length > 0
         - bastion_host_ip | default('') | length > 0
-      no_log: false
 
     - name: Debug Bastion Host connectivity
       ansible.builtin.debug:
