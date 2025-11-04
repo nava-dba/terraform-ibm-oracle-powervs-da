@@ -128,10 +128,36 @@
       loop_control:
         label: "{{ item.name }}"
 
+    - name: Detect OS type
+      ansible.builtin.command: uname
+      register: os_type
+      changed_when: false
+
+    - name: Debug OS type
+      ansible.builtin.debug:
+        msg: "Operating System detected: {{ os_type.stdout }}"
+
+    # Install ping based on OS if missing
+    - name: Ensure ping is installed on Linux (RHEL/CentOS)
+      ansible.builtin.package:
+        name: iputils
+        state: present
+      register: iputils_install
+      when:
+        - os_type.stdout == "Linux"
+      failed_when:
+        - iputils_install.rc is defined
+        - iputils_install.rc != 0
+
     - name: Detect ping path
       ansible.builtin.command: which ping
       register: ping_path
       changed_when: false
+      ignore_errors: true
+
+    - name: Debug ping path
+      ansible.builtin.debug:
+        msg: "Ping binary located at: {{ ping_path.stdout | default('Not found') }}"
 
     - name: Check if bastion host is reachable via ping
       ansible.builtin.command: "{{ ping_path.stdout }} -c 2 {{ bastion_host_ip }}"
