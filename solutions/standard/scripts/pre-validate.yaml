@@ -3,7 +3,6 @@
   gather_facts: false
   connection: local
   vars:
-    env_type: "test"
     region: "{{ lookup('ansible.builtin.env', 'region') }}"
     ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key') }}"
     pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') }}"
@@ -12,13 +11,12 @@
     ibmcloud_cos_service_credentials: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_service_credentials') }}"
     ibmcloud_cos_configuration: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') }}"
     ibmcloud_cos_endpoint_url_prod: "https://s3.dal.us.cloud-object-storage.appdomain.cloud"
-    ibmcloud_cos_endpoint_url_test: "https://s3.us-west.cloud-object-storage.test.appdomain.cloud"
     bastion_host_ip: "{{ lookup('ansible.builtin.env', 'bastion_host_ip') }}"
     ssh_private_key: "{{ lookup('ansible.builtin.env', 'ssh_private_key') }}"
   tasks:
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
-        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}
+        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region
       register: login_output
       changed_when: false
       failed_when: "'FAILED' in login_output.stderr"
@@ -80,7 +78,6 @@
       ansible.builtin.shell: >
         set -o pipefail &&
         ibmcloud login --no-region --apikey {{ (ibmcloud_cos_service_credentials | from_json).apikey }}
-        -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}
       register: cos_login_output
       changed_when: false
       failed_when: "'FAILED' in cos_login_output.stderr"
@@ -101,7 +98,7 @@
 
     - name: Configure endpoint-url
       ansible.builtin.command:
-        cmd: ibmcloud cos config set endpoint-url "{{ ibmcloud_cos_endpoint_url_test if env_type == 'test' else ibmcloud_cos_endpoint_url_prod }}"
+        cmd: ibmcloud cos config set endpoint-url "{{ ibmcloud_cos_endpoint_url_prod }}"
       changed_when: false
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
@@ -119,7 +116,7 @@
 
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
-        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region -a {{ 'test.cloud.ibm.com' if env_type == 'test' else 'cloud.ibm.com' }}
+        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region
       register: login_output
       changed_when: false
       failed_when: "'FAILED' in login_output.stderr"
