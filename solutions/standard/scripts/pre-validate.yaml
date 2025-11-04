@@ -134,7 +134,6 @@
       changed_when: false
       failed_when: ping_result.rc != 0
       when:
-        - ping_path.stdout != ""
         - bastion_host_ip | default('') | length > 0
 
     - name: Validate SSH connectivity to bastion host using inline private key
