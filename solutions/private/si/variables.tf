@@ -93,16 +93,7 @@ variable "ibmcloud_cos_configuration" {
 
 variable "ibmcloud_cos_service_credentials" {
   description = "IBM Cloud Object Storage instance service credentials to access the bucket in the instance (IBM Cloud > Cloud Object Storage > Instances > cos-instance-name > Service Credentials).[json example of service credential](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials)"
-  type = object({
-    apikey                      = string
-    endpoints                   = string
-    iam_apikey_description      = string
-    iam_apikey_id               = string
-    iam_apikey_name             = string
-    iam_role_crn                = string
-    iam_serviceid_crn           = string
-    resource_instance_id        = string
-  })
+  type        = string
 }
 
 #####################################################
