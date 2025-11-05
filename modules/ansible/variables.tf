@@ -8,12 +8,6 @@ variable "squid_server_ip" {
   type        = string
 }
 
-variable "use_rhel_as_proxy" {
-  description = "Whether to use RHEL VM as proxy if it has public internet access. If false, fallback to bastion."
-  type        = bool
-  default     = false
-}
-
 variable "ansible_host_or_ip" {
   description = "Private IP of virtual server instance running RHEL OS on which ansible will be installed and configured to act as central ansible node."
   type        = string

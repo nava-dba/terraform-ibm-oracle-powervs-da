@@ -25,13 +25,11 @@ variable "prefix" {
 variable "pi_existing_workspace_guid" {
   description = "Existing Power Virtual Server Workspace GUID."
   type        = string
-  default     = ""
 }
 
 variable "pi_ssh_public_key_name" {
   description = "Name of the SSH key pair to associate with the instance"
   type        = string
-  default     = ""
 }
 
 variable "ssh_private_key" {
@@ -80,12 +78,12 @@ variable "pi_networks" {
 variable "ibmcloud_cos_configuration" {
   description = "Cloud Object Storage instance containing Oracle installation files that will be downloaded to NFS share. 'db-sw/cos_oracle_database_sw_path' must contain only binaries required for Oracle Database installation. 'grid-sw/cos_oracle_grid_sw_path' must contain only binaries required for oracle grid installation when ASM. Leave it empty when JFS. 'patch/cos_oracle_ru_file_path' must contain only binaries required to apply RU patch.'opatch/cos_oracle_opatch_file_path' must contain only binaries required for opatch minimum version install. The binaries required for installation can be found [here](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery or https://www.oracle.com/database/technologies/oracle19c-aix-193000-downloads.html).Avoid inserting '/' at the beginning for 'cos_oracle_database_sw_path', 'cos_oracle_grid_sw_path' and 'cos_oracle_ru_file_path', and 'cos_oracle_opatch_file_path'. Follow exactly same directory structure as prescribed"
   type = object({
-    cos_region                  = string
-    cos_bucket_name             = string
-    cos_oracle_database_sw_path = string
-    cos_oracle_grid_sw_path     = optional(string)
-    cos_oracle_ru_file_path     = string
-    cos_oracle_opatch_file_path = string
+    cos_region                        = string
+    cos_bucket_name                   = string
+    cos_oracle_database_sw_path       = string
+    cos_oracle_grid_sw_path           = optional(string)
+    cos_oracle_ru_file_path           = string
+    cos_oracle_opatch_file_path       = string
   })
   validation {
     condition     = var.oracle_install_type == "ASM" ? (var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path != null && length(var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path) > 0) : true
@@ -95,9 +93,16 @@ variable "ibmcloud_cos_configuration" {
 
 variable "ibmcloud_cos_service_credentials" {
   description = "IBM Cloud Object Storage instance service credentials to access the bucket in the instance (IBM Cloud > Cloud Object Storage > Instances > cos-instance-name > Service Credentials).[json example of service credential](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials)"
-  type        = string
-  sensitive   = true
-  default     = null
+  type = object({
+    apikey                      = string
+    endpoints                   = string
+    iam_apikey_description      = string
+    iam_apikey_id               = string
+    iam_apikey_name             = string
+    iam_role_crn                = string
+    iam_serviceid_crn           = string
+    resource_instance_id        = string
+  })
 }
 
 #####################################################
@@ -126,6 +131,17 @@ variable "pi_oravg_volume" {
   })
 }
 
+# 3. CRSDG diskgroup
+variable "pi_crsdg_volume" {
+  description = "Disk configuration for ASM"
+  type = object({
+    name  = string
+    size  = string
+    count = string
+    tier  = string
+  })
+}
+
 # 3. DATA diskgroup
 variable "pi_data_volume" {
   description = "Disk configuration for ASM"
@@ -137,6 +153,27 @@ variable "pi_data_volume" {
   })
 }
 
+# 3. REDO diskgroup
+variable "pi_redo_volume" {
+  description = "Disk configuration for ASM"
+  type = object({
+    name  = string
+    size  = string
+    count = string
+    tier  = string
+  })
+}
+
+# 4. oradatavg
+variable "pi_datavg_volume" {
+  description = "Disk configuration for ASM"
+  type = object({
+    name  = string
+    size  = string
+    count = string
+    tier  = string
+  })
+}
 
 ############################################
 # Optional IBM PowerVS Instance Parameters
@@ -159,18 +196,6 @@ variable "bastion_host_ip" {
 variable "squid_server_ip" {
   description = "Squid server IP address to reach the internet from private network, mandatory if private cloud is targeted"
   type        = string
-}
-
-variable "use_rhel_as_proxy" {
-  description = "Whether to use RHEL VM as proxy if it has public internet access. If false, fallback to bastion."
-  type        = bool
-  default     = false
-}
-
-variable "apply_ru" {
-  description = "If set to true, ansible play will be executed to preform oracle/grid patch. TODO"
-  type        = bool
-  default     = true
 }
 
 variable "ora_sid" {
