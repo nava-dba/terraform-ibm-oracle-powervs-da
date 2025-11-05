@@ -11,8 +11,7 @@
     ibmcloud_cos_service_credentials: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_service_credentials') }}"
     ibmcloud_cos_configuration: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') }}"
     ibmcloud_cos_endpoint_url_prod: "https://s3.dal.us.cloud-object-storage.appdomain.cloud"
-    bastion_host_ip: "{{ lookup('ansible.builtin.env', 'bastion_host_ip') }}"
-    ssh_private_key: "{{ lookup('ansible.builtin.env', 'ssh_private_key') }}"
+
   tasks:
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
@@ -127,33 +126,6 @@
       loop: "{{ pi_networks }}"
       loop_control:
         label: "{{ item.name }}"
-
-    - name: Write SSH private key to temporary file
-      copy:
-        content: "{{ ssh_private_key }}"
-        dest: "/tmp/bastion_key.pem"
-        mode: '0600'
-
-    - name: Validate SSH connectivity to bastion host using private key file
-      ansible.builtin.shell: |
-        ssh -o StrictHostKeyChecking=no \
-            -i /tmp/bastion_key.pem \
-            root@{{ bastion_host_ip }} "exit"
-      register: ssh_result
-      changed_when: false
-      failed_when: ssh_result.rc != 0
-      when:
-        - ssh_private_key | default('') | length > 0
-        - bastion_host_ip | default('') | length > 0
-
-    - name: Remove temporary key file
-      file:
-        path: "/tmp/bastion_key.pem"
-        state: absent
-    
-    - name: Debug Bastion Host connectivity
-      ansible.builtin.debug:
-        msg: "Successfully reached and authenticated to Bastion Host {{ bastion_host_ip }}"
 
     - name: All IBM Cloud pre-validations passed
       ansible.builtin.debug:

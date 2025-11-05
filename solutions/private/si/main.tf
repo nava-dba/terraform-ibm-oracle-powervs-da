@@ -1,12 +1,11 @@
 #############################
-# Create Workspace + Subnet
 # Create RHEL VM
 # Create AIX VM
-# Dowload Oracle binaries from cos
-# Deploy Oracle
+# Initialize RHEL VM
+# Intitialize AIX VM
+# Download Oracle binaries from cos
+# Install GRID and RDBMS and Create Oracle Database
 #############################
-
-# Create Workspace + Subnet
 
 # Create RHEL Management VM
 
@@ -23,8 +22,8 @@ module "pi_instance_rhel" {
   pi_image_id             = var.pi_rhel_image_name
   pi_networks             = var.pi_networks
   pi_instance_name        = "${var.prefix}-management-rhel"
-  pi_memory_size          = "8"
-  pi_number_of_processors = "1"
+  pi_memory_size          = "4"
+  pi_number_of_processors = ".05"
   pi_server_type          = var.pi_rhel_management_server_type
   pi_cpu_proc_type        = "shared"
   pi_storage_config = [{
@@ -54,7 +53,11 @@ module "pi_instance_aix" {
   pi_cpu_proc_type           = var.pi_aix_instance.cpu_proc_type
   pi_boot_image_storage_tier = "tier1"
   pi_user_tags               = var.pi_user_tags
-  pi_storage_config          = [var.pi_boot_volume, var.pi_oravg_volume, var.pi_data_volume]
+  pi_storage_config = (
+  var.oracle_install_type == "ASM" ?
+  [var.pi_boot_volume, var.pi_oravg_volume, var.pi_crsdg_volume, var.pi_data_volume, var.pi_redo_volume] :
+  [var.pi_boot_volume, var.pi_oravg_volume, var.pi_datavg_volume]
+  )
 
 }
 
@@ -79,15 +82,14 @@ locals {
 }
 
 module "pi_instance_rhel_init" {
-  source     = "../../modules/ansible"
+  source     = "../../../modules/ansible"
   depends_on = [module.pi_instance_rhel]
 
   bastion_host_ip        = var.bastion_host_ip
   ansible_host_or_ip     = module.pi_instance_rhel.pi_instance_primary_ip
   ssh_private_key        = var.ssh_private_key
   configure_ansible_host = true
-  use_rhel_as_proxy      = var.use_rhel_as_proxy
-  squid_server_ip        = var.use_rhel_as_proxy ? module.pi_instance_rhel.pi_instance_primary_ip : var.squid_server_ip
+  squid_server_ip        = var.squid_server_ip
 
   src_script_template_name = "configure-rhel-management/ansible_exec.sh.tftpl"
   dst_script_file_name     = "configure-rhel-management.sh"
@@ -118,7 +120,7 @@ module "pi_instance_rhel_init" {
 ###########################################################
 
 locals {
-  squid_server_ip = var.use_rhel_as_proxy ? module.pi_instance_rhel.pi_instance_primary_ip : var.squid_server_ip
+  squid_server_ip = var.squid_server_ip
   playbook_aix_init_vars = {
     PROXY_IP_PORT  = "${local.squid_server_ip}:3128"
     NO_PROXY       = "TODO"
@@ -130,14 +132,14 @@ locals {
 }
 
 module "pi_instance_aix_init" {
-  source     = "../../modules/ansible"
+  source     = "../../../modules/ansible"
   depends_on = [module.pi_instance_rhel_init]
 
   bastion_host_ip        = var.bastion_host_ip
   ansible_host_or_ip     = module.pi_instance_rhel.pi_instance_primary_ip
   ssh_private_key        = var.ssh_private_key
   configure_ansible_host = false
-  squid_server_ip               = local.squid_server_ip
+  squid_server_ip        = local.squid_server_ip
 
   src_script_template_name = "aix-init/ansible_exec.sh.tftpl"
   dst_script_file_name     = "aix_init.sh"
@@ -205,7 +207,7 @@ locals {
 }
 
 module "ibmcloud_cos_oracle" {
-  source = "../../modules/ibmcloud-cos"
+  source = "../../../modules/ibmcloud-cos"
   depends_on = [module.pi_instance_rhel_init]
 
   access_host_or_ip          = var.bastion_host_ip
@@ -215,7 +217,7 @@ module "ibmcloud_cos_oracle" {
 }
 
 module "ibmcloud_cos_patch" {
-  source = "../../modules/ibmcloud-cos"
+  source = "../../../modules/ibmcloud-cos"
   depends_on = [ module.ibmcloud_cos_oracle ]
 
   access_host_or_ip          = var.bastion_host_ip
@@ -225,7 +227,7 @@ module "ibmcloud_cos_patch" {
 }
 
 module "ibmcloud_cos_opatch" {
-  source = "../../modules/ibmcloud-cos"
+  source = "../../../modules/ibmcloud-cos"
   depends_on = [ module.ibmcloud_cos_patch ]
 
   access_host_or_ip          = var.bastion_host_ip
@@ -235,7 +237,7 @@ module "ibmcloud_cos_opatch" {
 }
 
 module "ibmcloud_cos_grid" {
-  source = "../../modules/ibmcloud-cos"
+  source = "../../../modules/ibmcloud-cos"
   depends_on = [ module.ibmcloud_cos_opatch ]
   count = var.oracle_install_type == "ASM" ? 1 : 0
 
@@ -265,7 +267,7 @@ locals {
 }
 
 module "oracle_install" {
-  source     = "../../modules/ansible"
+  source     = "../../../modules/ansible"
     depends_on = [  module.ibmcloud_cos_grid, module.pi_instance_aix_init]
     
   bastion_host_ip        = var.bastion_host_ip

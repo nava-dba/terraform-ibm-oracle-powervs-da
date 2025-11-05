@@ -9,5 +9,9 @@ module-assets/
 .pre-commit-config.yaml
 .secrets.baseline
 .DS_Store
-input.auto.tfvars
 .lock
+settings.json
+terraform.tfstate*
+.terraform.tfstate*
+solutions/private/si/input.auto.tfvars
+
