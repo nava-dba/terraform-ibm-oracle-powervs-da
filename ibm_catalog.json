@@ -616,7 +616,7 @@
               {
                 "diagram": {
                   "caption": "Full Oracle instance environment provisioned on a Power Virtual Server - Private Cloud",
-                  "url": "https://github.ibm.com/Naved-Afroz1/terraform-ibm-oracle-powervs-da/blob/prod/images/Oracle_Private_Cloud_DA-Private%20Cloud%20DA.drawio.svg",
+                  "url": "https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/blob/prod/images/Oracle_Private_Cloud_DA-Private%20Cloud%20DA.drawio.svg",
                   "type": "image/svg+xml"
                 },
                 "description": "Full Oracle instance environment provisioned on a Power Virtual Server - Private Cloud"
