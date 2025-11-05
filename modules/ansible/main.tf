@@ -51,7 +51,7 @@ resource "terraform_data" "setup_ansible_host" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x ${local.dst_files_dir}/ansible_node_packages.sh",
-      "use_rhel_as_proxy=${var.use_rhel_as_proxy} squid_server_ip=${var.squid_server_ip} ${local.dst_files_dir}/ansible_node_packages.sh"
+      "squid_server_ip=${var.squid_server_ip} ${local.dst_files_dir}/ansible_node_packages.sh"
     ]
   }
 }

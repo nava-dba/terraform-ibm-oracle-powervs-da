@@ -12,11 +12,11 @@ Deploy oracle in IBM powerVS using terraform and ansible
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_oracle_install"></a> [oracle\_grid\_install](#module\_oracle\_grid\_install) | ../../modules/ansible | n/a |
-| <a name="module_pi_aix_init"></a> [pi\_aix\_init](#module\_pi\_aix\_init) | ../../modules/ansible | n/a |
+| <a name="module_oracle_install"></a> [oracle\_grid\_install](#module\_oracle\_grid\_install) | ../../../modules/ansible | n/a |
+| <a name="module_pi_aix_init"></a> [pi\_aix\_init](#module\_pi\_aix\_init) | ../../../modules/ansible | n/a |
 | <a name="module_pi_instance_aix"></a> [pi\_instance\_aix](#module\_pi\_instance\_aix) | terraform-ibm-modules/powervs-instance/ibm | 2.7.0 |
 | <a name="module_pi_instance_rhel"></a> [pi\_instance\_rhel](#module\_pi\_instance\_rhel) | terraform-ibm-modules/powervs-instance/ibm | 2.7.0 |
-| <a name="module_pi_management_init"></a> [pi\_management\_init](#module\_pi\_management\_init) | ../../modules/ansible | n/a |
+| <a name="module_pi_management_init"></a> [pi\_management\_init](#module\_pi\_management\_init) | ../../../modules/ansible | n/a |
 
 ### Resources
 

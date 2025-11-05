@@ -77,28 +77,71 @@
     #################################################################
     - name: Proxy Setup
       block:
-        - name: Set proxy environment variables in /etc/profile for interactive shell
-          ansible.builtin.blockinfile:
+    
+        # Replace if proxy entries already exist in /etc/profile
+        - name: Replace existing proxy variables in /etc/profile
+          ansible.builtin.replace:
             path: /etc/profile
-            marker: "# {mark} PROXY SETTINGS"
-            block: |
-                export http_proxy=http://{{ PROXY_IP_PORT }}
-                export https_proxy=http://{{ PROXY_IP_PORT }}
-                export HTTP_PROXY=http://{{ PROXY_IP_PORT }}
-                export HTTPS_PROXY=http://{{ PROXY_IP_PORT }}
-                export no_proxy={{ NO_PROXY }}
-        
-        - name: Set proxy environment variables in /etc/environment for non-interactive shell
-          ansible.builtin.blockinfile:
+            regexp: '^(export )?{{ item }}=.*$'
+            replace: "export {{ item }}=http://{{ PROXY_IP_PORT }}"
+          loop:
+            - http_proxy
+            - https_proxy
+            - HTTP_PROXY
+            - HTTPS_PROXY
+          register: profile_replace_log
+    
+        # Add if not present in /etc/profile
+        - name: Insert proxy variables in /etc/profile if missing
+          ansible.builtin.lineinfile:
+            path: /etc/profile
+            line: "export {{ item }}=http://{{ PROXY_IP_PORT }}"
+            regexp: '^{{ item }}=.*$'
+            insertafter: EOF
+          loop:
+            - http_proxy
+            - https_proxy
+            - HTTP_PROXY
+            - HTTPS_PROXY
+          when: not profile_replace_log.changed
+    
+        # Replace if proxy entries already exist in /etc/environment
+        - name: Replace existing proxy variables in /etc/environment
+          ansible.builtin.replace:
             path: /etc/environment
-            marker: "# {mark} PROXY SETTINGS"
-            block: |
-                http_proxy=http://{{ PROXY_IP_PORT }}
-                https_proxy=http://{{ PROXY_IP_PORT }}
-                HTTP_PROXY=http://{{ PROXY_IP_PORT }}
-                HTTPS_PROXY=http://{{ PROXY_IP_PORT }}
-                no_proxy={{ NO_PROXY }}
-
+            regexp: '^{{ item }}=.*$'
+            replace: "{{ item }}=http://{{ PROXY_IP_PORT }}"
+          loop:
+            - http_proxy
+            - https_proxy
+            - HTTP_PROXY
+            - HTTPS_PROXY
+            - no_proxy
+          register: env_replace_log
+    
+        # Add if not present in /etc/environment
+        - name: Insert proxy variables in /etc/environment if missing
+          ansible.builtin.lineinfile:
+            path: /etc/environment
+            line: "{{ item }}=http://{{ PROXY_IP_PORT }}"
+            regexp: '^{{ item }}=.*$'
+            insertafter: EOF
+          loop:
+            - http_proxy
+            - https_proxy
+            - HTTP_PROXY
+            - HTTPS_PROXY
+          when: not env_replace_log.changed
+    
+        # Handle no_proxy separately for add case if not present
+        - name: Ensure no_proxy exists in /etc/environment
+          ansible.builtin.lineinfile:
+            path: /etc/environment
+            regexp: '^no_proxy=.*$'
+            line: "no_proxy={{ NO_PROXY }}"
+            insertafter: EOF
+    
+        # Export proxy variables for current session
         - name: Export proxy variables for current session
           ansible.builtin.shell: |
             export http_proxy=http://{{ PROXY_IP_PORT }}
@@ -107,3 +150,4 @@
             export HTTPS_PROXY=http://{{ PROXY_IP_PORT }}
             export no_proxy={{ NO_PROXY }}
           changed_when: false
+
