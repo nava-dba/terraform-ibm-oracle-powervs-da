@@ -23,7 +23,7 @@ module "pi_instance_rhel" {
   pi_networks             = var.pi_networks
   pi_instance_name        = "${var.prefix}-management-rhel"
   pi_memory_size          = "4"
-  pi_number_of_processors = ".05"
+  pi_number_of_processors = ".25"
   pi_server_type          = var.pi_rhel_management_server_type
   pi_cpu_proc_type        = "shared"
   pi_storage_config = [{
