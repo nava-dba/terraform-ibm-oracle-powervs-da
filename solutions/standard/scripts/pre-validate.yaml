@@ -128,13 +128,17 @@
       loop_control:
         label: "{{ item.name }}"
 
-    - name: Validate SSH connectivity to bastion host using inline private key
+    - name: Write SSH private key to temporary file
+      copy:
+        content: "{{ ssh_private_key }}"
+        dest: "/tmp/bastion_key.pem"
+        mode: '0600'
+
+    - name: Validate SSH connectivity to bastion host using private key file
       ansible.builtin.shell: |
         ssh -o StrictHostKeyChecking=no \
-            -i <(echo "{{ ssh_private_key }}") \
+            -i /tmp/bastion_key.pem \
             root@{{ bastion_host_ip }} "exit"
-      args:
-        executable: /bin/bash
       register: ssh_result
       changed_when: false
       failed_when: ssh_result.rc != 0
@@ -142,6 +146,11 @@
         - ssh_private_key | default('') | length > 0
         - bastion_host_ip | default('') | length > 0
 
+    - name: Remove temporary key file
+      file:
+        path: "/tmp/bastion_key.pem"
+        state: absent
+    
     - name: Debug Bastion Host connectivity
       ansible.builtin.debug:
         msg: "Successfully reached and authenticated to Bastion Host {{ bastion_host_ip }}"
