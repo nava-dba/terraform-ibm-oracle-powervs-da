@@ -113,28 +113,32 @@ main::install_packages() {
 main::setup_proxy() {
   local proxy_url="http://${squid_server_ip}:3128"
 
-  # Export for current shell (so script itself uses proxy)
+  # Determine correct bashrc file
+  if [[ -f /etc/bashrc ]]; then
+    bashrc_file="/etc/bashrc"
+  elif [[ -f /etc/bash.bashrc ]]; then
+    bashrc_file="/etc/bash.bashrc"
+  else
+    main::log_error "No global bashrc file found!"
+    return 1
+  fi
+
+  # Export for current shell
   export http_proxy="$proxy_url"
   export https_proxy="$proxy_url"
   export HTTP_PROXY="$proxy_url"
   export HTTPS_PROXY="$proxy_url"
+  export no_proxy="localhost,127.0.0.1,::1"
 
-  # Persist in /etc/profile for interactive shells
-  if ! grep -q "http_proxy" /etc/profile; then
-    cat <<EOF >> /etc/profile
+  # Clean existing entries
+  sed -i '/http_proxy=/d' "$bashrc_file"
+  sed -i '/https_proxy=/d' "$bashrc_file"
+  sed -i '/HTTP_PROXY=/d' "$bashrc_file"
+  sed -i '/HTTPS_PROXY=/d' "$bashrc_file"
+  sed -i '/no_proxy=/d' "$bashrc_file"
 
-# Proxy Settings
-export http_proxy=$proxy_url
-export https_proxy=$proxy_url
-export HTTP_PROXY=$proxy_url
-export HTTPS_PROXY=$proxy_url
-export no_proxy=localhost,127.0.0.1,::1
-EOF
-  fi
-
-    # Persist in /etc/environment for interactive shells
-  if ! grep -q "http_proxy" /etc/environment; then
-    cat <<EOF >> /etc/environment
+  # Append new entries
+  cat <<EOF >> "$bashrc_file"
 
 # Proxy Settings
 export http_proxy=$proxy_url
@@ -143,19 +147,15 @@ export HTTP_PROXY=$proxy_url
 export HTTPS_PROXY=$proxy_url
 export no_proxy=localhost,127.0.0.1,::1
 EOF
-  fi
 
-  main::log_info "Proxy configured: $proxy_url"
+  main::log_info "Proxy configured in $bashrc_file: $proxy_url"
 }
+
 
 ############################################################
 # Main start here                                          #
 ############################################################
-if [[ "$use_rhel_as_proxy" != "true" ]]; then
-  main::setup_proxy
-else
-  main::log_info "Skipping proxy setup because use_rhel_as_proxy is true."
-fi
+main::setup_proxy
 main::get_os_version
 main::log_system_info
 main::install_packages

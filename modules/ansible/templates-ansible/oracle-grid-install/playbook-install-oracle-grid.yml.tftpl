@@ -1,9 +1,8 @@
-# ------------------------------------------------------------------------
-# This playbook uses the ibm.power_aix_oracle collection. This collection is
-# available on ansible galaxy
-# https://galaxy.ansible.com/ui/repo/published/ibm/power_aix_oracle/ and can
-# be installed using 'ansible-galaxy collection install ibm.power_aix_oracle'
-# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------------------------------------------------------
+# This playbook uses the ibm.power_aix_oracle and ibm.power_aix_oracle_dba collection. This collection is available on ansible galaxy
+# https://galaxy.ansible.com/ui/repo/published/ibm/power_aix_oracle/ and can be installed using 'ansible-galaxy collection install ibm.power_aix_oracle'
+# https://galaxy.ansible.com/ui/repo/published/ibm/power_aix_oracle_dba/ and can be installed using 'ansible-galaxy collection install ibm.power_aix_oracle_dba'
+# -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ---
 - name: Ansible play to install Oracle and Grid software on AIX
@@ -11,26 +10,37 @@
   gather_facts: yes
   collections:
     - ibm.power_aix_oracle
+    - ibm.power_aix_oracle_dba
 
   vars:
+    ####### Install GRID and DB
     ora_nfs_host: "${ORA_NFS_HOST}"
     ora_nfs_device: "${ORA_NFS_DEVICE}"
     database_sw: "${DATABASE_SW}"
     grid_sw: "${GRID_SW}"
     ru_file: "${RU_FILE}"
     opatch_file: "${OPATCH_FILE}"
-    ora_sid: "${ORA_SID}"
-    apply_ru: true
+    ora_sid: "${ORA_SID}"                               
     oracle_install_type: "${ORACLE_INSTALL_TYPE}"
 
     # Static variables
 
+    # Multitenant params
+    oracle_db_type: "SI"                            # Type of database (RAC,RACONENODE,SI)
+    is_container: "False"                           # (true/false) Is the database a container database
+    pdb_prefix: ""                                  # Provide Pluggable database name.
+    num_pdbs: 0                                     # Number of pluggable databases.
+    state: "present"          
+    redolog_size_in_mb: 40
+    
     # Provide the ansible work directory on target system.
     work_dir: /tmp/ansible
+    done_file_dir: /var/tmp/ansible_flags
 
     # Oracle Version which is going to be installed. Supported value: 19c
     ora_version: 19c
-
+    apply_ru: true
+    
     # Setting this to true will backup /etc/resolv.conf file and copies the file roles/preconfig/files/resolv.conf to /etc.
     # Make sure to update the nameserver details in roles/precofig/files/resolv.conf.
     # If set false no changes will be done to /etc/resolv.conf file
@@ -108,7 +118,7 @@
     # Fill these parameters when the database must be created on ASM. When set to True, Grid Standalone will be installed and Diskgroup is created.
     grid_asm_flag: "{{ true if oracle_install_type == 'ASM' else false }}"
     asm_sys_password: "${ORA_DB_PASSWORD}"
-    asm_diskgroup_name: DATA
+    asm_diskgroup_name: CRSDG
     asm_diskgroup_redundancy: EXTERNAL
     asm_diskgroup_ausize: 4
     asm_disk_loc_prefix: "/dev/r"
@@ -116,7 +126,7 @@
     asm_asmsnmp_password: "${ORA_DB_PASSWORD}"
 
     # Provide the JFS path for the database files if ASM is NOT required. Make sure to set grid_asm_flag to false.
-    ora_data_vg: oradatavg
+    ora_data_vg: datavg
     ora_data_fs: /oradata
     ora_data_fs_size: 5G
     ora_db_fs_list:
@@ -131,7 +141,58 @@
     # Provide DB name, password & characterset
     ora_pwd: "${ORA_DB_PASSWORD}"
     ora_character_set: WE8MSWIN1252
-  
+
+    ###### PODBA variables
+    default_gipass: "${ORA_DB_PASSWORD}"             # ASM sys user password.
+    default_dbpass: "${ORA_DB_PASSWORD}"             # Sys user password.
+
+    asm_password: "${ORA_DB_PASSWORD}"               # ASM sys user password for Single Instance GI Upgrade.
+
+    ####### Create diskgroup
+    grid_install_user: "{{ ora_grid_user }}"                       # Grid software owner.
+    oracle_home_gi: "{{ grid_ora_home }}"               # Grid Home Location.
+    oracle_rsp_stage: "{{ work_dir }}"                          # Any accessible location on remote host to stage scripts.
+    oracle_group: "{{ ora_oinstall_group }}"                          # Grid owner's primary user group.
+    oracle_asm_disk_string: "{{ asm_disk_loc_prefix }}"                 # Entry point of the raw disk. Example "/dev".
+    asm_diskgroups:
+      - diskgroup: DATA                         # Desired dikgroup name to be created.
+        properties:
+          - {redundancy: external, ausize: 4 }      # Redundancy: External, Normal, Ausize 4MB is default.
+        attributes:
+          - {name: 'compatible.rdbms', value: 19.0.0.0}
+          - {name: 'compatible.asm', value: 19.0.0.0}
+        disk: "{{ asm_data_diskgroup_disk | default([]) | map('regex_replace', '^(.*)$', '{\"device\": \"\\1\"}') | map('from_yaml') | list }}"  # Update dynamically for da Provide raw disk name 1 on which the diskgroup needs to be created.
+         
+      - diskgroup: REDO                         # Desired dikgroup name to be created.
+        properties:
+          - {redundancy: external, ausize: 4 }      # Redundancy: External, Normal, Ausize 4MB is default.
+        attributes:
+          - {name: 'compatible.rdbms', value: 19.0.0.0}
+          - {name: 'compatible.asm', value: 19.0.0.0}
+        disk: "{{ asm_redo_diskgroup_disk | default([]) | map('regex_replace', '^(.*)$', '{\"device\": \"\\1\"}') | map('from_yaml') | list }}"
+
+    # Create/Drop database variables section
+    oracle_user: "{{ ora_user }}"             # Provide the username who owns the Oracle Installations.
+    oracle_stage: "{{ work_dir }}"            # Provide path on the target AIX lpar to stage response files.
+    oracle_base: "{{ ora_base }}"
+    oracle_dbf_dir_asm: '+DATA'                 # Provide path on the Lpar to store datafiles if ASM
+     
+    
+    # This is layout to create a database.
+    oracle_databases:                                                           # Dictionary describing the databases to be installed.
+      - home:                                                                   # 'Last' directory in ORACLE_HOME path (e.g /u01/app/oracle/db1)
+        oracle_version_db: "{{ ora_version }}"                                  # Oracle version. Ex:For 12cR1 - 12.1.0.2, 19c
+        oracle_home: "{{ ora_sw_fs }}/19c/database/home"                        # Oracle Home path.
+        oracle_db_name: "{{ ora_sid }}"                                         # Provide Database name.
+        oracle_db_type: "{{ oracle_db_type }}"                                  # Type of database (RAC,RACONENODE,SI)
+        is_container: "{{ is_container }}"                                      # (true/false) Is the database a container database
+        pdb_prefix: "{{ pdb_prefix }}"                                          # Provide Pluggable database name.
+        num_pdbs: "{{ num_pdbs }}"                                              # Number of pluggable databases.
+        storage_type: "{{ 'ASM' if oracle_install_type == 'ASM' else 'FS' }}"   # Database storage to be used. ASM or FS. ASM mandatory for RAC DB type.
+        state: "{{ state }}"
+        redolog_size_in_mb: "{{ redolog_size_in_mb }}"
+        oracle_init_params: "{{ 'db_create_online_log_dest_1=+REDO' }}"
+
   pre_tasks:
     - name: Discover disks for oravg (Oracle software VG)
       ansible.builtin.shell: |
@@ -139,24 +200,46 @@
       register: oravg_disks
       changed_when: false
 
-    - name: Discover disks for DATA (ASM/Data VG)
+    - name: Discover disks for CRSDG (ASM)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep CRSDG | tr -s ' ' | cut -d' ' -f1
+      register: crsdg_disks
+      changed_when: false
+    
+    - name: Discover disks for DATA (ASM)
       ansible.builtin.shell: |
         lsmpio -qa | grep DATA | tr -s ' ' | cut -d' ' -f1
       register: data_disks
       changed_when: false
 
+    - name: Discover disks for REDO (ASM)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep REDO | tr -s ' ' | cut -d' ' -f1
+      register: redo_disks
+      changed_when: false
+    
+    - name: Discover disks for datavg (Data VG)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep datavg | tr -s ' ' | cut -d' ' -f1
+      register: datavg_disks
+      changed_when: false
+
     - name: Set discovered disk lists
       ansible.builtin.set_fact:
         ora_sw_vg_disk: "{{ oravg_disks.stdout_lines }}"
-        ora_data_vg_disk: "{{ data_disks.stdout_lines }}"
-        asm_diskgroup_disk: "{{ data_disks.stdout_lines }}"
+        ora_data_vg_disk: "{{ datavg_disks.stdout_lines }}"
+        asm_diskgroup_disk: "{{ crsdg_disks.stdout_lines }}"
+        asm_data_diskgroup_disk: "{{ data_disks.stdout_lines }}"
+        asm_redo_diskgroup_disk: "{{ redo_disks.stdout_lines }}"
 
     - name: Debug disk vars
       ansible.builtin.debug:
         msg:
           - "ora_sw_vg_disk = {{ ora_sw_vg_disk }}"
           - "ora_data_vg_disk = {{ ora_data_vg_disk }}"
+          - "asm_data_diskgroup_disk = {{ asm_data_diskgroup_disk }}"
           - "asm_diskgroup_disk = {{ asm_diskgroup_disk }}"
+          - "asm_redo_diskgroup_disk = {{ asm_redo_diskgroup_disk }}"
 
   roles:
     - role: ibm.power_aix_oracle.preconfig
@@ -168,6 +251,127 @@
 
     - role: ibm.power_aix_oracle.oracle_install_db
       tags: oracle_install_db
-
+    
     - role: ibm.power_aix_oracle.oracle_createdb
       tags: oracle_createdb
+      when: oracle_install_type == "JFS"
+
+  tasks:
+    ##############################################################
+    # 1. ADD ASM Diskgroups
+    ##############################################################
+    - name: Check if ASM disk group was already added
+      ansible.builtin.stat:
+        path: "{{ done_file_dir }}/asmdiskgroup_add.done"
+      register: dg_done_flag
+      when: oracle_install_type == "ASM"
+
+    - name: "Run ASMCA diskgroups setup"
+      when: 
+        - oracle_install_type == "ASM"
+        - dg_done_flag.stat.exists is not defined or not dg_done_flag.stat.exists
+      block:
+        - name: ASMCA | Check diskgroups
+          ansible.builtin.shell: "{{ oracle_home_gi }}/bin/srvctl status diskgroup -g {{ item.diskgroup }}"
+          loop: "{{ asm_diskgroups }}"
+          become: yes
+          become_user: "{{ grid_install_user }}"
+          register: checkdg
+          changed_when: false
+          failed_when: false
+          when: asm_diskgroups is defined
+
+        - name: Debug | Show missing diskgroups
+          ansible.builtin.debug:
+            msg: "Diskgroup {{ item.item.diskgroup }} does not exist."
+          loop: "{{ checkdg.results | selectattr('stdout', 'search', 'PRCR-1001') | list }}"
+
+        - name: Preparing ASM disks
+          ansible.builtin.include_role:
+            name: ibm.power_aix_oracle.oracle_install_gi
+            tasks_from: pre_asm_disks.yml
+          loop: "{{ (asm_data_diskgroup_disk | default([])) + (asm_redo_diskgroup_disk | default([])) }}"
+          loop_control:
+            loop_var: item
+          when:
+            - checkdg is defined
+            - checkdg.results | selectattr('stdout', 'search', 'PRCR-1001') | list | length > 0
+
+        - name: Include Oracle Create Disk Group for standard configuration
+          block:
+            - ansible.builtin.include_role:
+                name: ibm.power_aix_oracle_dba.podba_create_asm_dg
+          become: true
+          become_user: "{{ grid_install_user }}"
+          become_method: ansible.builtin.su
+        
+        - name: Mark asm diskgroup add as done
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/asmdiskgroup_add.done"
+            state: touch
+
+        - name: Include Oracle Create DB Role as oracle user
+          ansible.builtin.import_role:
+            name: ibm.power_aix_oracle_dba.oradb_create
+          become: true
+          become_user: "{{ oracle_user }}"
+          become_method: ansible.builtin.su
+          tags: oracle_createdb
+      
+
+  post_tasks:
+    - name: Check if disks was already locked
+      ansible.builtin.stat:
+        path: "{{ done_file_dir }}/asmdiskgroup_locked.done"
+      register: dg_lock_flag
+
+    - name: "Lock disks"
+      when: not dg_lock_flag.stat.exists
+      block:
+        - name: Lock ASM disks only if not already locked
+          ansible.builtin.shell: |
+            if lkdev -L {{ item }} 2>/dev/null | grep -q "asmdisk"; then
+              echo "Disk {{ item }} already locked"
+            else
+              lkdev -l {{ item }} -a -c "asmdisk"
+            fi
+          loop: "{{ (asm_data_diskgroup_disk | default([])) + (asm_diskgroup_disk | default([])) + (asm_redo_diskgroup_disk | default([]))  + (ora_data_vg_disk | default([])) }}"
+          loop_control:
+            label: "{{ item }}"
+          register: lock_asm_disks
+          changed_when: "'already locked' not in lock_asm_disks.stdout"
+          failed_when: lock_asm_disks.rc not in [0]
+          ignore_errors: false
+
+        - name: Display lock command results
+          ansible.builtin.debug:
+            var: lock_asm_disks.results | map(attribute='stdout') | list
+        
+        - name: Mark asm disk locked
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/asmdiskgroup_locked.done"
+            state: touch
+    
+    # Remove proxy entries from /etc/profile
+    - name: Remove proxy settings from /etc/profile
+      ansible.builtin.lineinfile:
+        path: /etc/profile
+        regexp: '^(export )?(http_proxy|https_proxy|HTTP_PROXY|HTTPS_PROXY|no_proxy)=.*$'
+        state: absent
+
+    # Remove proxy entries from /etc/environment
+    - name: Remove proxy settings from /etc/environment
+      ansible.builtin.lineinfile:
+        path: /etc/environment
+        regexp: '^(http_proxy|https_proxy|HTTP_PROXY|HTTPS_PROXY|no_proxy)=.*$'
+        state: absent
+
+    # Unset proxy variables for current session
+    - name: Unset proxy variables in current session
+      ansible.builtin.shell: |
+        unset http_proxy
+        unset https_proxy
+        unset HTTP_PROXY
+        unset HTTPS_PROXY
+        unset no_proxy
+      changed_when: false
