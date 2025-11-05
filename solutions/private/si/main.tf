@@ -163,8 +163,8 @@ module "pi_instance_aix_init" {
 
 locals {
   cos_service_credentials  = jsondecode(var.ibmcloud_cos_service_credentials)
-  cos_apikey               = var.ibmcloud_cos_service_credentials.apikey
-  cos_resource_instance_id = var.ibmcloud_cos_service_credentials.resource_instance_id
+  cos_apikey               = local.cos_service_credentials.apikey
+  cos_resource_instance_id = local.cos_service_credentials.resource_instance_id
 }
 
 locals {
