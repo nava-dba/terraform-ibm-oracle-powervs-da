@@ -56,7 +56,7 @@
           "name": "oracle-ready-to-go",
           "install_type": "extension",
           "index": 1,
-          "working_directory": "solutions/standard",
+          "working_directory": "solutions/private/si",
           "compliance": {
             "authority": "",
             "profiles": []
