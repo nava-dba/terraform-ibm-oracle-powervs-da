@@ -71,7 +71,7 @@
     - name: Connect to the COS Instance using the API key
       ansible.builtin.shell: >
         set -o pipefail &&
-        ibmcloud login --no-region --apikey {{ (ibmcloud_cos_service_credentials | from_json).apikey }}
+        ibmcloud login --no-region --apikey {{ ibmcloud_cos_service_credentials.apikey }}
       register: cos_login_output
       changed_when: false
       failed_when: "'FAILED' in cos_login_output.stderr"
@@ -84,7 +84,7 @@
 
     - name: Configure COS CRN
       ansible.builtin.command:
-        cmd: ibmcloud cos config set crn {{ (ibmcloud_cos_service_credentials | from_json).resource_instance_id }}
+        cmd: ibmcloud cos config set crn {{ ibmcloud_cos_service_credentials.resource_instance_id }}
       changed_when: false
       when:
         - ibmcloud_cos_service_credentials | default('') | length > 0
@@ -104,17 +104,7 @@
       changed_when: false
       failed_when: cos_bucket_list_check_output.stdout == ""
       when:
-        - (ibmcloud_cos_configuration | from_json).cos_bucket_name | default('') | length > 0
-
-    - name: Create a new IBM Cloud CLI session
-      ansible.builtin.command:
-        cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region
-      register: login_output
-      changed_when: false
-      failed_when: "'FAILED' in login_output.stderr"
-      when:
-        - ibmcloud_api_key | default('') | length > 0
-        - region | default('') | length > 0
+        - ibmcloud_cos_configuration.cos_bucket_name | default('') | length > 0
 
     - name: Validate each subnet ID in workspace {{ pi_existing_workspace_guid }}
       ansible.builtin.shell: >
