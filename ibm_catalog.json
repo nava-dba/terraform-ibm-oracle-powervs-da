@@ -451,7 +451,7 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "json_editor",
+                "type": "json_editor"
               },
               "default_value": {
                 "size": "100",
