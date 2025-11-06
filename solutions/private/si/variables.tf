@@ -78,12 +78,12 @@ variable "pi_networks" {
 variable "ibmcloud_cos_configuration" {
   description = "Cloud Object Storage instance containing Oracle installation files that will be downloaded to NFS share. 'db-sw/cos_oracle_database_sw_path' must contain only binaries required for Oracle Database installation. 'grid-sw/cos_oracle_grid_sw_path' must contain only binaries required for oracle grid installation when ASM. Leave it empty when JFS. 'patch/cos_oracle_ru_file_path' must contain only binaries required to apply RU patch.'opatch/cos_oracle_opatch_file_path' must contain only binaries required for opatch minimum version install. The binaries required for installation can be found [here](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery or https://www.oracle.com/database/technologies/oracle19c-aix-193000-downloads.html).Avoid inserting '/' at the beginning for 'cos_oracle_database_sw_path', 'cos_oracle_grid_sw_path' and 'cos_oracle_ru_file_path', and 'cos_oracle_opatch_file_path'. Follow exactly same directory structure as prescribed"
   type = object({
-    cos_region                        = string
-    cos_bucket_name                   = string
-    cos_oracle_database_sw_path       = string
-    cos_oracle_grid_sw_path           = optional(string)
-    cos_oracle_ru_file_path           = string
-    cos_oracle_opatch_file_path       = string
+    cos_region                  = string
+    cos_bucket_name             = string
+    cos_oracle_database_sw_path = string
+    cos_oracle_grid_sw_path     = optional(string)
+    cos_oracle_ru_file_path     = string
+    cos_oracle_opatch_file_path = string
   })
   validation {
     condition     = var.oracle_install_type == "ASM" ? (var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path != null && length(var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path) > 0) : true
@@ -116,7 +116,6 @@ variable "pi_boot_volume" {
 variable "pi_oravg_volume" {
   description = "ORAVG volume configuration"
   type = object({
-    name  = string
     size  = string
     count = string
     tier  = string
@@ -138,7 +137,6 @@ variable "pi_crsdg_volume" {
 variable "pi_data_volume" {
   description = "Disk configuration for ASM"
   type = object({
-    name  = string
     size  = string
     count = string
     tier  = string
@@ -149,7 +147,6 @@ variable "pi_data_volume" {
 variable "pi_redo_volume" {
   description = "Disk configuration for ASM"
   type = object({
-    name  = string
     size  = string
     count = string
     tier  = string
@@ -160,7 +157,6 @@ variable "pi_redo_volume" {
 variable "pi_datavg_volume" {
   description = "Disk configuration for ASM"
   type = object({
-    name  = string
     size  = string
     count = string
     tier  = string

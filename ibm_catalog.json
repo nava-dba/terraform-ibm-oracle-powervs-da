@@ -67,7 +67,14 @@
               "key": "prefix",
               "default_value": "",
               "type": "string",
-              "required": true
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^[a-zA-Z0-9-]{1,5}$",
+                  "description": "The prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
+                }
+              ]
             },
             {
               "key": "region",
@@ -446,21 +453,6 @@
               }
             },
             {
-              "key": "pi_boot_volume",
-              "required": false,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "json_editor"
-              },
-              "default_value": {
-                "name": "rootvg",
-                "size": "40",
-                "count": "1",
-                "tier": "tier1"
-              }
-            },
-            {
               "key": "pi_oravg_volume",
               "required": false,
               "custom_config": {
@@ -469,7 +461,6 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "name": "oravg",
                 "size": "100",
                 "count": "2",
                 "tier": "tier1"
@@ -484,7 +475,6 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "name": "CRSDG",
                 "size": "8",
                 "count": "4",
                 "tier": "tier1"
@@ -499,7 +489,6 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "name": "DATA",
                 "size": "20",
                 "count": "4",
                 "tier": "tier1"
@@ -514,7 +503,6 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "name": "REDO",
                 "size": "10",
                 "count": "4",
                 "tier": "tier1"
@@ -529,7 +517,6 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "name": "datavg",
                 "size": "10",
                 "count": "4",
                 "tier": "tier1"
