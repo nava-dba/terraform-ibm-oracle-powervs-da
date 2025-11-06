@@ -23,7 +23,7 @@ module "pi_instance_rhel" {
   pi_networks             = var.pi_networks
   pi_instance_name        = "${var.prefix}-management-rhel"
   pi_memory_size          = "4"
-  pi_number_of_processors = ".05"
+  pi_number_of_processors = ".25"
   pi_server_type          = var.pi_rhel_management_server_type
   pi_cpu_proc_type        = "shared"
   pi_storage_config = [{
@@ -162,9 +162,9 @@ module "pi_instance_aix_init" {
 ######################################################
 
 locals {
-  #cos_service_credentials  = jsondecode(var.ibmcloud_cos_service_credentials)
-  cos_apikey               = var.ibmcloud_cos_service_credentials.apikey
-  cos_resource_instance_id = var.ibmcloud_cos_service_credentials.resource_instance_id
+  cos_service_credentials  = jsondecode(var.ibmcloud_cos_service_credentials)
+  cos_apikey               = local.cos_service_credentials.apikey
+  cos_resource_instance_id = local.cos_service_credentials.resource_instance_id
 }
 
 locals {

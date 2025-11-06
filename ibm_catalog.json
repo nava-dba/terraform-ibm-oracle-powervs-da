@@ -56,7 +56,7 @@
           "name": "oracle-ready-to-go",
           "install_type": "extension",
           "index": 1,
-          "working_directory": "solutions/standard",
+          "working_directory": "solutions/private/si",
           "compliance": {
             "authority": "",
             "profiles": []
@@ -454,7 +454,7 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "name": "exboot",
+                "name": "rootvg",
                 "size": "40",
                 "count": "1",
                 "tier": "tier1"
@@ -476,6 +476,21 @@
               }
             },
             {
+              "key": "pi_crsdg_volume",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "name": "CRSDG",
+                "size": "8",
+                "count": "4",
+                "tier": "tier1"
+              }
+            },
+            {
               "key": "pi_data_volume",
               "required": false,
               "custom_config": {
@@ -491,7 +506,7 @@
               }
             },
             {
-              "key": "pi_data_volume",
+              "key": "pi_redo_volume",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -500,6 +515,21 @@
               },
               "default_value": {
                 "name": "REDO",
+                "size": "10",
+                "count": "4",
+                "tier": "tier1"
+              }
+            },
+            {
+              "key": "pi_datavg_volume",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "name": "datavg",
                 "size": "10",
                 "count": "4",
                 "tier": "tier1"
@@ -522,7 +552,7 @@
             {
               "type": "ansible",
               "short_description": "Running the functional validation for the specific inputs provided in the DA definition",
-              "path": "scripts/pre-validate.yaml",
+              "path": "../../../scripts/pre-validate.yaml",
               "stage": "pre",
               "action": "validate"
             }
