@@ -67,7 +67,14 @@
               "key": "prefix",
               "default_value": "",
               "type": "string",
-              "required": true
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^[a-zA-Z0-9-]{1,5}$",
+                  "description": "The prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
+                }
+              ]
             },
             {
               "key": "region",
