@@ -122,17 +122,11 @@ variable "pi_boot_volume" {
 variable "pi_oravg_volume" {
   description = "ORAVG volume configuration"
   type = object({
-    name  = string
+    name  = optional(string, "oravg")
     size  = string
     count = string
     tier  = string
   })
-  default = {
-    "name" : "oravg",
-    "size" : "200",
-    "count" : "1",
-    "tier" : "tier1"
-  }
 }
 
 # 3. CRSDG diskgroup

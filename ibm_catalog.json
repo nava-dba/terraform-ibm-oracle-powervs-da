@@ -451,25 +451,12 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "json_editor"
+                "type": "json_editor",
               },
               "default_value": {
-                "name": "oravg",
                 "size": "100",
                 "count": "2",
                 "tier": "tier1"
-              },
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "readOnly": true
-                  },
-                  "size": { "type": "string" },
-                  "count": { "type": "string" },
-                  "tier": { "type": "string" }
-                }
               }
             },
             {
