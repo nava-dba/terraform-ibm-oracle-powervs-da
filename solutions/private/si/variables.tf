@@ -110,6 +110,12 @@ variable "pi_boot_volume" {
     count = string
     tier  = string
   })
+  default = {
+    "name" : "rootvg",
+    "size" : "40",
+    "count" : "1",
+    "tier" : "tier1"
+  }
 }
 
 # 2. oravg
@@ -121,6 +127,12 @@ variable "pi_oravg_volume" {
     count = string
     tier  = string
   })
+  default = {
+    "name" : "oravg",
+    "size" : "200",
+    "count" : "1",
+    "tier" : "tier1"
+  }
 }
 
 # 3. CRSDG diskgroup
@@ -132,9 +144,15 @@ variable "pi_crsdg_volume" {
     count = string
     tier  = string
   })
+  default = {
+    "name" : "CRSDG",
+    "size" : "8",
+    "count" : "4",
+    "tier" : "tier1"
+  }
 }
 
-# 3. DATA diskgroup
+# 4. DATA diskgroup
 variable "pi_data_volume" {
   description = "Disk configuration for ASM"
   type = object({
@@ -143,9 +161,15 @@ variable "pi_data_volume" {
     count = string
     tier  = string
   })
+  default = {
+    "name" : "DATA",
+    "size" : "20",
+    "count" : "4",
+    "tier" : "tier1"
+  }
 }
 
-# 3. REDO diskgroup
+# 5. REDO diskgroup
 variable "pi_redo_volume" {
   description = "Disk configuration for ASM"
   type = object({
@@ -154,9 +178,15 @@ variable "pi_redo_volume" {
     count = string
     tier  = string
   })
+  default = {
+    "name" : "REDO",
+    "size" : "10",
+    "count" : "4",
+    "tier" : "tier1"
+  }
 }
 
-# 4. oradatavg
+# 6. oradatavg
 variable "pi_datavg_volume" {
   description = "Disk configuration for ASM"
   type = object({
@@ -165,6 +195,12 @@ variable "pi_datavg_volume" {
     count = string
     tier  = string
   })
+  default = {
+    "name" : "datavg",
+    "size" : "20",
+    "count" : "4",
+    "tier" : "tier1"
+  }
 }
 
 ############################################
