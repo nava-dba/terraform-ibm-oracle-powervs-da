@@ -21,7 +21,7 @@ module "pi_instance_rhel" {
   pi_ssh_public_key_name  = var.pi_ssh_public_key_name
   pi_image_id             = var.pi_rhel_image_name
   pi_networks             = var.pi_networks
-  pi_instance_name        = "${var.prefix}-management-rhel"
+  pi_instance_name        = "${var.prefix}-mgmt-rhel"
   pi_memory_size          = "4"
   pi_number_of_processors = ".25"
   pi_server_type          = var.pi_rhel_management_server_type
@@ -45,7 +45,7 @@ module "pi_instance_aix" {
   pi_ssh_public_key_name     = var.pi_ssh_public_key_name
   pi_image_id                = var.pi_aix_image_name
   pi_networks                = var.pi_networks
-  pi_instance_name           = "${var.prefix}-oracle-aix"
+  pi_instance_name           = "${var.prefix}-ora-aix"
   pi_pin_policy              = var.pi_aix_instance.pin_policy
   pi_server_type             = var.pi_aix_instance.server_type
   pi_number_of_processors    = var.pi_aix_instance.number_processors
