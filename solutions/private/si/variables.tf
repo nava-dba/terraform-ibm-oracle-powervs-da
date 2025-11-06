@@ -150,51 +150,33 @@ variable "pi_crsdg_volume" {
 variable "pi_data_volume" {
   description = "Disk configuration for ASM"
   type = object({
-    name  = string
+    name  = optional(string, "DATA")
     size  = string
     count = string
     tier  = string
   })
-  default = {
-    "name" : "DATA",
-    "size" : "20",
-    "count" : "4",
-    "tier" : "tier1"
-  }
 }
 
 # 5. REDO diskgroup
 variable "pi_redo_volume" {
   description = "Disk configuration for ASM"
   type = object({
-    name  = string
+    name  = optional(string, "REDO")
     size  = string
     count = string
     tier  = string
   })
-  default = {
-    "name" : "REDO",
-    "size" : "10",
-    "count" : "4",
-    "tier" : "tier1"
-  }
 }
 
 # 6. oradatavg
 variable "pi_datavg_volume" {
   description = "Disk configuration for ASM"
   type = object({
-    name  = string
+    name  = optional(string, "datavg")
     size  = string
     count = string
     tier  = string
   })
-  default = {
-    "name" : "datavg",
-    "size" : "20",
-    "count" : "4",
-    "tier" : "tier1"
-  }
 }
 
 ############################################

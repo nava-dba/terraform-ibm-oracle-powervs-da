@@ -465,11 +465,9 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "json_editor",
-                "hiddenProperties": ["name"]
+                "type": "json_editor"
               },
               "default_value": {
-                "name": "DATA",
                 "size": "20",
                 "count": "4",
                 "tier": "tier1"
@@ -481,11 +479,9 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "json_editor",
-                "hiddenProperties": ["name"]
+                "type": "json_editor"
               },
               "default_value": {
-                "name": "REDO",
                 "size": "10",
                 "count": "4",
                 "tier": "tier1"
@@ -497,12 +493,10 @@
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "json_editor",
-                "hiddenProperties": ["name"]
+                "type": "json_editor"
               },
               "default_value": {
-                "name": "datavg",
-                "size": "10",
+                "size": "20",
                 "count": "4",
                 "tier": "tier1"
               }
