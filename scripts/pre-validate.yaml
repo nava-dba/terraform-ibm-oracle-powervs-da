@@ -20,8 +20,8 @@
     - name: Validate Count, Size and Tier attributes of pi_oravg_volume
       ansible.builtin.assert:
         that:
-          - pi_oravg_volume.size > 0
-          - pi_oravg_volume.count > 0
+          - (pi_oravg_volume.size | int) > 0
+          - (pi_oravg_volume.count | int) > 0
           - pi_volume_tier_list is ansible.builtin.contains(pi_oravg_volume.tier)
         fail_msg: "The 'pi_oravg_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_oravg_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
@@ -29,8 +29,8 @@
     - name: Validate Count, Size and Tier attributes of pi_data_volume
       ansible.builtin.assert:
         that:
-          - pi_data_volume.size > 0
-          - pi_data_volume.count > 0
+          - (pi_data_volume.size | int) > 0
+          - (pi_data_volume.count | int) > 0
           - pi_volume_tier_list is ansible.builtin.contains(pi_data_volume.tier)
         fail_msg: "The 'pi_data_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_data_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
@@ -38,8 +38,8 @@
     - name: Validate Count, Size and Tier attributes of pi_redo_volume
       ansible.builtin.assert:
         that:
-          - pi_redo_volume.size > 0
-          - pi_redo_volume.count > 0
+          - (pi_redo_volume.size | int) > 0
+          - (pi_redo_volume.count | int) > 0
           - pi_volume_tier_list is ansible.builtin.contains(pi_redo_volume.tier)
         fail_msg: "The 'pi_redo_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_redo_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
@@ -47,8 +47,8 @@
     - name: Validate Count, Size and Tier attributes of pi_datavg_volume
       ansible.builtin.assert:
         that:
-          - pi_datavg_volume.size > 0
-          - pi_datavg_volume.count > 0
+          - (pi_datavg_volume.size | int) > 0
+          - (pi_datavg_volume.count | int) > 0
           - pi_volume_tier_list is ansible.builtin.contains(pi_datavg_volume.tier)
         fail_msg: "The 'pi_datavg_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_datavg_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
