@@ -12,11 +12,10 @@
     ibmcloud_cos_configuration: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') }}"
     ibmcloud_cos_endpoint_url_prod: "https://s3.dal.us.cloud-object-storage.appdomain.cloud"
     pi_oravg_volume: "{{ lookup('ansible.builtin.env', 'pi_oravg_volume') | from_json }}"
-    pi_oravg_volume: "{{ lookup('ansible.builtin.env', 'pi_oravg_volume') | from_json }}"
     pi_data_volume: "{{ lookup('ansible.builtin.env', 'pi_data_volume') | from_json }}"
     pi_redo_volume: "{{ lookup('ansible.builtin.env', 'pi_redo_volume') | from_json }}"
     pi_datavg_volume: "{{ lookup('ansible.builtin.env', 'pi_datavg_volume') | from_json }}"
-    pi_volume_tier_list: ['tier1','tier2','tier3']
+    pi_volume_tier_list: ["tier1", "tier2", "tier3"]
   tasks:
     - name: Validate Count, Size and Tier attributes of pi_oravg_volume
       ansible.builtin.assert:
@@ -26,7 +25,7 @@
           - pi_volume_tier_list is ansible.builtin.contains(pi_oravg_volume.tier)
         fail_msg: "The 'pi_oravg_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_oravg_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
-    
+
     - name: Validate Count, Size and Tier attributes of pi_data_volume
       ansible.builtin.assert:
         that:
@@ -35,7 +34,7 @@
           - pi_volume_tier_list is ansible.builtin.contains(pi_data_volume.tier)
         fail_msg: "The 'pi_data_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_data_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
-    
+
     - name: Validate Count, Size and Tier attributes of pi_redo_volume
       ansible.builtin.assert:
         that:
@@ -44,7 +43,7 @@
           - pi_volume_tier_list is ansible.builtin.contains(pi_redo_volume.tier)
         fail_msg: "The 'pi_redo_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_redo_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
-    
+
     - name: Validate Count, Size and Tier attributes of pi_datavg_volume
       ansible.builtin.assert:
         that:
@@ -53,7 +52,7 @@
           - pi_volume_tier_list is ansible.builtin.contains(pi_datavg_volume.tier)
         fail_msg: "The 'pi_datavg_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_datavg_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
-    
+
     - name: Create a new IBM Cloud CLI session
       ansible.builtin.command:
         cmd: ibmcloud login --apikey {{ ibmcloud_api_key }} --no-region
