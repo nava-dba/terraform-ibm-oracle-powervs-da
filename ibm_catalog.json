@@ -82,38 +82,14 @@
               "default_value": "",
               "required": true,
               "options": [
-                {
-                  "displayname": "Dallas (dallas)",
-                  "value": "us-south"
-                },
-                {
-                  "displayname": "Washington, D.C.",
-                  "value": "us-east"
-                },
-                {
-                  "displayname": "Frankfurt",
-                  "value": "eu-de"
-                },
-                {
-                  "displayname": "London",
-                  "value": "eu-gb"
-                },
-                {
-                  "displayname": "Tokyo",
-                  "value": "jp-tok"
-                },
-                {
-                  "displayname": "Sydney",
-                  "value": "au-syd"
-                },
-                {
-                  "displayname": "Sao Paulo",
-                  "value": "br-sao"
-                },
-                {
-                  "displayname": "Toronto",
-                  "value": "ca-tor"
-                }
+                { "displayname": "Dallas (dallas)",   "value": "us-south" },
+                { "displayname": "Washington, D.C.",  "value": "us-east"  },
+                { "displayname": "Frankfurt",         "value": "eu-de"    },
+                { "displayname": "London",            "value": "eu-gb"    },
+                { "displayname": "Tokyo",             "value": "jp-tok"   },
+                { "displayname": "Sydney",            "value": "au-syd"   },
+                { "displayname": "Sao Paulo",         "value": "br-sao"   },
+                { "displayname": "Toronto",           "value": "ca-tor"   }
               ],
               "custom_config": {}
             },
@@ -123,80 +99,26 @@
               "default_value": "",
               "required": true,
               "options": [
-                {
-                  "displayname": "Dallas (dallas)",
-                  "value": "us-south"
-                },
-                {
-                  "displayname": "Dallas 10 (dal10)",
-                  "value": "dal10"
-                },
-                {
-                  "displayname": "Dallas 12 (dal12)",
-                  "value": "dal12"
-                },
-                {
-                  "displayname": "Frankfurt 1 (eu-de-1)",
-                  "value": "eu-de-1"
-                },
-                {
-                  "displayname": "Frankfurt 2 (eu-de-2)",
-                  "value": "eu-de-2"
-                },
-                {
-                  "displayname": "London 04 (lon04)",
-                  "value": "lon04"
-                },
-                {
-                  "displayname": "London 06 (lon06)",
-                  "value": "lon06"
-                },
-                {
-                  "displayname": "Madrid 02 (mad02)",
-                  "value": "mad02"
-                },
-                {
-                  "displayname": "Osaka 21 (osa21)",
-                  "value": "osa21"
-                },
-                {
-                  "displayname": "Sao Paulo 01 (sao01)",
-                  "value": "sao01"
-                },
-                {
-                  "displayname": "Sao Paulo 04 (sao04)",
-                  "value": "sao04"
-                },
-                {
-                  "displayname": "Sydney 04 (syd04)",
-                  "value": "syd04"
-                },
-                {
-                  "displayname": "Sydney 05 (syd05)",
-                  "value": "syd05"
-                },
-                {
-                  "displayname": "Tokyo 04 (tok04)",
-                  "value": "tok04"
-                },
-                {
-                  "displayname": "Toronto 01 (tor01)",
-                  "value": "tor01"
-                },
-                {
-                  "displayname": "Washington DC (us-east)",
-                  "value": "us-east"
-                },
-                {
-                  "displayname": "Washington DC 06 (wdc06)",
-                  "value": "wdc06"
-                },
-                {
-                  "displayname": "Washington DC 07 (wdc07)",
-                  "value": "wdc07"
-                }
+                { "displayname": "Dallas (dallas)",           "value": "us-south" },
+                { "displayname": "Dallas 10 (dal10)",         "value": "dal10"    },
+                { "displayname": "Dallas 12 (dal12)",         "value": "dal12"    },
+                { "displayname": "Frankfurt 1 (eu-de-1)",     "value": "eu-de-1"  },
+                { "displayname": "Frankfurt 2 (eu-de-2)",     "value": "eu-de-2"  },
+                { "displayname": "London 04 (lon04)",         "value": "lon04"    },
+                { "displayname": "London 06 (lon06)",         "value": "lon06"    },
+                { "displayname": "Madrid 02 (mad02)",         "value": "mad02"    },
+                { "displayname": "Osaka 21 (osa21)",          "value": "osa21"    },
+                { "displayname": "Sao Paulo 01 (sao01)",      "value": "sao01"    },
+                { "displayname": "Sao Paulo 04 (sao04)",      "value": "sao04"    },
+                { "displayname": "Sydney 04 (syd04)",         "value": "syd04"    },
+                { "displayname": "Sydney 05 (syd05)",         "value": "syd05"    },
+                { "displayname": "Tokyo 04 (tok04)",          "value": "tok04"    },
+                { "displayname": "Toronto 01 (tor01)",        "value": "tor01"    },
+                { "displayname": "Washington DC (us-east)",   "value": "us-east"  },
+                { "displayname": "Washington DC 06 (wdc06)",  "value": "wdc06"    },
+                { "displayname": "Washington DC 07 (wdc07)",  "value": "wdc07"    }
               ],
-              "custom_config": {}
+              "custom_config": { "allow_custom_input": true }
             },
             {
               "key": "pi_existing_workspace_guid",
@@ -250,30 +172,12 @@
               "default_value": "",
               "required": false,
               "options": [
-                {
-                  "displayname": "s1122",
-                  "value": "s1122"
-                },
-                {
-                  "displayname": "s1022",
-                  "value": "s1022"
-                },
-                {
-                  "displayname": "s922",
-                  "value": "s922"
-                },
-                {
-                  "displayname": "e980",
-                  "value": "e980"
-                },
-                {
-                  "displayname": "e1080",
-                  "value": "e1080"
-                },
-                {
-                  "displayname": "e1050",
-                  "value": "e1050"
-                }
+                { "displayname": "s1122", "value": "s1122" },
+                { "displayname": "s1022", "value": "s1022" },
+                { "displayname": "s922",  "value": "s922"  },
+                { "displayname": "e980",  "value": "e980"  },
+                { "displayname": "e1080", "value": "e1080" },
+                { "displayname": "e1050", "value": "e1050" }
               ]
             },
             {
@@ -291,26 +195,11 @@
               "default_value": "7300-03-01",
               "required": false,
               "options": [
-                {
-                  "displayname": "7200-05-09",
-                  "value": "7200-05-09"
-                },
-                {
-                  "displayname": "7300-03-00",
-                  "value": "7300-03-00"
-                },
-                {
-                  "displayname": "7300-03-01",
-                  "value": "7300-03-01"
-                },
-                {
-                  "displayname": "7100-05-09",
-                  "value": "7100-05-09"
-                },
-                {
-                  "displayname": "7300-02-02",
-                  "value": "7300-02-02"
-                }
+                { "displayname": "7200-05-09", "value": "7200-05-09" },
+                { "displayname": "7300-03-00", "value": "7300-03-00" },
+                { "displayname": "7300-03-01", "value": "7300-03-01" },
+                { "displayname": "7100-05-09", "value": "7100-05-09" },
+                { "displayname": "7300-02-02", "value": "7300-02-02" }
               ]
             },
             {
@@ -528,38 +417,6 @@
               "path": "../../../scripts/pre-validate.yaml",
               "stage": "pre",
               "action": "validate"
-            }
-          ],
-          "outputs": [
-            {
-              "key": ""
-            },
-            {
-              "key": ""
-            },
-            {
-              "key": ""
-            },
-            {
-              "key": ""
-            },
-            {
-              "key": ""
-            },
-            {
-              "key": ""
-            },
-            {
-              "key": ""
-            },
-            {
-              "key": ""
-            },
-            {
-              "key": ""
-            },
-            {
-              "key": ""
             }
           ],
           "iam_permissions": [
