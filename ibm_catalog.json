@@ -54,7 +54,7 @@
         {
           "label": "Oracle ready PowerVS - Private Cloud",
           "name": "oracle-ready-to-go",
-          "install_type": "extension",
+          "install_type": "fullstack",
           "index": 1,
           "working_directory": "solutions/private/si",
           "compliance": {
@@ -466,7 +466,7 @@
         {
           "label": "Oracle Real Application Cluster - Private Cloud",
           "name": "oracle-real-application-cluster",
-          "install_type": "extension",
+          "install_type": "fullstack",
           "index": 1,
           "working_directory": "solutions/private/rac",
           "compliance": {
