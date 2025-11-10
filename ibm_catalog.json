@@ -467,7 +467,7 @@
           "label": "Oracle Real Application Cluster - Private Cloud",
           "name": "oracle-real-application-cluster",
           "install_type": "fullstack",
-          "index": 1,
+          "index": 2,
           "working_directory": "solutions/private/rac",
           "compliance": {
             "authority": "",
