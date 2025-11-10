@@ -462,6 +462,418 @@
             ]
           },
           "terraform_version": "1.10.5"
+        },
+        {
+          "label": "Oracle Real Application Cluster - Private Cloud",
+          "name": "oracle-real-application-cluster",
+          "install_type": "extension",
+          "index": 1,
+          "working_directory": "solutions/private/rac",
+          "compliance": {
+            "authority": "",
+            "profiles": []
+          },
+          "dependencies": [],
+          "configuration": [
+            {
+              "key": "prefix",
+              "default_value": "",
+              "type": "string",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^[a-zA-Z0-9-]{1,5}$",
+                  "description": "The prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
+                }
+              ]
+            },
+            {
+              "key": "region",
+              "type": "string",
+              "default_value": "",
+              "required": true,
+              "options": [
+                { "displayname": "Dallas (dallas)",   "value": "us-south" },
+                { "displayname": "Washington, D.C.",  "value": "us-east"  },
+                { "displayname": "Frankfurt",         "value": "eu-de"    },
+                { "displayname": "London",            "value": "eu-gb"    },
+                { "displayname": "Tokyo",             "value": "jp-tok"   },
+                { "displayname": "Sydney",            "value": "au-syd"   },
+                { "displayname": "Sao Paulo",         "value": "br-sao"   },
+                { "displayname": "Toronto",           "value": "ca-tor"   }
+              ],
+              "custom_config": {}
+            },
+            {
+              "key": "zone",
+              "type": "string",
+              "required": true,
+              "default_value": ""
+            },
+            {
+              "key": "pi_existing_workspace_guid",
+              "type": "string",
+              "required": true,
+              "default_value": "",
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12})$",
+                  "description": "The specified value shall be valid GUID"
+                }
+              ]
+            },
+            {
+              "key": "pi_ssh_public_key_name",
+              "type": "string",
+              "required": true,
+              "default_value": ""
+            },
+            {
+              "key": "ssh_private_key",
+              "type": "multiline_secure_value",
+              "display_name": "ssh_private_key",
+              "required": true,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "multiline_secure_value"
+              }
+            },
+            {
+              "key": "pi_networks",
+              "required": true,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": [
+                {
+                  "name": "ora-subnet",
+                  "id": "asdg876a-f62i-12ha-abcd-89h08a7sd90d"
+                }
+              ]
+            },
+            {
+              "key": "pi_rhel_management_server_type",
+              "display_name": "server_type_rhel",
+              "type": "string",
+              "default_value": "",
+              "required": false,
+              "options": [
+                { "displayname": "s1122", "value": "s1122" },
+                { "displayname": "s1022", "value": "s1022" },
+                { "displayname": "s922",  "value": "s922"  },
+                { "displayname": "e980",  "value": "e980"  },
+                { "displayname": "e1080", "value": "e1080" },
+                { "displayname": "e1050", "value": "e1050" }
+              ]
+            },
+            {
+              "key": "pi_rhel_image_name",
+              "display_name": "image_name_rhel",
+              "type": "string",
+              "default_value": "RHEL9-SP6",
+              "required": false,
+              "options": [{ "displayname": "RHEL9-SP6", "value": "RHEL9-SP6" }]
+            },
+            {
+              "key": "pi_aix_image_name",
+              "display_name": "image_name_aix",
+              "type": "string",
+              "default_value": "7300-03-01",
+              "required": false,
+              "options": [
+                { "displayname": "7200-05-09", "value": "7200-05-09" },
+                { "displayname": "7300-03-00", "value": "7300-03-00" },
+                { "displayname": "7300-03-01", "value": "7300-03-01" },
+                { "displayname": "7100-05-09", "value": "7100-05-09" },
+                { "displayname": "7300-02-02", "value": "7300-02-02" }
+              ]
+            },
+            {
+              "key": "ibmcloud_api_key",
+              "display_name": "ibmcloud_api_key",
+              "type": "multiline_secure_value",
+              "required": true,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "multiline_secure_value"
+              }
+            },
+            {
+              "key": "bastion_host_ip",
+              "default_value": "",
+              "type": "string",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$",
+                  "description": "The specified value shall be a valid IPv4 address"
+                }
+              ]
+            },
+            {
+              "key": "squid_server_ip",
+              "default_value": "",
+              "type": "string",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$",
+                  "description": "The specified value shall be a valid IPv4 address"
+                }
+              ]
+            },
+            {
+              "key": "ora_sid",
+              "display_name": "oracle_db_name",
+              "default_value": "",
+              "type": "string",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$",
+                  "description": "The specified value shall contain only alphabets, numbers and underscore, and it shall start with an alphabet"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{3,8}$",
+                  "description": "the specified value length should be between 3 and 8 characters."
+                }
+              ]
+            },
+            {
+              "key": "ora_db_password",
+              "display_name": "oracle_db_main_password",
+              "default_value": "",
+              "type": "password",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
+                  "description": "The specified value should be alpha-numeric and shall contain at least 1 upper, 1 lower, 1 digit and a special character"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{8,30}$",
+                  "description": "the specified value length should be between 8 and 30 characters."
+                }
+              ],
+              "custom_config": {}
+            },
+            {
+              "key": "oracle_install_type",
+              "type": "string",
+              "default_value": "",
+              "required": true,
+              "options": [
+                {
+                  "displayname": "ASM",
+                  "value": "ASM"
+                },
+                {
+                  "displayname": "JFS",
+                  "value": "JFS"
+                }
+              ],
+              "custom_config": {}
+            },
+            {
+              "key": "ibmcloud_cos_service_credentials",
+              "type": "multiline_secure_value",
+              "display_name": "ibmcloud_cos_service_credentials",
+              "required": true,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "multiline_secure_value"
+              },
+              "default_value": "{\"apikey\":\"0viPHOY7LbLNa9eLftrtHPpTjoGv6hbLD1QalRXikliJ\",\"endpoints\":\"https://control.cloud-object-storage.test.cloud.ibm.com/v2/endpoints\",\"iam_apikey_description\":\"Autogeneratedapikeyduringresource-keyoperationforInstance-crn:v1:bluemix:public:cloud-object-storage:global:a/3ag0e9402tyfd5d29761c3e97696b71n:d6f74k03-6k4f-4a82-b165-697354o63903::\",\"iam_apikey_id\":\"ApiKey-347aa3a4b34344f8bc7c7cccdf856e4c\",\"iam_apikey_name\":\"auto-generated-apikey-f9274b63-ef0b-4b4e-a00b-b3bf9023f9dd\",\"iam_role_crn\":\"crn:v1:bluemix:public:iam::::serviceRole:Manager\",\"iam_serviceid_crn\":\"crn:v1:bluemix:public:iam-identity::a/3ag0e9402tyfd5d29761c3e97696b71n::serviceid:ServiceId-540a4a41-7322-4fdd-a9e7-e0cb7ab760f9\",\"resource_instance_id\":\"crn:v1:bluemix:public:cloud-object-storage:global:a/3ag0e9402tyfd5d29761c3e97696b71n:d6f74k03-6k4f-4a82-b165-697354o63903::\"}"
+            },
+            {
+              "key": "ibmcloud_cos_configuration",
+              "required": true,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "cos_region": "us-south",
+                "cos_bucket_name": "oracle-sw-123",
+                "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
+                "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
+                "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
+                "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
+              }
+            },
+            {
+              "key": "pi_aix_instance",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "memory_size": "16",
+                "number_processors": ".25",
+                "cpu_proc_type": "shared",
+                "server_type": "s922",
+                "pin_policy": "hard",
+                "health_status": "OK"
+              }
+            },
+            {
+              "key": "pi_oravg_volume",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "100",
+                "count": "2",
+                "tier": "tier1"
+              }
+            },
+            {
+              "key": "pi_data_volume",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "20",
+                "count": "4",
+                "tier": "tier1"
+              }
+            },
+            {
+              "key": "pi_redo_volume",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "10",
+                "count": "4",
+                "tier": "tier1"
+              }
+            },
+            {
+              "key": "pi_datavg_volume",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "20",
+                "count": "4",
+                "tier": "tier1"
+              }
+            },
+            {
+              "key": "db_storage",
+              "required": false,
+              "type": "string",
+              "default_value": ""
+            },
+            {
+              "key": "pi_user_tags",
+              "required": false,
+              "type": "string",
+              "default_value": "[\"Tag-001\", \"Tag-002\"]"
+            }
+          ],
+          "scripts": [
+            {
+              "type": "ansible",
+              "short_description": "Running the functional validation for the specific inputs provided in the DA definition",
+              "path": "../../../scripts/pre-validate.yaml",
+              "stage": "pre",
+              "action": "validate"
+            }
+          ],
+          "iam_permissions": [
+            {
+              "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
+              "service_name": "appid"
+            },
+            {
+              "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
+              "service_name": "cloud-object-storage"
+            },
+            {
+              "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
+              "service_name": "hs-crypto"
+            },
+            {
+              "role_crns": ["crn:v1:bluemix:public:iam::::role:Administrator"],
+              "service_name": "iam-identity"
+            },
+            {
+              "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
+              "service_name": "kms"
+            },
+            {
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager",
+                "crn:v1:bluemix:public:iam::::role:Administrator"
+              ],
+              "service_name": "is.vpc"
+            },
+            {
+              "role_crns": ["crn:v1:bluemix:public:iam::::role:Editor"],
+              "service_name": "is.vpc"
+            },
+            {
+              "role_crns": ["crn:v1:bluemix:public:iam::::role:Editor"],
+              "service_name": "transit.gateway"
+            },
+            {
+              "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
+              "service_name": "power-iaas"
+            }
+          ],
+          "architecture": {
+            "features": [
+              {
+                "title": "Oracle Solution",
+                "description": "Installed: Oracle single instance database"
+              },
+              {
+                "title": "RHEL on PowerVS",
+                "description": "RHEL Server as the Ansible controller"
+              }
+            ],
+            "diagrams": [
+              {
+                "diagram": {
+                  "caption": "Full Oracle Real Application Cluster - Private Cloud",
+                  "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/34c6bc870aa64824599ee3b353df71889a4dceb2/images/Oracle_Private_Cloud_DA-Private%20Cloud%20DA.drawio.svg",
+                  "type": "image/svg+xml"
+                },
+                "description": "This deployable architecture is designed to assist you in deploying Oracle Real Application Cluster(RAC) into IBM Power Virtual Server - Private Cloud infrastructure. \n\nThis DA creates and prepares Power Virtual Server instances for Oracle RAC database workloads. \n\nThis provisions Red Hat Enterprise Linux as the Ansible controller,NFS and DNS. AIX virtual machines as Oracle instance, retrieves Oracle software from IBM Cloud Object Storage, and performs a guided GRID and RDBMS installation and creates Oracle database based on user-defined parameters."
+              }
+            ]
+          },
+          "terraform_version": "1.10.5"
         }
       ]
     }
