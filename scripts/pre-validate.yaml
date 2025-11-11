@@ -3,6 +3,7 @@
   gather_facts: false
   connection: local
   vars:
+    skip_validation: "{{ lookup('ansible.builtin.env', 'skip_validation') | default('false') | bool }}"
     region: "{{ lookup('ansible.builtin.env', 'region') }}"
     ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key') }}"
     pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') }}"
@@ -26,6 +27,7 @@
         fail_msg: "The 'pi_oravg_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_oravg_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
       when:
+        - skip_validation == false
         - pi_oravg_volume | default('') | length > 0
 
     - name: Validate Count, Size and Tier attributes of pi_data_volume
@@ -37,6 +39,7 @@
         fail_msg: "The 'pi_data_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_data_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
       when:
+        - skip_validation == false
         - pi_data_volume | default('') | length > 0
     - name: Validate Count, Size and Tier attributes of pi_redo_volume
       ansible.builtin.assert:
@@ -47,6 +50,7 @@
         fail_msg: "The 'pi_redo_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_redo_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
       when:
+        - skip_validation == false
         - pi_redo_volume | default('') | length > 0
 
     - name: Validate Count, Size and Tier attributes of pi_datavg_volume
@@ -58,6 +62,7 @@
         fail_msg: "The 'pi_datavg_volume' - size and count must be numbers and tier should be one among {{ pi_volume_tier_list }}"
         success_msg: "Validation successful: 'pi_datavg_volume' - size and count are numbers and tier is one among {{ pi_volume_tier_list }}"
       when:
+        - skip_validation == false
         - pi_datavg_volume | default('') | length > 0
 
     - name: Create a new IBM Cloud CLI session
@@ -67,13 +72,15 @@
       changed_when: false
       failed_when: "'FAILED' in login_output.stderr"
       when:
+        - skip_validation == false
         - ibmcloud_api_key | default('') | length > 0
         - region | default('') | length > 0
 
     - name: Debug login success
       ansible.builtin.debug:
         msg: "Successfully logged in IBM Cloud"
-
+      when:
+        - skip_validation == false
     - name: Capture the output of get workspace command
       ansible.builtin.command:
         cmd: ibmcloud pi ws get {{ pi_existing_workspace_guid }} --json
@@ -83,12 +90,14 @@
         'FAILED' in get_ws_output.stderr or
         ((get_ws_output.stdout | from_json).status | lower != 'active')
       when:
+        - skip_validation == false
         - pi_existing_workspace_guid | default('') | length > 0
 
     - name: Extract the CRN of the given Workspace ID (JSON fetch)
       ansible.builtin.set_fact:
         workspace_crn: "{{ (get_ws_output.stdout | from_json).details.crn }}"
       when:
+        - skip_validation == false
         - get_ws_output is defined
         - get_ws_output.stdout | default('') | length > 0
       changed_when: false
@@ -100,6 +109,7 @@
       changed_when: false
       failed_when: "'FAILED' in target_ws_output.stderr"
       when:
+        - skip_validation == false
         - workspace_crn | default('') | length > 0
 
     - name: Validate the supplied Public SSH key
@@ -109,6 +119,7 @@
       changed_when: false
       failed_when: "'FAILED' in validate_ssh_output.stderr"
       when:
+        - skip_validation == false
         - pi_ssh_public_key_name | default('') | length > 0
 
     - name: Debug Public SSH key
@@ -123,6 +134,7 @@
       changed_when: false
       failed_when: "'FAILED' in cos_login_output.stderr"
       when:
+        - skip_validation == false
         - ibmcloud_cos_service_credentials | default('') | length > 0
 
     - name: Debug COS ibmcloud_cos_configuration
@@ -134,6 +146,7 @@
         cmd: ibmcloud cos config set crn {{ (ibmcloud_cos_service_credentials | from_json).resource_instance_id }}
       changed_when: false
       when:
+        - skip_validation == false
         - ibmcloud_cos_service_credentials | default('') | length > 0
 
     - name: Configure endpoint-url
@@ -141,6 +154,7 @@
         cmd: ibmcloud cos config set endpoint-url "{{ ibmcloud_cos_endpoint_url_prod }}"
       changed_when: false
       when:
+        - skip_validation == false
         - ibmcloud_cos_service_credentials | default('') | length > 0
 
     - name: Check if the supplied COS bucket exists
@@ -151,6 +165,7 @@
       changed_when: false
       failed_when: cos_bucket_list_check_output.stdout == ""
       when:
+        - skip_validation == false
         - ibmcloud_cos_configuration.cos_bucket_name | default('') | length > 0
 
     - name: Create a new IBM Cloud CLI session
@@ -160,6 +175,7 @@
       changed_when: false
       failed_when: "'FAILED' in login_output.stderr"
       when:
+        - skip_validation == false
         - ibmcloud_api_key | default('') | length > 0
         - region | default('') | length > 0
 
@@ -173,6 +189,10 @@
       loop: "{{ pi_networks }}"
       loop_control:
         label: "{{ item.name }}"
+      when:
+        - skip_validation == false
     - name: All IBM Cloud pre-validations passed
       ansible.builtin.debug:
         msg: "IBM Cloud all validations completed successfully."
+      when:
+        - skip_validation == false
