@@ -306,8 +306,12 @@
             {
               "key":"skip_validation",
               "display_name":"Skip Validation",
-              "type":"boolean",
-              "default_value":false,
+              "type":"string",
+              "default_value":"false",
+              "options": [
+                { "displayname": "Yes",   "value": "true" },
+                { "displayname": "No",   "value": "false" }
+              ],
               "required":true
             },
             {
@@ -725,8 +729,12 @@
             {
               "key":"skip_validation",
               "display_name":"Skip Validation",
-              "type":"boolean",
-              "default_value":false,
+              "type":"string",
+              "default_value":"false",
+              "options": [
+                { "displayname": "Yes",   "value": "true" },
+                { "displayname": "No",   "value": "false" }
+              ],
               "required":true
             },
             {
