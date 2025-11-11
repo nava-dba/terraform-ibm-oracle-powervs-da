@@ -733,6 +733,12 @@
               }
             },
             {
+              "key":"skip_validation",
+              "type":"boolean",
+              "default_value":false,
+              "required":false
+            },
+            {
               "key": "pi_oravg_volume",
               "required": false,
               "custom_config": {
