@@ -304,6 +304,13 @@
               }
             },
             {
+              "key":"skip_validation",
+              "display_name":"Skip Validation",
+              "type":"boolean",
+              "default_value":false,
+              "required":true
+            },
+            {
               "key": "pi_aix_instance",
               "required": false,
               "custom_config": {
@@ -716,6 +723,13 @@
               }
             },
             {
+              "key":"skip_validation",
+              "display_name":"Skip Validation",
+              "type":"boolean",
+              "default_value":false,
+              "required":true
+            },
+            {
               "key": "pi_aix_instance",
               "required": false,
               "custom_config": {
@@ -731,12 +745,6 @@
                 "pin_policy": "hard",
                 "health_status": "OK"
               }
-            },
-            {
-              "key":"skip_validation",
-              "type":"boolean",
-              "default_value":false,
-              "required":false
             },
             {
               "key": "pi_oravg_volume",
