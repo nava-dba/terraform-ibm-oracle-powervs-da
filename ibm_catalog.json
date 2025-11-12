@@ -306,13 +306,8 @@
             {
               "key":"skip_validation",
               "display_name":"Skip Validation",
-              "type":"string",
-              "default_value":"No",
-              "options": [
-                { "displayname": "Yes",   "value": "Yes" },
-                { "displayname": "No",   "value": "No" }
-              ],
-              "required":true
+              "type":"boolean",
+              "required" : true
             },
             {
               "key": "pi_aix_instance",
@@ -729,13 +724,8 @@
             {
               "key":"skip_validation",
               "display_name":"Skip Validation",
-              "type":"string",
-              "default_value":"No",
-              "options": [
-                { "displayname": "Yes",   "value": "Yes" },
-                { "displayname": "No",   "value": "No" }
-              ],
-              "required":true
+              "type":"boolean",
+              "required" : true
             },
             {
               "key": "pi_aix_instance",
