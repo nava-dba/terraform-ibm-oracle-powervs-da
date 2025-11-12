@@ -3,7 +3,7 @@
   gather_facts: false
   connection: local
   vars:
-    skip_validation: "{{ lookup('ansible.builtin.env', 'skip_validation') | default('false') | bool }}"
+    skip_validation: "{{ lookup('ansible.builtin.env', 'skip_validation') | default('No') | lower == 'yes' }}"
     region: "{{ lookup('ansible.builtin.env', 'region') }}"
     ibmcloud_api_key: "{{ lookup('ansible.builtin.env', 'ibmcloud_api_key') }}"
     pi_networks: "{{ lookup('ansible.builtin.env', 'pi_networks') }}"

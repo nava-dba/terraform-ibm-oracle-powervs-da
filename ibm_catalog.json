@@ -307,10 +307,10 @@
               "key":"skip_validation",
               "display_name":"Skip Validation",
               "type":"string",
-              "default_value":"false",
+              "default_value":"No",
               "options": [
-                { "displayname": "Yes",   "value": "true" },
-                { "displayname": "No",   "value": "false" }
+                { "displayname": "Yes",   "value": "Yes" },
+                { "displayname": "No",   "value": "No" }
               ],
               "required":true
             },
@@ -730,10 +730,10 @@
               "key":"skip_validation",
               "display_name":"Skip Validation",
               "type":"string",
-              "default_value":"false",
+              "default_value":"No",
               "options": [
-                { "displayname": "Yes",   "value": "true" },
-                { "displayname": "No",   "value": "false" }
+                { "displayname": "Yes",   "value": "Yes" },
+                { "displayname": "No",   "value": "No" }
               ],
               "required":true
             },
