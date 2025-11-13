@@ -12,11 +12,12 @@
     ibmcloud_cos_service_credentials: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_service_credentials') | from_json }}"
     ibmcloud_cos_configuration: "{{ lookup('ansible.builtin.env', 'ibmcloud_cos_configuration') }}"
     ibmcloud_cos_endpoint_url_prod: "https://s3.dal.us.cloud-object-storage.appdomain.cloud"
-    pi_oravg_volume: "{{ lookup('ansible.builtin.env', 'pi_oravg_volume') }}"
-    pi_data_volume: "{{ lookup('ansible.builtin.env', 'pi_data_volume') }}"
-    pi_redo_volume: "{{ lookup('ansible.builtin.env', 'pi_redo_volume') }}"
-    pi_datavg_volume: "{{ lookup('ansible.builtin.env', 'pi_datavg_volume') }}"
-    pi_volume_tier_list: ["tier0", "tier1", "tier3"]
+    pi_oravg_volume: "{{ lookup('ansible.builtin.env', 'pi_oravg_volume') | from_json }}"
+    pi_oravg_volume: "{{ lookup('ansible.builtin.env', 'pi_oravg_volume') | from_json }}"
+    pi_data_volume: "{{ lookup('ansible.builtin.env', 'pi_data_volume') | from_json }}"
+    pi_redo_volume: "{{ lookup('ansible.builtin.env', 'pi_redo_volume') | from_json }}"
+    pi_datavg_volume: "{{ lookup('ansible.builtin.env', 'pi_datavg_volume') | from_json }}"
+    pi_volume_tier_list: ['tier1','tier2','tier3']
   tasks:
     - name: Validate Count, Size and Tier attributes of pi_oravg_volume
       ansible.builtin.assert:
