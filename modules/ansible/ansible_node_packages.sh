@@ -151,6 +151,43 @@ EOF
   main::log_info "Proxy configured in $bashrc_file: $proxy_url"
 }
 
+#######################################################################################################
+# Call rhel-cloud-init.sh To register your LPAR with the RHEL subscription on the satellite server    #
+#######################################################################################################
+
+main::run_cloud_init() {
+  # Validate that all five required environment variables are provided
+  if [[ -z "$ACTIVATION_KEY" || -z "$REDHAT_CAPSULE_SERVER" || -z "$squid_server_ip" || -z "$ORG" || -z "$FLS_DEPLOYMENT" ]]; then
+    main::log_info "Skipping /usr/local/bin/rhel-cloud-init.sh — one or more required environment variables are missing."
+    main::log_info "Expected: ACTIVATION_KEY, REDHAT_CAPSULE_SERVER, PROXY, ORG, FLS_DEPLOYMENT"
+    return 0
+  fi
+
+
+local PROXY="${squid_server_ip}:3128"
+
+  main::log_info "Running /usr/local/bin/rhel-cloud-init.sh with provided environment variables..."
+  main::log_info "Using:"
+  main::log_info "  ACTIVATION_KEY        = *************** (hidden for security)"
+  main::log_info "  REDHAT_CAPSULE_SERVER = $REDHAT_CAPSULE_SERVER"
+  main::log_info "  PROXY                 = $PROXY"
+  main::log_info "  ORG                   = $ORG"
+  main::log_info "  FLS_DEPLOYMENT        = $FLS_DEPLOYMENT"
+
+  /usr/local/bin/rhel-cloud-init.sh \
+    -a "$ACTIVATION_KEY" \
+    -u "$REDHAT_CAPSULE_SERVER" \
+    -p "$PROXY" \
+    -o "$ORG" \
+    -t "$FLS_DEPLOYMENT"
+
+  if [[ $? -ne 0 ]]; then
+    main::log_error "rhel-cloud-init.sh execution failed."
+  else
+    main::log_info "rhel-cloud-init.sh executed successfully."
+  fi
+}
+
 
 ############################################################
 # Main start here                                          #
@@ -158,5 +195,6 @@ EOF
 main::setup_proxy
 main::get_os_version
 main::log_system_info
+main::run_cloud_init
 main::install_packages
 
