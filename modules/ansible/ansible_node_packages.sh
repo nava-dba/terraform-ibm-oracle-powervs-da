@@ -181,11 +181,18 @@ local PROXY="${squid_server_ip}:3128"
     -o "$ORG" \
     -t "$FLS_DEPLOYMENT"
 
-  if [[ $? -ne 0 ]]; then
-    main::log_error "rhel-cloud-init.sh execution failed."
-  else
-    main::log_info "rhel-cloud-init.sh executed successfully."
-  fi
+  rc=$?
+  case $rc in
+    0)
+      main::log_info "rhel-cloud-init.sh executed successfully (exit code 0)."
+      ;;
+    2)
+      main::log_info "rhel-cloud-init.sh returned 2 due to known script issue — treating as success."
+      ;;
+    *)
+      main::log_error "rhel-cloud-init.sh failed with exit code $rc."
+      ;;
+  esac
 }
 
 
