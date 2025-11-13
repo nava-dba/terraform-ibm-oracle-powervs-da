@@ -319,9 +319,9 @@
               },
               "default_value": {
                 "memory_size": "16",
-                "number_processors": ".25",
+                "number_processors": ".05",
                 "cpu_proc_type": "shared",
-                "server_type": "s922",
+                "server_type": "s1022",
                 "pin_policy": "hard",
                 "health_status": "OK"
               }
@@ -737,9 +737,9 @@
               },
               "default_value": {
                 "memory_size": "16",
-                "number_processors": ".25",
+                "number_processors": ".05",
                 "cpu_proc_type": "shared",
-                "server_type": "s922",
+                "server_type": "s1022",
                 "pin_policy": "hard",
                 "health_status": "OK"
               }
