@@ -51,9 +51,10 @@ resource "terraform_data" "setup_ansible_host" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x ${local.dst_files_dir}/ansible_node_packages.sh",
-      "squid_server_ip=${var.squid_server_ip} ${local.dst_files_dir}/ansible_node_packages.sh"
+      "ACTIVATION_KEY='${var.rhel_activation_key}' REDHAT_CAPSULE_SERVER='${var.rhel_capsule_server}' ORG='${var.rhel_org}' FLS_DEPLOYMENT='${var.fls_deployment}' squid_server_ip='${var.squid_server_ip}' ${local.dst_files_dir}/ansible_node_packages.sh"
     ]
   }
+
 }
 
 ##############################################################
