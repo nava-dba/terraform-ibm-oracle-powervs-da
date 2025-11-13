@@ -341,6 +341,20 @@
               }
             },
             {
+              "key": "pi_crsdg_volume",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "8",
+                "count": "4",
+                "tier": "tier1"
+              }
+            },
+            {
               "key": "pi_data_volume",
               "required": false,
               "custom_config": {
@@ -377,7 +391,7 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "20",
+                "size": "10",
                 "count": "4",
                 "tier": "tier1"
               }
