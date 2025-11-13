@@ -21,7 +21,7 @@
   tasks:
     - name: "Pre-Validation is required run the block"
       when:
-        - not skip_validation
+        - not (skip_validation | bool)
       block:
         - name: Validate Count, Size and Tier attributes of pi_oravg_volume
           ansible.builtin.assert:
