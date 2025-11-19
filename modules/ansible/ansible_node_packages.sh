@@ -67,9 +67,6 @@ main::install_packages() {
     ## hotfix for subscription-manager broken pipe error in next step
     subscription-manager list --available --all
 
-    ## enable repository for RHEL sap roles
-    subscription-manager repos --enable="rhel-$(rpm -E %rhel)-for-$(uname -m)-sap-solutions-rpms"
-
     ## Install packages
     for package in $GLOBAL_RHEL_PACKAGES; do
       local count=0
@@ -151,6 +148,30 @@ EOF
   main::log_info "Proxy configured in $bashrc_file: $proxy_url"
 }
 
+#######################################################################################################
+# Call rhel-cloud-init.sh To register your LPAR with the RHEL subscription in PowerVS Private    #
+#######################################################################################################
+
+main::run_cloud_init() {
+  squid_ip="${squid_server_ip}"
+  FILE_NAME="/usr/share/powervs-fls/powervs-fls-readme.md"
+  if [ -s "$FILE_NAME" ]; then
+    echo "File '$FILE_NAME' exists and has a size greater than zero."
+    echo -e $(subscription-manager status)
+    cloud_init_cmd=`grep '\-t RHEL' $FILE_NAME` 
+    cloud_init_cmd_new=$(echo "$cloud_init_cmd" | sed "s/Private.proxy.IP.address/$squid_ip/g")
+    $cloud_init_cmd_new
+    PID=$!
+    echo $'\nWaiting for background script to complete ....\n' 
+    wait $PID
+  
+    echo -e $(subscription-manager status)
+    echo -e $(dnf repolist)
+  else
+    exit 1
+  fi
+}
+
 
 ############################################################
 # Main start here                                          #
@@ -158,5 +179,6 @@ EOF
 main::setup_proxy
 main::get_os_version
 main::log_system_info
+main::run_cloud_init
 main::install_packages
 

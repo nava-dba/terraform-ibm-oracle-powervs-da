@@ -54,6 +54,7 @@ resource "terraform_data" "setup_ansible_host" {
       "squid_server_ip=${var.squid_server_ip} ${local.dst_files_dir}/ansible_node_packages.sh"
     ]
   }
+
 }
 
 ##############################################################
