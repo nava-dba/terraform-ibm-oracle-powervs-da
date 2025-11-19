@@ -97,32 +97,6 @@ variable "ibmcloud_cos_service_credentials" {
   sensitive   = true
 }
 
-#####################################################################
-# Full Linux® subscription for IBM Power Virtual Server Private Cloud
-#####################################################################
-
-variable "rhel_activation_key" {
-  description = "Activation key for Red Hat subscription registration."
-  type        = string
-  sensitive   = true
-}
-
-variable "rhel_capsule_server" {
-  description = "Hostname or IP address of the Red Hat Capsule or Satellite server."
-  type        = string
-}
-
-variable "rhel_org" {
-  description = "Organization name used for Red Hat subscription registration."
-  type        = string
-}
-
-variable "fls_deployment" {
-  description = "Full Linux Subscription (FLS) deployment type or environment identifier."
-  type        = string
-  default     = "RHEL"
-}
-
 #####################################################
 # Oracle Storage Configuration
 #####################################################

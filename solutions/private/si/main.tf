@@ -90,10 +90,6 @@ module "pi_instance_rhel_init" {
   ssh_private_key        = var.ssh_private_key
   configure_ansible_host = true
   squid_server_ip        = var.squid_server_ip
-  rhel_activation_key    = var.rhel_activation_key
-  rhel_capsule_server    = var.rhel_capsule_server
-  rhel_org               = var.rhel_org
-  fls_deployment         = var.fls_deployment
 
   src_script_template_name = "configure-rhel-management/ansible_exec.sh.tftpl"
   dst_script_file_name     = "configure-rhel-management.sh"

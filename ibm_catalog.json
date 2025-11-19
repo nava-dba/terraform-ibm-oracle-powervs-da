@@ -304,34 +304,6 @@
               }
             },
             {
-              "key": "rhel_activation_key",
-              "display_name": "RHEL Activation Key",
-              "description": "Red Hat subscription activation key for full registration",
-              "type": "multiline_secure_value",
-              "required": true,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "multiline_secure_value"
-              }
-            },
-            {
-              "key": "rhel_capsule_server",
-              "display_name": "Red Hat Capsule Server",
-              "description": "FQDN of the Red Hat Capsule server",
-              "type": "string",
-              "required": true,
-              "default_value": ""
-            },
-            {
-              "key": "rhel_org",
-              "display_name": "RHEL Organization ID or Name",
-              "description": "Organization used for Red Hat subscription registration",
-              "type": "string",
-              "required": true,
-              "default_value": ""
-            },
-            {
               "key":"skip_validation",
               "display_name":"Skip Validation",
               "type":"boolean",
