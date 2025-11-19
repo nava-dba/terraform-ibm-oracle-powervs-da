@@ -60,7 +60,7 @@ variable "pi_aix_instance" {
     memory_size       = number # Memory size in GB
     number_processors = number # Number of virtual processors
     cpu_proc_type     = string # Processor type: shared, capped, or dedicated
-    server_type       = string # System type (e.g., s922, e980)
+    server_type       = string # System type (e.g., s1022, e980)
     pin_policy        = string # Pin policy (e.g., hard, soft)
     health_status     = string # Health status (e.g., OK, Warning, Critical)
   })

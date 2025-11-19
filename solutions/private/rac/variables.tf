@@ -60,7 +60,7 @@ variable "pi_aix_instance" {
     memory_size       = number # Memory size in GB
     number_processors = number # Number of virtual processors
     cpu_proc_type     = string # Processor type: shared, capped, or dedicated
-    server_type       = string # System type (e.g., s922, e980)
+    server_type       = string # System type (e.g., s1022, e980)
     pin_policy        = string # Pin policy (e.g., hard, soft)
     health_status     = string # Health status (e.g., OK, Warning, Critical)
   })
@@ -95,6 +95,32 @@ variable "ibmcloud_cos_service_credentials" {
   description = "IBM Cloud Object Storage instance service credentials to access the bucket in the instance (IBM Cloud > Cloud Object Storage > Instances > cos-instance-name > Service Credentials).[json example of service credential](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials)"
   type        = string
   sensitive   = true
+}
+
+#####################################################################
+# Full Linux® subscription for IBM Power Virtual Server Private Cloud
+#####################################################################
+
+variable "rhel_activation_key" {
+  description = "Activation key for Red Hat subscription registration."
+  type        = string
+  sensitive   = true
+}
+
+variable "rhel_capsule_server" {
+  description = "Hostname or IP address of the Red Hat Capsule or Satellite server."
+  type        = string
+}
+
+variable "rhel_org" {
+  description = "Organization name used for Red Hat subscription registration."
+  type        = string
+}
+
+variable "fls_deployment" {
+  description = "Full Linux Subscription (FLS) deployment type or environment identifier."
+  type        = string
+  default     = "RHEL"
 }
 
 #####################################################
