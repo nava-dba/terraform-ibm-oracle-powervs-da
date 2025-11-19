@@ -149,47 +149,27 @@ EOF
 }
 
 #######################################################################################################
-# Call rhel-cloud-init.sh To register your LPAR with the RHEL subscription on the satellite server    #
+# Call rhel-cloud-init.sh To register your LPAR with the RHEL subscription in PowerVS Private    #
 #######################################################################################################
 
 main::run_cloud_init() {
-  # Validate that all five required environment variables are provided
-  if [[ -z "$ACTIVATION_KEY" || -z "$REDHAT_CAPSULE_SERVER" || -z "$squid_server_ip" || -z "$ORG" || -z "$FLS_DEPLOYMENT" ]]; then
-    main::log_info "Skipping /usr/local/bin/rhel-cloud-init.sh — one or more required environment variables are missing."
-    main::log_info "Expected: ACTIVATION_KEY, REDHAT_CAPSULE_SERVER, PROXY, ORG, FLS_DEPLOYMENT"
-    return 0
+  squid_ip="${squid_server_ip}"
+  FILE_NAME="/usr/share/powervs-fls/powervs-fls-readme.md"
+  if [ -s "$FILE_NAME" ]; then
+    echo "File '$FILE_NAME' exists and has a size greater than zero."
+    echo -e $(subscription-manager status)
+    cloud_init_cmd=`grep '\-t RHEL' $FILE_NAME` 
+    cloud_init_cmd_new=$(echo "$cloud_init_cmd" | sed "s/Private.proxy.IP.address/$squid_ip/g")
+    $cloud_init_cmd_new
+    PID=$!
+    echo $'\nWaiting for background script to complete ....\n' 
+    wait $PID
+  
+    echo -e $(subscription-manager status)
+    echo -e $(dnf repolist)
+  else
+    exit 1
   fi
-
-
-local PROXY="${squid_server_ip}:3128"
-
-  main::log_info "Running /usr/local/bin/rhel-cloud-init.sh with provided environment variables..."
-  main::log_info "Using:"
-  main::log_info "  ACTIVATION_KEY        = *************** (hidden for security)"
-  main::log_info "  REDHAT_CAPSULE_SERVER = $REDHAT_CAPSULE_SERVER"
-  main::log_info "  PROXY                 = $PROXY"
-  main::log_info "  ORG                   = $ORG"
-  main::log_info "  FLS_DEPLOYMENT        = $FLS_DEPLOYMENT"
-
-  /usr/local/bin/rhel-cloud-init.sh \
-    -a "$ACTIVATION_KEY" \
-    -u "$REDHAT_CAPSULE_SERVER" \
-    -p "$PROXY" \
-    -o "$ORG" \
-    -t "$FLS_DEPLOYMENT"
-
-  rc=$?
-  case $rc in
-    0)
-      main::log_info "rhel-cloud-init.sh executed successfully (exit code 0)."
-      ;;
-    2)
-      main::log_info "rhel-cloud-init.sh returned 2 due to known script issue — treating as success."
-      ;;
-    *)
-      main::log_error "rhel-cloud-init.sh failed with exit code $rc."
-      ;;
-  esac
 }
 
 

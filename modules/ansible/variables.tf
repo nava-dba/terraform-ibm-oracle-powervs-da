@@ -64,35 +64,6 @@ variable "inventory_template_vars" {
   type        = map(any)
 }
 
-#####################################################################
-# Full Linux® subscription for IBM Power Virtual Server Private Cloud
-#####################################################################
-
-variable "rhel_activation_key" {
-  description = "Activation key for Red Hat subscription registration."
-  type        = string
-  sensitive   = true
-  default     = null
-}
-
-variable "rhel_capsule_server" {
-  description = "Hostname or IP address of the Red Hat Capsule or Satellite server."
-  type        = string
-  default     = null
-}
-
-variable "rhel_org" {
-  description = "Organization name used for Red Hat subscription registration."
-  type        = string
-  default     = null
-}
-
-variable "fls_deployment" {
-  description = "Full Linux Subscription (FLS) deployment type or environment identifier."
-  type        = string
-  default     = null
-}
-
 variable "ansible_vault_password" {
   description = "Vault password to encrypt ansible playbooks that contain sensitive information. Password requirements: 15-100 characters and at least one uppercase letter, one lowercase letter, one number, and one special character. Allowed characters: A-Z, a-z, 0-9, !#$%&()*+-.:;<=>?@[]_{|}~."
   type        = string
