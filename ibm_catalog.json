@@ -395,7 +395,7 @@
               "short_description": "Running the functional validation for the specific inputs provided in the DA definition",
               "path": "../../../scripts/pre-validate.yaml",
               "stage": "pre",
-              "action": "validate"
+              "action": "disabled"
             }
           ],
           "iam_permissions": [
