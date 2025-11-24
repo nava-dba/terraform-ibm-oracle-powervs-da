@@ -167,7 +167,9 @@ main::run_cloud_init() {
   
     echo -e $(subscription-manager status)
     echo -e $(dnf repolist)
+    echo -e "FLS registration completed successfully."
   else
+    echo -e "FLS registration failed please refer https://www.ibm.com/docs/en/power-virtual-server?topic=linux-full-subscription-power-virtual-server-private-cloud "
     exit 1
   fi
 }
