@@ -18,7 +18,7 @@ variable "zone" {
 # Parameters IBM Cloud PowerVS Instance
 #####################################################
 variable "prefix" {
-  description = "A unique identifier for resources. Must contain only lowercase letters, numbers, and - characters. This prefix will be prepended to any resources provisioned by this template. Prefixes must be 16 or fewer characters."
+  description = "A unique identifier for resources. Must contain only lowercase letters, numbers, and - characters. This prefix will be prepended to any resources provisioned by this template. Prefixes must be 5 or fewer characters."
   type        = string
 }
 
