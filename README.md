@@ -11,18 +11,18 @@ Using terraform, RHEL & AIX vms will be created. The RHEL vm will act as Ansible
 ### Before you begin deploying
 
 **Step A**: IAM Permissions
-IAM access roles are required to install this deployable architecture and create all the required elements.
-You need the following permissions for this deployable architecture:
-1. Create services from IBM Cloud catalog.
-2. Create and modify Power® Virtual Server services, virtual server instances, networks, storage volumes, ssh keys of this Power® Virtual Server.
-3. Access existing Object Storage services.
-4. The Editor role on the Projects service.
-5. The Editor and Manager role on the Schematics service.
-6. The Viewer role on the resource group for the project.
-For information about configuring permissions, contact your IBM Cloud account administrator.
+- IAM access roles are required to install this deployable architecture and create all the required elements.
+  You need the following permissions for this deployable architecture:
+      1. Create services from IBM Cloud catalog.
+      2. Create and modify Power® Virtual Server services, virtual server instances, networks, storage volumes, ssh keys of this Power® Virtual Server.
+      3. Access existing Object Storage services.
+      4. The Editor role on the Projects service.
+      5. The Editor and Manager role on the Schematics service.
+      6. The Viewer role on the resource group for the project.
+  For information about configuring permissions, contact your IBM Cloud account administrator.
 
 **Step B**: Generate API key
-Refer to the [IBM Cloud documentation](https://www.ibm.com/docs/en/masv-and-l/cd?topic=cli-creating-your-cloud-api-key)
+- Refer to the [IBM Cloud documentation](https://www.ibm.com/docs/en/masv-and-l/cd?topic=cli-creating-your-cloud-api-key)
 
 **Step C**: Create Power Virtual Server Workspace and get guid.
 1. To create an IBM Power® Virtual Server workspace, complete step 1 to step 8 from the IBM Cloud® documentation for [Creating an IBM Power® Virtual Server](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-power-virtual-server)
