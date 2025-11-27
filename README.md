@@ -3,7 +3,7 @@ This automated deployable architecture guide demonstrates the components used to
 
 ## Reference Architecture
 
-<img width="342" alt="image" src="https://github.ibm.com/user-attachments/assets/cf4b3661-28d0-4c77-8ae3-5b37f3693534" />
+<img width="342" alt="image" src="https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/8175f85efce7c094907daa5ecfe13f7e8e598a38/images/Oracle_Private_DA_SI.svg" />
 
 Using terraform, RHEL & AIX vms will be created. The RHEL vm will act as Ansible controller which contains the playbooks required to setup Oracle Database on AIX. The RHEL vm is also configured with NFS server for staging the Oracle binaries.
 
