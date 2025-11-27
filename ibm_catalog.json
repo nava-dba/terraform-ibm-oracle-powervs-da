@@ -448,7 +448,7 @@
               {
                 "diagram": {
                   "caption": "Full Oracle instance environment provisioned on a Power Virtual Server - Private",
-                  "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/34c6bc870aa64824599ee3b353df71889a4dceb2/images/Oracle_Private_DA_SI.svg",
+                  "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/8175f85efce7c094907daa5ecfe13f7e8e598a38/images/Oracle_Private_DA_SI.svg",
                   "type": "image/svg+xml"
                 },
                 "description": "Full Oracle instance environment provisioned on a Power Virtual Server - Private"
