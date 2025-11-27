@@ -14,4 +14,4 @@ settings.json
 terraform.tfstate*
 .terraform.tfstate*
 solutions/private/si/input.auto.tfvars
-
+.vscode
