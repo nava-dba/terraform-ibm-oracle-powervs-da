@@ -1,3 +1,27 @@
+<!-- Update this title with a descriptive name. Use sentence case. -->
+# PowerVS Private Automation for Oracle Database
+
+<!--
+Update status and "latest release" badges:
+  1. For the status options, see https://terraform-ibm-modules.github.io/documentation/#/badge-status
+  2. Update the "latest release" badge to point to the correct module's repo. Replace "terraform-ibm-module-template" in two places.
+-->
+[![Graduated (Supported)](https://img.shields.io/badge/status-Graduated%20(Supported)-brightgreen?style=plastic)](https://terraform-ibm-modules.github.io/documentation/#/badge-status)
+[![latest release](https://img.shields.io/github/v/release/terraform-ibm-modules/terraform-ibm-oracle-powervs-da?logo=GitHub&sort=semver)](https://github.com/terraform-ibm-modules/terraform-ibm-oracle-powervs-da/releases/latest)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com/)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+
+<!--
+Add a description of modules in this repo.
+Expand on the repo short description in the .github/settings.yml file.
+
+For information, see "Module names and descriptions" at
+https://terraform-ibm-modules.github.io/documentation/#/implementation-guidelines?id=module-names-and-descriptions
+-->
+
+This module creates a Oracle Single Instance 19c Database on IBM PowerVS Private AIX VSI.
+
 ## Overview
 This automated deployable architecture guide demonstrates the components used to deploy Oracle Single Instance 19c Database on IBM PowerVS Private. First it creates the infrastructure and next it creates the database. The Oracle Database can be either created on Automatic Storage Management (ASM) or on Journal File System (JFS2). 
 
