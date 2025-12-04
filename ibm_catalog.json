@@ -161,6 +161,7 @@
             },
             {
               "key": "pi_networks",
+              "type": "array",
               "required": true,
               "custom_config": {
                 "type": "code_editor",
@@ -172,7 +173,8 @@
                   ]
                 }
               },
-              "default_value": "[{ name = \"ora-subnet\", id = \"asdg876a-f62i-12ha-abcd-89h08a7sd90d\" }]"
+              "default_value": "[\n  {\n    name = \"ora-subnet\"\n    id   = \"asdg876a-f62i-92ua-abcd-89h08a7sd90d\"\n  }\n]",
+              "description": "Existing list of private subnet ids to be attached to an instance. The first element will become the primary interface. Run 'ibmcloud pi networks' to list available private subnets."
             },
             {
               "key": "pi_rhel_management_server_type",
