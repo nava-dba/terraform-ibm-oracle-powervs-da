@@ -66,7 +66,7 @@
             force: true
             state: present
           when: hdisk_name.stdout != ""
-        
+
         - name: Mark rootvg entension as done
           ansible.builtin.file:
             path: "{{ done_file_dir }}/root_vg_extended.done"
@@ -77,7 +77,7 @@
     #################################################################
     - name: Proxy Setup
       block:
-    
+
         # Replace if proxy entries already exist in /etc/profile
         - name: Replace existing proxy variables in /etc/profile
           ansible.builtin.replace:
@@ -90,7 +90,7 @@
             - HTTP_PROXY
             - HTTPS_PROXY
           register: profile_replace_log
-    
+
         # Add if not present in /etc/profile
         - name: Insert proxy variables in /etc/profile if missing
           ansible.builtin.lineinfile:
@@ -104,7 +104,7 @@
             - HTTP_PROXY
             - HTTPS_PROXY
           when: not profile_replace_log.changed
-    
+
         # Replace if proxy entries already exist in /etc/environment
         - name: Replace existing proxy variables in /etc/environment
           ansible.builtin.replace:
@@ -118,7 +118,7 @@
             - HTTPS_PROXY
             - no_proxy
           register: env_replace_log
-    
+
         # Add if not present in /etc/environment
         - name: Insert proxy variables in /etc/environment if missing
           ansible.builtin.lineinfile:
@@ -132,7 +132,7 @@
             - HTTP_PROXY
             - HTTPS_PROXY
           when: not env_replace_log.changed
-    
+
         # Handle no_proxy separately for add case if not present
         - name: Ensure no_proxy exists in /etc/environment
           ansible.builtin.lineinfile:
@@ -140,7 +140,7 @@
             regexp: '^no_proxy=.*$'
             line: "no_proxy={{ NO_PROXY }}"
             insertafter: EOF
-    
+
         # Export proxy variables for current session
         - name: Export proxy variables for current session
           ansible.builtin.shell: |
@@ -150,4 +150,3 @@
             export HTTPS_PROXY=http://{{ PROXY_IP_PORT }}
             export no_proxy={{ NO_PROXY }}
           changed_when: false
-
