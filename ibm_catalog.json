@@ -44,21 +44,22 @@
       "long_description": "This automated deployable architecture guide demonstrates the components used to deploy Oracle Single Instance 19c Database on IBM PowerVS Private. First it creates the infrastructure and next it creates the database. \n\nUsing terraform, RHEL & AIX vsi's will be created. The RHEL vsi will act as Ansible controller and NFS server for staging the oracle bindaries.",
       "offering_docs_url": "https://cloud.ibm.com/docs/oracle-powervs-privatecloud",
       "offering_icon_url": "data:image/svg+xml;base64,PHN2ZyBpZD0iU0FQb25Qb3dlciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iMCAwIDMyIDMyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9IjB3cG82d2txd2EiIHgxPSItMTg1NS4yMDgiIHkxPSItMjUwMi41NjMiIHgyPSItMTg1NS4yMDgiIHkyPSItMjUyMi4xNzkiIGdyYWRpZW50VHJhbnNmb3JtPSJtYXRyaXgoMS4wNiAwIDAgLS40OTEgMTk3My42NzYgLTEyMjcuMjkzKSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIvPjxzdG9wIG9mZnNldD0iLjgiIHN0b3Atb3BhY2l0eT0iMCIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJwODB2MGMwMnZiIiB4MT0iMzI4LjUwMiIgeTE9Ii02NzY1LjY0NyIgeDI9IjMyOC41MDIiIHkyPSItNjc4NS4yNjMiIGdyYWRpZW50VHJhbnNmb3JtPSJtYXRyaXgoMS4wNiAwIDAgLjUxNSAtMzM5Ljk2NyAzNTEzLjI1KSIgeGxpbms6aHJlZj0iIzB3cG82d2txd2EiLz48bGluZWFyR3JhZGllbnQgaWQ9ImRrMDJ3NXQweWMiIHgxPSItOTUzLjI2NiIgeTE9Ii0yODI4LjY1OSIgeDI9Ii05NTMuMjY2IiB5Mj0iLTI4MzguNTMzIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDEuMDYgMCAwIC0uNjY5IDEwMzcuMjE4IC0xODc2LjQzOSkiIHhsaW5rOmhyZWY9IiMwd3BvNndrcXdhIi8+PGxpbmVhckdyYWRpZW50IGlkPSJvbjF6NG9xNmVkIiB4MT0iLTE5MjMuMjUiIHkxPSItMjYyMC4yOSIgeDI9Ii0xOTIzLjI1IiB5Mj0iLTI2MjcuODg1IiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDEuMDYgMCAwIC42NjkgMjA0OC4wOTEgMTc4Mi4zNjQpIiB4bGluazpocmVmPSIjMHdwbzZ3a3F3YSIvPjxsaW5lYXJHcmFkaWVudCBpZD0iZGw0OXc5YXdnZSIgeDE9Ii0xOTE1LjgwMiIgeTE9Ii0zMTkxLjI5NSIgeDI9Ii0xOTE1LjgwMiIgeTI9Ii0zMTk4Ljg4OSIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgxLjA2IDAgMCAuNjY5IDIwNDMuNDggMjE0MS4xMjgpIiB4bGluazpocmVmPSIjMHdwbzZ3a3F3YSIvPjxsaW5lYXJHcmFkaWVudCBpZD0iemI2Y3VlbnRsZyIgeDE9IjAiIHkxPSIzMiIgeDI9IjMyIiB5Mj0iMCIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iLjEiIHN0b3AtY29sb3I9IiMwOGJkYmEiLz48c3RvcCBvZmZzZXQ9Ii45IiBzdG9wLWNvbG9yPSIjMGY2MmZlIi8+PC9saW5lYXJHcmFkaWVudD48bWFzayBpZD0iOG5zZ3FxYnBjZiIgeD0iMCIgeT0iMCIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBtYXNrVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNMTUuOTgyIDMwYy03LjcyIDAtMTQtNi4yOC0xNC0xNHM2LjI4MS0xNCAxNC0xNCAxNCA2LjI4IDE0IDE0LTYuMjggMTQtMTQgMTR6bTAtMjZjLTYuNjE3IDAtMTIgNS4zODMtMTIgMTJzNS4zODMgMTIgMTIgMTIgMTItNS4zODMgMTItMTItNS4zODMtMTItMTItMTJ6IiBzdHlsZT0iZmlsbDojZmZmIi8+PHBhdGggZD0iTTMwLjY5MSAzMC43MDhIMTEuNzI5bDMtOC43MDggMTAuNDY1LjAxMSA1LjU3Ny0uMDIxLS4wOCA4LjcxOHpNNi45ODIgMjBsLTYgNS40OTRWNi44MDdsNiA1LjAxNVYyMHpNMTYuMDAzIDFoMTQuOTk5djEzLjAzMkgxNi4wMDN6Ii8+PHBhdGggdHJhbnNmb3JtPSJyb3RhdGUoLTEzNSA3Ljk0MyA2Ljc4NykiIHN0eWxlPSJmaWxsOnVybCgjMHdwbzZ3a3F3YSkiIGQ9Ik00Ljc2NCAxLjk3aDYuMzU3djkuNjM1SDQuNzY0eiIvPjxwYXRoIHRyYW5zZm9ybT0icm90YXRlKDEzNSA4LjEwNiAyNS4zNDQpIiBzdHlsZT0iZmlsbDp1cmwoI3A4MHYwYzAydmIpIiBkPSJNNC45MjggMjAuMjk1aDYuMzU3djEwLjA5OEg0LjkyOHoiLz48cGF0aCB0cmFuc2Zvcm09InJvdGF0ZSgxODAgMjcuMTYxIDE4Ljg2MykiIHN0eWxlPSJmaWxsOnVybCgjZGswMnc1dDB5YykiIGQ9Ik0yMy45ODIgMTUuNTYxaDYuMzU3djYuNjA0aC02LjM1N3oiLz48cGF0aCB0cmFuc2Zvcm09InJvdGF0ZSgtNzAuNzkgMTAuMjYyIDI3LjE5NSkiIHN0eWxlPSJmaWxsOnVybCgjb24xejRvcTZlZCkiIGQ9Ik03LjA4NCAyNC42NTVoNi4zNTd2NS4wOEg3LjA4NHoiLz48cGF0aCBkPSJNOC45ODIgMjAuOThoLTZjLTEuMTAzIDAtMi0uODk3LTItMnYtNmMwLTEuMTAzLjg5Ny0yIDItMmg2YzEuMTAzIDAgMiAuODk3IDIgMnY2YzAgMS4xMDMtLjg5NyAyLTIgMnptLTYtOHY2aDYuMDAxdi02SDIuOTgyek0yOS4wMDIgMzFoLTEzYy0xLjEwMyAwLTItLjg5Ny0yLTJ2LTRjMC0xLjEwMy44OTctMiAyLTJoMTNjMS4xMDMgMCAyIC44OTcgMiAydjRjMCAxLjEwMy0uODk3IDItMiAyem0tMTMtNnY0aDEzLjAwMXYtNEgxNi4wMDJ6IiBzdHlsZT0iZmlsbDojZmZmIi8+PGNpcmNsZSBjeD0iMTkuMDAyIiBjeT0iMjciIHI9IjEiIHN0eWxlPSJmaWxsOiNmZmYiLz48cGF0aCB0cmFuc2Zvcm09InJvdGF0ZSgtOTAgMTMuNTQzIDQuMDMyKSIgc3R5bGU9ImZpbGw6dXJsKCNkbDQ5dzlhd2dlKSIgZD0iTTEwLjM2NCAxLjQ5Mmg2LjM1N3Y1LjA4aC02LjM1N3oiLz48L21hc2s+PC9kZWZzPjxnIHN0eWxlPSJtYXNrOnVybCgjOG5zZ3FxYnBjZikiPjxwYXRoIHN0eWxlPSJmaWxsOnVybCgjemI2Y3VlbnRsZykiIGQ9Ik0wIDBoMzJ2MzJIMHoiLz48L2c+PHBhdGggZD0iTTI1LjQ2MiAxMkgxOWExIDEgMCAwIDEtMS0xVjQuMDM1YTEgMSAwIDAgMSAuOTk3LTFsMTItLjAzNUgzMWExIDEgMCAwIDEgLjc4NCAxLjYyMWwtNS41MzggN2EuOTk4Ljk5OCAwIDAgMS0uNzg0LjM3OXpNMjAgMTBoNC45NzhsMy45NTEtNC45OTRMMjAgNS4wMzJWMTB6IiBzdHlsZT0iZmlsbDojMDAxZDZjIi8+PC9zdmc+",
-       "features": [
-           {
-             "title": "Creates an Single Instance Oracle Database on ASM.",
-             "description": "Get started with Oracle Database on ASM(Automatic Storage Management) by creating and configuring an single instance."
-           },
-           {
-             "title": "Creates an Single Instance Oracle Database on JFS2.",
-             "description": "Get started with Oracle Database on AIX JFS2 by creating and configuring an single instance."
-           }
-          ],
+      "features": [
+        {
+          "title": "Creates an Single Instance Oracle Database on ASM.",
+          "description": "Get started with Oracle Database on ASM(Automatic Storage Management) by creating and configuring an single instance."
+        },
+        {
+          "title": "Creates an Single Instance Oracle Database on JFS2.",
+          "description": "Get started with Oracle Database on AIX JFS2 by creating and configuring an single instance."
+        }
+      ],
       "support_details": "This product is in the community registry, as such support is handled through the originated repo. If you experience issues please open an issue in that repository [https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/issues](https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/issues). Please note this product is not supported via the IBM Cloud Support Center.",
       "flavors": [
         {
           "label": "Oracle ready PowerVS - Private",
           "name": "oracle-ready-to-go",
+          "short_description": "Deploy Oracle Database on Power Virtual Server - Private",
           "install_type": "fullstack",
           "index": 1,
           "working_directory": "solutions/private/si",
@@ -87,14 +88,38 @@
               "default_value": "",
               "required": true,
               "options": [
-                { "displayname": "Dallas (dallas)",   "value": "us-south" },
-                { "displayname": "Washington, D.C.",  "value": "us-east"  },
-                { "displayname": "Frankfurt",         "value": "eu-de"    },
-                { "displayname": "London",            "value": "eu-gb"    },
-                { "displayname": "Tokyo",             "value": "jp-tok"   },
-                { "displayname": "Sydney",            "value": "au-syd"   },
-                { "displayname": "Sao Paulo",         "value": "br-sao"   },
-                { "displayname": "Toronto",           "value": "ca-tor"   }
+                {
+                  "displayname": "Dallas (dallas)",
+                  "value": "us-south"
+                },
+                {
+                  "displayname": "Washington, D.C.",
+                  "value": "us-east"
+                },
+                {
+                  "displayname": "Frankfurt",
+                  "value": "eu-de"
+                },
+                {
+                  "displayname": "London",
+                  "value": "eu-gb"
+                },
+                {
+                  "displayname": "Tokyo",
+                  "value": "jp-tok"
+                },
+                {
+                  "displayname": "Sydney",
+                  "value": "au-syd"
+                },
+                {
+                  "displayname": "Sao Paulo",
+                  "value": "br-sao"
+                },
+                {
+                  "displayname": "Toronto",
+                  "value": "ca-tor"
+                }
               ],
               "custom_config": {}
             },
@@ -138,16 +163,16 @@
               "key": "pi_networks",
               "required": true,
               "custom_config": {
+                "type": "code_editor",
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "json_editor"
-              },
-              "default_value": [
-                {
-                  "name": "ora-subnet",
-                  "id": "asdg876a-f62i-12ha-abcd-89h08a7sd90d"
+                "config_constraints": {
+                  "supportedLanguages": [
+                    "hcl"
+                  ]
                 }
-              ]
+              },
+              "default_value": "[{ name = \"ora-subnet\", id = \"asdg876a-f62i-12ha-abcd-89h08a7sd90d\" }]"
             },
             {
               "key": "pi_rhel_management_server_type",
@@ -156,12 +181,30 @@
               "default_value": "",
               "required": true,
               "options": [
-                { "displayname": "s1122", "value": "s1122" },
-                { "displayname": "s1022", "value": "s1022" },
-                { "displayname": "s922",  "value": "s922"  },
-                { "displayname": "e980",  "value": "e980"  },
-                { "displayname": "e1080", "value": "e1080" },
-                { "displayname": "e1050", "value": "e1050" }
+                {
+                  "displayname": "s1122",
+                  "value": "s1122"
+                },
+                {
+                  "displayname": "s1022",
+                  "value": "s1022"
+                },
+                {
+                  "displayname": "s922",
+                  "value": "s922"
+                },
+                {
+                  "displayname": "e980",
+                  "value": "e980"
+                },
+                {
+                  "displayname": "e1080",
+                  "value": "e1080"
+                },
+                {
+                  "displayname": "e1050",
+                  "value": "e1050"
+                }
               ]
             },
             {
@@ -170,7 +213,12 @@
               "type": "string",
               "default_value": "RHEL9-SP6",
               "required": false,
-              "options": [{ "displayname": "RHEL9-SP6", "value": "RHEL9-SP6" }]
+              "options": [
+                {
+                  "displayname": "RHEL9-SP6",
+                  "value": "RHEL9-SP6"
+                }
+              ]
             },
             {
               "key": "pi_aix_image_name",
@@ -179,11 +227,26 @@
               "default_value": "7300-03-01",
               "required": false,
               "options": [
-                { "displayname": "7200-05-09", "value": "7200-05-09" },
-                { "displayname": "7300-03-00", "value": "7300-03-00" },
-                { "displayname": "7300-03-01", "value": "7300-03-01" },
-                { "displayname": "7100-05-09", "value": "7100-05-09" },
-                { "displayname": "7300-02-02", "value": "7300-02-02" }
+                {
+                  "displayname": "7200-05-09",
+                  "value": "7200-05-09"
+                },
+                {
+                  "displayname": "7300-03-00",
+                  "value": "7300-03-00"
+                },
+                {
+                  "displayname": "7300-03-01",
+                  "value": "7300-03-01"
+                },
+                {
+                  "displayname": "7100-05-09",
+                  "value": "7100-05-09"
+                },
+                {
+                  "displayname": "7300-02-02",
+                  "value": "7300-02-02"
+                }
               ]
             },
             {
@@ -382,62 +445,47 @@
               }
             },
             {
-              "key": "db_storage",
-              "required": false,
-              "type": "string",
-              "default_value": ""
-            },
-            {
               "key": "pi_user_tags",
               "required": false,
               "type": "string",
-              "default_value": "[\"Tag-001\", \"Tag-002\"]"
-            }
-          ],
-          "scripts": [
-            {
-              "type": "ansible",
-              "short_description": "Running the functional validation for the specific inputs provided in the DA definition",
-              "path": "../../../scripts/pre-validate.yaml",
-              "stage": "pre",
-              "action": "disabled"
+              "default_value": "[\"tag-001\", \"tag-002\"]"
             }
           ],
           "iam_permissions": [
-             {
-               "service_name": "power-iaas",
-               "role_crns": [
-                 "crn:v1:bluemix:public:iam::::role:Editor",
-                 "crn:v1:bluemix:public:iam::::role:Viewer",
-                 "crn:v1:bluemix:public:iam::::role:Manager"
-               ],
-               "notes": "Required to create and manage AIX virtual servers, volumes, networks, and PowerVS resources."
-             },
-             {
-               "service_name": "schematics",
-               "role_crns": [
-                 "crn:v1:bluemix:public:iam::::role:Editor",
-                 "crn:v1:bluemix:public:iam::::role:Manager"
-               ],
-               "notes": "Required to run Terraform-based Oracle automation through Schematics."
-             },
-             {
-               "service_name": "cloud-object-storage",
-               "role_crns": [
-                 "crn:v1:bluemix:public:iam::::serviceRole:Manager",
-                 "crn:v1:bluemix:public:iam::::role:Writer"
-               ],
-               "notes": "Required because the user must upload Oracle binaries to COS; automation downloads these binaries into the AIX VM."
-             },
-             {
-               "service_name": "resource-group",
-               "role_crns": [
-                 "crn:v1:bluemix:public:iam::::role:Viewer",
-                 "crn:v1:bluemix:public:iam::::role:Editor"
-               ],
-               "notes": "Allows provisioning resources in a specific resource group."
-             }
-           ],
+            {
+              "service_name": "power-iaas",
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Editor",
+                "crn:v1:bluemix:public:iam::::role:Viewer",
+                "crn:v1:bluemix:public:iam::::role:Manager"
+              ],
+              "notes": "Required to create and manage AIX virtual servers, volumes, networks, and PowerVS resources."
+            },
+            {
+              "service_name": "schematics",
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Editor",
+                "crn:v1:bluemix:public:iam::::role:Manager"
+              ],
+              "notes": "Required to run Terraform-based Oracle automation through Schematics."
+            },
+            {
+              "service_name": "cloud-object-storage",
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager",
+                "crn:v1:bluemix:public:iam::::role:Writer"
+              ],
+              "notes": "Required because the user must upload Oracle binaries to COS; automation downloads these binaries into the AIX VM."
+            },
+            {
+              "service_name": "resource-group",
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Viewer",
+                "crn:v1:bluemix:public:iam::::role:Editor"
+              ],
+              "notes": "Allows provisioning resources in a specific resource group."
+            }
+          ],
           "architecture": {
             "features": [
               {

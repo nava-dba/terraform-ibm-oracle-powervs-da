@@ -2,7 +2,7 @@
 # Create RHEL VM
 # Create AIX VM
 # Initialize RHEL VM
-# Intitialize AIX VM
+# Initialize AIX VM
 # Download Oracle binaries from cos
 # Install GRID and RDBMS and Create Oracle Database
 #############################
@@ -11,6 +11,20 @@
 
 locals {
   nfs_mount = "/repos"
+
+  pi_boot_volume = {
+    "name" : "rootvg",
+    "size" : "40",
+    "count" : "1",
+    "tier" : "tier1"
+  }
+
+  pi_crsdg_volume = {
+    "name" : "CRSDG",
+    "size" : "8",
+    "count" : "4",
+    "tier" : "tier1"
+  }
 }
 
 module "pi_instance_rhel" {
@@ -54,9 +68,9 @@ module "pi_instance_aix" {
   pi_boot_image_storage_tier = "tier1"
   pi_user_tags               = var.pi_user_tags
   pi_storage_config = (
-  var.oracle_install_type == "ASM" ?
-  [var.pi_boot_volume, var.pi_oravg_volume, var.pi_crsdg_volume, var.pi_data_volume, var.pi_redo_volume] :
-  [var.pi_boot_volume, var.pi_oravg_volume, var.pi_datavg_volume]
+    var.oracle_install_type == "ASM" ?
+    [local.pi_boot_volume, var.pi_oravg_volume, local.pi_crsdg_volume, var.pi_data_volume, var.pi_redo_volume] :
+    [local.pi_boot_volume, var.pi_oravg_volume, var.pi_datavg_volume]
   )
 
 }
@@ -98,9 +112,9 @@ module "pi_instance_rhel_init" {
   dst_playbook_file_name     = "configure-rhel-management-playbook.yml"
 
   playbook_template_vars = {
-    server_config    = jsonencode(local.network_services_config)
+    server_config     = jsonencode(local.network_services_config)
     pi_storage_config = jsonencode(module.pi_instance_rhel.pi_storage_configuration)
-    nfs_config        = jsonencode({
+    nfs_config = jsonencode({
       nfs = {
         enable      = true
         directories = [local.nfs_mount]
@@ -110,7 +124,7 @@ module "pi_instance_rhel_init" {
 
   src_inventory_template_name = "inventory.tftpl"
   dst_inventory_file_name     = "configure-rhel-management-inventory"
-  inventory_template_vars     = {
+  inventory_template_vars = {
     host_or_ip = module.pi_instance_rhel.pi_instance_primary_ip
   }
 }
@@ -122,10 +136,10 @@ module "pi_instance_rhel_init" {
 locals {
   squid_server_ip = var.squid_server_ip
   playbook_aix_init_vars = {
-    PROXY_IP_PORT  = "${local.squid_server_ip}:3128"
-    NO_PROXY       = "TODO"
-    ORA_NFS_HOST   = module.pi_instance_aix.pi_instance_primary_ip
-    ORA_NFS_DEVICE = local.nfs_mount
+    PROXY_IP_PORT          = "${local.squid_server_ip}:3128"
+    NO_PROXY               = "TODO"
+    ORA_NFS_HOST           = module.pi_instance_aix.pi_instance_primary_ip
+    ORA_NFS_DEVICE         = local.nfs_mount
     EXTEND_ROOT_VOLUME_WWN = module.pi_instance_aix.pi_storage_configuration[0].wwns
   }
 
@@ -175,7 +189,7 @@ locals {
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
     cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_database_sw_path
-    download_dir_path        =  "${local.nfs_mount}"
+    download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_grid_configuration = {
@@ -184,7 +198,7 @@ locals {
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
     cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path
-    download_dir_path        =  "${local.nfs_mount}"
+    download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_patch_configuration = {
@@ -193,7 +207,7 @@ locals {
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
     cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_ru_file_path
-    download_dir_path        =  "${local.nfs_mount}"
+    download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_opatch_configuration = {
@@ -202,12 +216,12 @@ locals {
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
     cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path
-    download_dir_path        =  "${local.nfs_mount}"
+    download_dir_path        = local.nfs_mount
   }
 }
 
 module "ibmcloud_cos_oracle" {
-  source = "../../../modules/ibmcloud-cos"
+  source     = "../../../modules/ibmcloud-cos"
   depends_on = [module.pi_instance_rhel_init]
 
   access_host_or_ip          = var.bastion_host_ip
@@ -217,8 +231,8 @@ module "ibmcloud_cos_oracle" {
 }
 
 module "ibmcloud_cos_patch" {
-  source = "../../../modules/ibmcloud-cos"
-  depends_on = [ module.ibmcloud_cos_oracle ]
+  source     = "../../../modules/ibmcloud-cos"
+  depends_on = [module.ibmcloud_cos_oracle]
 
   access_host_or_ip          = var.bastion_host_ip
   target_server_ip           = module.pi_instance_rhel.pi_instance_primary_ip
@@ -227,8 +241,8 @@ module "ibmcloud_cos_patch" {
 }
 
 module "ibmcloud_cos_opatch" {
-  source = "../../../modules/ibmcloud-cos"
-  depends_on = [ module.ibmcloud_cos_patch ]
+  source     = "../../../modules/ibmcloud-cos"
+  depends_on = [module.ibmcloud_cos_patch]
 
   access_host_or_ip          = var.bastion_host_ip
   target_server_ip           = module.pi_instance_rhel.pi_instance_primary_ip
@@ -237,9 +251,9 @@ module "ibmcloud_cos_opatch" {
 }
 
 module "ibmcloud_cos_grid" {
-  source = "../../../modules/ibmcloud-cos"
-  depends_on = [ module.ibmcloud_cos_opatch ]
-  count = var.oracle_install_type == "ASM" ? 1 : 0
+  source     = "../../../modules/ibmcloud-cos"
+  depends_on = [module.ibmcloud_cos_opatch]
+  count      = var.oracle_install_type == "ASM" ? 1 : 0
 
   access_host_or_ip          = var.bastion_host_ip
   target_server_ip           = module.pi_instance_rhel.pi_instance_primary_ip
@@ -254,27 +268,27 @@ module "ibmcloud_cos_grid" {
 
 locals {
   playbook_oracle_install_vars = {
-    ORA_NFS_HOST   = module.pi_instance_rhel.pi_instance_primary_ip
-    ORA_NFS_DEVICE =  local.nfs_mount
-    DATABASE_SW    = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_database_sw_path}"
-    GRID_SW        = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path}"
-    RU_FILE        = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_ru_file_path}"
-    OPATCH_FILE    = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path}"
-    ORA_SID        = var.ora_sid        
+    ORA_NFS_HOST        = module.pi_instance_rhel.pi_instance_primary_ip
+    ORA_NFS_DEVICE      = local.nfs_mount
+    DATABASE_SW         = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_database_sw_path}"
+    GRID_SW             = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path}"
+    RU_FILE             = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_ru_file_path}"
+    OPATCH_FILE         = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path}"
+    ORA_SID             = var.ora_sid
     ORACLE_INSTALL_TYPE = var.oracle_install_type
-    ORA_DB_PASSWORD= var.ora_db_password
+    ORA_DB_PASSWORD     = var.ora_db_password
   }
 }
 
 module "oracle_install" {
   source     = "../../../modules/ansible"
-    depends_on = [  module.ibmcloud_cos_grid, module.pi_instance_aix_init]
-    
+  depends_on = [module.ibmcloud_cos_grid, module.pi_instance_aix_init]
+
   bastion_host_ip        = var.bastion_host_ip
   ansible_host_or_ip     = module.pi_instance_rhel.pi_instance_primary_ip
   ssh_private_key        = var.ssh_private_key
   configure_ansible_host = false
-  squid_server_ip               = local.squid_server_ip
+  squid_server_ip        = local.squid_server_ip
 
   src_script_template_name = "oracle-grid-install/ansible_exec.sh.tftpl"
   dst_script_file_name     = "oracle_install.sh"

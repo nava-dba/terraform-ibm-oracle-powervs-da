@@ -101,24 +101,7 @@ variable "ibmcloud_cos_service_credentials" {
 # Oracle Storage Configuration
 #####################################################
 
-# 1. rootvg
-variable "pi_boot_volume" {
-  description = "Boot volume configuration"
-  type = object({
-    name  = string
-    size  = string
-    count = string
-    tier  = string
-  })
-  default = {
-    "name" : "rootvg",
-    "size" : "40",
-    "count" : "1",
-    "tier" : "tier1"
-  }
-}
-
-# 2. oravg
+# 1. oravg
 variable "pi_oravg_volume" {
   description = "ORAVG volume configuration"
   type = object({
@@ -129,24 +112,7 @@ variable "pi_oravg_volume" {
   })
 }
 
-# 3. CRSDG diskgroup
-variable "pi_crsdg_volume" {
-  description = "Disk configuration for ASM"
-  type = object({
-    name  = string
-    size  = string
-    count = string
-    tier  = string
-  })
-  default = {
-    "name" : "CRSDG",
-    "size" : "8",
-    "count" : "4",
-    "tier" : "tier1"
-  }
-}
-
-# 4. DATA diskgroup
+# 2. DATA diskgroup
 variable "pi_data_volume" {
   description = "Disk configuration for ASM"
   type = object({
@@ -157,7 +123,7 @@ variable "pi_data_volume" {
   })
 }
 
-# 5. REDO diskgroup
+# 3. REDO diskgroup
 variable "pi_redo_volume" {
   description = "Disk configuration for ASM"
   type = object({
@@ -168,7 +134,7 @@ variable "pi_redo_volume" {
   })
 }
 
-# 6. oradatavg
+# 4. oradatavg
 variable "pi_datavg_volume" {
   description = "Disk configuration for ASM"
   type = object({
@@ -216,10 +182,4 @@ variable "ora_db_password" {
 variable "oracle_install_type" {
   description = "Oracle install type, value would be either ASM or JFS"
   type        = string
-}
-
-variable "skip_validation" {
-  description = "Skip pre-deployment validation checks if set to true."
-  type        = bool
-  default     = false
 }
