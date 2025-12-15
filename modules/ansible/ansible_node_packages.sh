@@ -108,6 +108,7 @@ main::install_packages() {
 # Setup proxy                                              #
 ############################################################
 main::setup_proxy() {
+  # shellcheck disable=SC2154  # variable comes from Terraform template
   local proxy_url="http://${squid_server_ip}:3128"
 
   # Determine correct bashrc file
@@ -117,6 +118,7 @@ main::setup_proxy() {
     bashrc_file="/etc/bash.bashrc"
   else
     main::log_error "No global bashrc file found!"
+    # shellcheck disable=SC2317 # ignore
     return 1
   fi
 
@@ -153,21 +155,24 @@ EOF
 #######################################################################################################
 
 main::run_cloud_init() {
+  # shellcheck disable=SC2154  # variable comes from Terraform template
   squid_ip="${squid_server_ip}"
   FILE_NAME="/usr/share/powervs-fls/powervs-fls-readme.md"
   if [ -s "$FILE_NAME" ]; then
     echo "File '$FILE_NAME' exists and has a size greater than zero."
-    echo -e $(subscription-manager status)
-    cloud_init_cmd=`grep '\-t RHEL' $FILE_NAME` 
-    cloud_init_cmd_new=$(echo "$cloud_init_cmd" | sed "s/Private.proxy.IP.address/$squid_ip/g")
+    echo -e "$(subscription-manager status)"
+    cloud_init_cmd=$(grep '\-t RHEL' "$FILE_NAME")
+    cloud_init_cmd_new=${cloud_init_cmd//Private.proxy.IP.address/$squid_ip}
     $cloud_init_cmd_new
     PID=$!
-    echo $'\nWaiting for background script to complete ....\n' 
+    echo $'\nWaiting for background script to complete ....\n'
     wait $PID
-  
-    echo -e $(subscription-manager status)
-    echo -e $(dnf repolist)
+
+    echo -e "$(subscription-manager status)"
+    echo -e "$(dnf repolist)"
+    echo -e "FLS registration completed successfully."
   else
+    echo -e "FLS registration failed please refer https://www.ibm.com/docs/en/power-virtual-server?topic=linux-full-subscription-power-virtual-server-private-cloud "
     exit 1
   fi
 }
@@ -181,4 +186,3 @@ main::get_os_version
 main::log_system_info
 main::run_cloud_init
 main::install_packages
-

@@ -54,7 +54,7 @@
           "description": "Get started with Oracle Database on AIX JFS2 by creating and configuring an single instance."
         }
       ],
-      "support_details": "This product is in the community registry, as such support is handled through the originated repo. If you experience issues please open an issue in that repository [https://github.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/issues](https://github.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/issues). Please note this product is not supported via the IBM Cloud Support Center.",
+      "support_details": "This product is in the community registry, as such support is handled through the originated repo. If you experience issues please open an issue in that repository [https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/issues](https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/issues). Please note this product is not supported via the IBM Cloud Support Center.",
       "flavors": [
         {
           "label": "Oracle ready PowerVS - Private",
@@ -503,7 +503,7 @@
               {
                 "diagram": {
                   "caption": "Full Oracle instance environment provisioned on a Power Virtual Server - Private",
-                  "url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/c1dd13668b87806b256f3d04c6da95c4fdda6054/images/Oracle_Private_DA_SI.svg",
+                  "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/8175f85efce7c094907daa5ecfe13f7e8e598a38/images/Oracle_Private_DA_SI.svg",
                   "type": "image/svg+xml"
                 },
                 "description": "Full Oracle instance environment provisioned on a Power Virtual Server - Private"
