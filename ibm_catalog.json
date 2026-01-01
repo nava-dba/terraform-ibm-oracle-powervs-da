@@ -611,6 +611,113 @@
               }
             },
             {
+              "key": "rac_nodes",
+              "displayname": "RAC Node Count",
+              "description": "Number of Oracle RAC instance nodes",
+              "type": "int",
+              "default": 2,
+              "required": false,
+              "options": [
+                {
+                  "displayname": "2 Nodes",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "key": "root_password",
+              "description": "Root password for Oracle instances",
+              "type": "password",
+              "default": "",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
+                  "description": "The specified value should be alpha-numeric and shall contain at least 1 upper, 1 lower, 1 digit and a special character"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{8,30}$",
+                  "description": "the specified value length should be between 8 and 30 characters."
+                }
+              ],
+              "custom_config": {}
+            },
+            {
+              "key": "time_zone",
+              "displayname": "Time Zone",
+              "description": "Time zone for Oracle instances",
+              "type": "string",
+              "default": "America/Los_Angeles",
+              "required": false,
+              "options": [
+                {
+                  "displayname": "US Pacific (Los Angeles)",
+                  "value": "America/Los_Angeles"
+                },
+                {
+                  "displayname": "US Eastern (New York)",
+                  "value": "America/New_York"
+                },
+                {
+                  "displayname": "UTC",
+                  "value": "UTC"
+                },
+                {
+                  "displayname": "UK (London)",
+                  "value": "Europe/London"
+                },
+                {
+                  "displayname": "India (Kolkata)",
+                  "value": "Asia/Kolkata"
+                }
+              ]
+            },
+            {
+              "key": "dns_server_ip",
+              "description": "DNS IP to resolve Oracle VIPs and SCAN name",
+              "type": "string",
+              "default": "192.10.10.0",
+              "required": false
+            },
+            {
+              "key": "ru_version",
+              "displayname": "Oracle RU Version",
+              "description": "Oracle Grid and Database RU patch version",
+              "type": "string",
+              "required": true,
+              "options": [
+                { "displayname": "RU 19.15", "value": "19.15" },
+                { "displayname": "RU 19.16", "value": "19.16" },
+                { "displayname": "RU 19.17", "value": "19.17" },
+                { "displayname": "RU 19.18", "value": "19.18" },
+                { "displayname": "RU 19.19", "value": "19.19" },
+                { "displayname": "RU 19.20", "value": "19.20" },
+                { "displayname": "RU 19.21", "value": "19.21" },
+                { "displayname": "RU 19.22", "value": "19.22" },
+                { "displayname": "RU 19.23", "value": "19.23" },
+                { "displayname": "RU 19.24", "value": "19.24" },
+                { "displayname": "RU 19.25", "value": "19.25" },
+                { "displayname": "RU 19.26", "value": "19.26" },
+                { "displayname": "RU 19.27", "value": "19.27" },
+                { "displayname": "RU 19.28", "value": "19.28" },
+                { "displayname": "RU 19.29", "value": "19.29" }
+              ]
+            },
+            {
+              "key": "cluster_domain",
+              "description": "Specify the cluster domain (example: example.com)",
+              "type": "string",
+              "required": false
+            },
+            {
+              "key": "cluster_name",
+              "description": "Specify the cluster name (example: orac-cluster)",
+              "type": "string",
+              "required": true
+            },
+            {
               "key": "bastion_host_ip",
               "default_value": "",
               "type": "string",
@@ -676,23 +783,6 @@
               "custom_config": {}
             },
             {
-              "key": "oracle_install_type",
-              "type": "string",
-              "default_value": "",
-              "required": true,
-              "options": [
-                {
-                  "displayname": "ASM",
-                  "value": "ASM"
-                },
-                {
-                  "displayname": "JFS",
-                  "value": "JFS"
-                }
-              ],
-              "custom_config": {}
-            },
-            {
               "key": "ibmcloud_cos_service_credentials",
               "type": "multiline_secure_value",
               "display_name": "ibmcloud_cos_service_credentials",
@@ -718,7 +808,8 @@
                 "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
                 "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
                 "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
-                "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
+                "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip",
+                "cos_oracle_cluvfy_file_path": ""
               }
             },
             {
