@@ -686,6 +686,7 @@
               "displayname": "Oracle RU Version",
               "description": "Oracle Grid and Database RU patch version",
               "type": "string",
+              "default": "19.29",
               "required": true,
               "options": [
                 { "displayname": "RU 19.15", "value": "19.15" },
