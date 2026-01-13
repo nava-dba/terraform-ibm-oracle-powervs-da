@@ -548,6 +548,15 @@
               }
             },
             {
+              "key": "pi_rhel_networks",
+              "required": true,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              }
+            },
+            {
               "key": "pi_networks",
               "required": true,
               "custom_config": {
