@@ -548,6 +548,17 @@
               }
             },
             {
+              "key": "pi_replication_policy",
+              "display_name": "pi_replication_policy",
+              "type": "string",
+              "default_value": "anti-affinity",
+              "required": true,
+              "options": [
+                { "displayname": "Same Server", "value": "affinity" },
+                { "displayname": "Different Server", "value": "anti-affinity" }
+              ]
+            },
+            {
               "key": "pi_rhel_networks",
               "required": true,
               "custom_config": {
@@ -688,7 +699,7 @@
               "description": "DNS IP to resolve Oracle VIPs and SCAN name",
               "type": "string",
               "default": "192.10.10.0",
-              "required": false
+              "required": true
             },
             {
               "key": "ru_version",
