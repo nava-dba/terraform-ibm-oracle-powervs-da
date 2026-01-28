@@ -156,7 +156,7 @@
             {
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
-              "display_name": "ssh_private_key",
+              "display_name": "Bastion Host SSH Private Key",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
