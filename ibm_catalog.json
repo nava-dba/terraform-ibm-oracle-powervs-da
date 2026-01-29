@@ -144,7 +144,7 @@
             },
             {
               "key": "zone",
-              "display_name" : "Availability Zone",
+              "display_name" : "PowerVS Zone",
               "type": "string",
               "required": true,
               "default_value": ""
