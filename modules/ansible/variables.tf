@@ -1,7 +1,6 @@
 variable "deployment_type" {
   description = "Deployment type: public or private"
   type        = string
-  default = null
 }
 
 variable "bastion_host_ip" {
