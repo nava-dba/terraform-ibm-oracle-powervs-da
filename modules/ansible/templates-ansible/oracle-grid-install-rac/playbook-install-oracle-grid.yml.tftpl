@@ -1,0 +1,250 @@
+# ------------------------------------------------------------------------------------------------------------------------------------------------------
+# This playbook uses the ibm.power_aix_oracle_rac_asm and ibm.power_aix_oracle_dba collection. This collection is available on ansible galaxy
+# https://galaxy.ansible.com/ui/repo/published/ibm/power_aix_oracle_rac_asm/ and can be installed using 'ansible-galaxy collection install ibm.power_aix_oracle_rac_asm'
+# https://galaxy.ansible.com/ui/repo/published/ibm/power_aix_oracle_dba/ and can be installed using 'ansible-galaxy collection install ibm.power_aix_oracle_dba'
+# -------------------------------------------------------------------------------------------------------------------------------------------------------
+---
+- name: Ansible play to install Oracle and Grid RAC software on AIX
+  hosts: all
+  gather_facts: yes
+  collections:
+    - ibm.power_aix_oracle_rac_asm
+    - ibm.power_aix_oracle_dba
+
+  vars:
+    # Set the playbook directory for relative paths
+    playbook_dir: "/root/terraform_files"
+    #first_host: "{{ groups['all'][0] }}"
+    ansible_ssh_user: root
+
+  vars_files:
+    - /root/terraform_files/rac_vars.yml
+
+  pre_tasks:
+    # Create directory structure for bootstrap role
+    - name: Create roles directory structure on control node
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/roles/bootstrap/files"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+
+    #######################################################
+    # Disk Discovery - ONCE with uppercase (matching volume names)
+    #######################################################
+    - name: Discover disks for oravg (Oracle software VG)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep -i oravg | tr -s ' ' | cut -d' ' -f1
+      register: oravg_disks
+      changed_when: false
+
+    - name: Discover disks for CRSDG (ASM)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep -i crsdg | tr -s ' ' | cut -d' ' -f1
+      register: crsdg_disks
+      changed_when: false
+
+    - name: Discover disks for DATA (ASM)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep -i data | tr -s ' ' | cut -d' ' -f1
+      register: data_disks
+      changed_when: false
+
+    - name: Discover disks for REDO (ASM)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep -i redo | tr -s ' ' | cut -d' ' -f1
+      register: redo_disks
+      changed_when: false
+
+    - name: Discover disks for GIMR (ASM)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep -i gimr | tr -s ' ' | cut -d' ' -f1
+      register: gimr_disks
+      changed_when: false
+
+    - name: Set discovered disk lists
+      ansible.builtin.set_fact:
+        ora_sw_vg_disk: "{{ oravg_disks.stdout_lines }}"
+        ora_gimr_diskgroup_disk: "{{ gimr_disks.stdout_lines }}"
+        asm_diskgroup_disk: "{{ crsdg_disks.stdout_lines }}"
+        asm_data_diskgroup_disk: "{{ data_disks.stdout_lines }}"
+        asm_redo_diskgroup_disk: "{{ redo_disks.stdout_lines }}"
+
+    - name: Debug disk vars
+      ansible.builtin.debug:
+        msg:
+          - "ora_sw_vg_disk = {{ ora_sw_vg_disk }}"
+          - "ora_gimr_diskgroup_disk = {{ ora_gimr_diskgroup_disk }}"
+          - "asm_diskgroup_disk = {{ asm_diskgroup_disk }}"
+          - "asm_data_diskgroup_disk = {{ asm_data_diskgroup_disk }}"
+          - "asm_redo_diskgroup_disk = {{ asm_redo_diskgroup_disk }}"
+
+    - name: Convert disk lists to space-separated disk numbers ONLY
+      ansible.builtin.set_fact:
+        gimr_disk_string: >-
+          {{ ora_gimr_diskgroup_disk
+             | map('regex_replace', '^(hdisk|ASMGIMR)', '')
+             | join(' ') }}
+        crsdg_disk_string: >-
+          {{ asm_diskgroup_disk
+             | map('regex_replace', '^(hdisk|ASMCRSDG)', '')
+             | join(' ') }}
+        data_disk_string: >-
+          {{ asm_data_diskgroup_disk
+             | map('regex_replace', '^(hdisk|ASMDATA)', '')
+             | join(' ') }}
+        redo_disk_string: >-
+          {{ asm_redo_diskgroup_disk
+             | map('regex_replace', '^(hdisk|ASMREDO)', '')
+             | join(' ') }}
+
+    - name: Merge ASM disk configuration into config
+      ansible.builtin.set_fact:
+        config: >-
+          {{
+            config | default({}) | combine({
+              'asmdisks': {
+                'mode': '660',
+                'diskgroups': [
+                  [
+                    'CRSDG',
+                    'ASMCRSDG',
+                    'EXTERNAL',
+                    crsdg_disk_string,
+                    crsdg_disk_string,
+                    'clear_pvids',
+                    'zero_disks'
+                  ],
+                  [
+                    'GIMR',
+                    'ASMGIMR',
+                    'EXTERNAL',
+                    gimr_disk_string,
+                    gimr_disk_string,
+                    'clear_pvids',
+                    'zero_disks'
+                  ],
+                  [
+                    'DATA',
+                    'ASMDATA',
+                    'EXTERNAL',
+                    data_disk_string,
+                    data_disk_string,
+                    'clear_pvids',
+                    'zero_disks'
+                  ],
+                  [
+                    'REDO',
+                    'ASMREDO',
+                    'EXTERNAL',
+                    redo_disk_string,
+                    redo_disk_string,
+                    'clear_pvids',
+                    'zero_disks'
+                  ]
+                ]
+              }
+            }, recursive=True)
+          }}
+
+  roles:
+    - role: ibm.power_aix_oracle_rac_asm.bootstrap
+      vars:
+        download_dir: "~"
+        target_dir: "/tmp/.ansible.cpdir"
+      tags: bootstrap
+
+    - role: ibm.power_aix_oracle_rac_asm.preconfig
+      tags: preconfig
+
+    - role: ibm.power_aix_oracle_rac_asm.config
+      tags: config
+
+    - role: ibm.power_aix_oracle_rac_asm.install
+      tags: install
+
+  tasks:
+    - name: Include Oracle Create DB Role as oracle user
+      ansible.builtin.import_role:
+        name: ibm.power_aix_oracle_dba.oradb_create
+      become: true
+      become_user: "{{ oracle_user }}"
+      become_method: ansible.builtin.su
+      tags: oracle_createdb
+
+  post_tasks:
+    #################################################################
+    # Revert SSH configuration changes for RAC
+    #################################################################
+    - name: Check if SSH config was modified
+      ansible.builtin.stat:
+        path: "{{ done_file_dir }}/ssh_config_updated.done"
+      register: ssh_config_modified
+      when:
+        - AIX_INIT_MODE is defined
+        - AIX_INIT_MODE == "rac"
+
+    - name: Revert SSH configuration to original state
+      when:
+        - AIX_INIT_MODE is defined
+        - AIX_INIT_MODE == "rac"
+        - ssh_config_modified.stat.exists | default(false)
+      block:
+
+        - name: Check if backup exists
+          ansible.builtin.stat:
+            path: /etc/ssh/sshd_config.backup
+          register: backup_exists
+
+        - name: Restore original sshd_config from backup
+          ansible.builtin.copy:
+            src: /etc/ssh/sshd_config.backup
+            dest: /etc/ssh/sshd_config
+            remote_src: true
+            mode: preserve
+          when: backup_exists.stat.exists
+
+        - name: Stop sshd service
+          ansible.builtin.command: stopsrc -s sshd
+          register: sshd_stop_revert
+          changed_when: true
+
+        - name: Start sshd service
+          ansible.builtin.command: startsrc -s sshd
+          register: sshd_start_revert
+          changed_when: true
+
+        - name: Verify sshd service is running after revert
+          ansible.builtin.command: lssrc -s sshd
+          register: sshd_status_revert
+          changed_when: false
+
+        - name: Display sshd status after revert
+          ansible.builtin.debug:
+            var: sshd_status_revert.stdout_lines
+    
+    #################################################################
+    # Remove proxy settings
+    #################################################################
+
+    - name: Remove proxy settings from /etc/profile
+      ansible.builtin.lineinfile:
+        path: /etc/profile
+        regexp: '^(export )?(http_proxy|https_proxy|HTTP_PROXY|HTTPS_PROXY|no_proxy)=.*$'
+        state: absent
+
+    - name: Remove proxy settings from /etc/environment
+      ansible.builtin.lineinfile:
+        path: /etc/environment
+        regexp: '^(http_proxy|https_proxy|HTTP_PROXY|HTTPS_PROXY|no_proxy)=.*$'
+        state: absent
+
+    - name: Unset proxy variables in current session
+      ansible.builtin.shell: |
+        unset http_proxy
+        unset https_proxy
+        unset HTTP_PROXY
+        unset HTTPS_PROXY
+        unset no_proxy
+      changed_when: false

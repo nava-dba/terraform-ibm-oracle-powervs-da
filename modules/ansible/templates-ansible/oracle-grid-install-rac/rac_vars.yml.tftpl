@@ -1,0 +1,348 @@
+ora_nfs_host: "${ORA_NFS_HOST}"
+ora_nfs_device: "${ORA_NFS_DEVICE}"
+dns_server_ip: "${DNS_SERVER_IP}"
+database_sw: "${DATABASE_SW}"
+grid_sw: "${GRID_SW}"
+ru_file: "${RU_FILE}"
+opatch_file: "${OPATCH_FILE}"
+cluvfy_file: "${CLUVFY_FILE}"
+ru_version: "${RU_VERSION}"
+ora_sid: "${ORA_SID}"
+root_password: "${ROOT_PASSWORD}"  
+ora_db_password: "${ORA_DB_PASSWORD}"
+time_zone: "${TIME_ZONE}"
+cluster_domain: ${CLUSTER_DOMAIN}
+cluster_name: ${CLUSTER_NAME}
+cluster_nodes: ${CLUSTER_NODES}
+ora_version: ${ORA_VERSION}
+
+# Multitenant params
+oracle_db_type: "SI"                            # Type of database (RAC,RACONENODE,SI)
+is_container: "False"                           # (true/false) Is the database a container database
+pdb_prefix: ""                                  # Provide Pluggable database name.
+num_pdbs: 0                                     # Number of pluggable databases.
+state: "present"
+redolog_size_in_mb: 40
+ora_sw_fs: "/u01"
+ora_user: "oracle"
+ora_base: "{{ora_sw_fs}}/base"
+oracle_group: oinstall
+default_dbpass: "${ORA_DB_PASSWORD}"
+default_gipass: "${ORA_DB_PASSWORD}"
+work_dir: "/tmp/ansible"
+
+global:
+
+  root_password: "${ROOT_PASSWORD}" 
+  grid_owner:  &grid_owner  "grid"
+  grid_pgroup: &grid_pgroup "oinstall"
+  db_owner:    &db_owner    "oracle"
+  db_pgroup:   &db_pgroup   "oinstall"
+  db_asmadmingroup: &db_asmadmingroup  "asmadmin"
+  db_asmdbagroup: &db_asmdbagroup  "asmdba"
+  work_dir:   &work_dir "/tmp/ansible"
+  scripts_dir: [ *work_dir, "scripts" ]
+  saved_dir:   [ *work_dir, "saved" ]
+  done_dir:    [ *work_dir, "done" ]
+  files_dir:   [ *work_dir, "files" ]
+
+bootstrap:
+
+  download_dir: "~"
+  rpm_rte:     "rpm.rte"
+  yum_bundle:  "yum_bundle.tar"
+
+  netsvc_conf: [ "hosts = local, bind4" ]
+
+  resolv_conf:
+    options:  "timeout:1"
+    nameservers: [ "\"${DNS_SERVER_IP}\"" ]
+    search:   "${CLUSTER_DOMAIN}"
+      
+preconfig:    
+      
+  tz: "${TIME_ZONE}" 
+  aix_timeserver: "${DNS_SERVER_IP}"
+      
+  ntp:
+    state: absent 
+    ntp_servers: 
+      - '0.pool.ntp.org prefer'
+      - '1.pool.ntp.org'
+    broadcastclient: present
+
+  lpp_src:
+    nfs_mount: [
+      ['/lppsource', '/nim/AIX73TL1/lppsource', '9.40.16.16', '7.3.3' ]
+    ]
+
+    subdir: 'installp/ppc'
+
+  use_powervs_std_nim: true 
+  powervs_loc: '/usr/sys/inst.images/installp/ppc' 
+  aix_filesets: [
+    'bos.adt.base',
+    'bos.adt.lib',
+    'bos.adt.libm',
+    'bos.perf.libperfstat',
+    'bos.perf.perfstat',
+    'bos.perf.proctools',
+    'bos.loc.utf.EN_US',
+    'bos.rte.security',
+    'bos.rte.bind_cmds',
+    'bos.compat.libs',
+    'xlC.aix61.rte',
+    'xlC.rte',
+    'rsct.basic.rte',
+    'rsct.compat.clients.rte',
+    'xlsmp.msg.EN_US.rte',
+    'xlfrte.aix61',
+    'openssh.base.client',
+    'expect.base',
+    'perl.rte',
+    'Java8_64.jre',
+    'dsm',
+  ]
+
+  min_cores: 0.5
+  min_memory: 16  # in GB
+
+config:
+
+  vgname: &oravg "oravg"
+
+  ora_vg: [
+     *oravg,     '256',      "big",     ['hdisk2'], 'clear_pvids',  'zero_disks'
+  ]
+
+  fs:
+    ofa_fs: &ofa_fs "/u01/app"
+    acfs:   &acfs   [ *ofa_fs, "19c", *db_owner ]
+    acfs_flag: false
+
+  ora_fs: [
+    *ofa_fs,       "199G",  *oravg,
+  ]
+
+  grid_base: &grid_base [ *ofa_fs, *grid_owner ]
+  grid_home: &grid_home [ *ofa_fs, "19c", *grid_owner ]
+  db_base:   &db_base   [ *ofa_fs, *db_owner ]
+  db_home:   &db_home   [ *acfs ]
+
+  paging_space_MB: 16384 
+  
+  fs_sizes: [
+    "/",       "1G",
+    "/usr",    "2G",
+    "/var",    "1G",
+    "/tmp",    "8G",
+    "/admin",  "1G",
+    "/opt",    "3G",
+    "/home",   "512M",
+  ]
+
+  linux:
+     tools: [
+        'unzip', 'expect', 'bash'
+     ]
+
+     optional_tools: [
+       'less',
+     ]
+
+
+  grid_groups: &grid_groups [
+    'oinstall', '1000',
+    'dba',      '2000',
+    'asmadmin', '4000',
+    'oper',     '3000',
+    'asmdba',   '5000',
+    'hagsuser', '6000'
+  ]
+
+  db_groups: *grid_groups
+
+  users:
+    root:
+      uid:          "0"
+      pgid:         "0"
+      pgroup:       "system"
+      home:         "/"
+      groups:       "bin,sys,security,cron,audit,lp"
+      shell:        "/usr/bin/ksh"
+      capabilities: "CAP_BYPASS_RAC_VMM,CAP_PROPAGATE,CAP_NUMA_ATTACH"
+      password:       "${ROOT_PASSWORD}"
+      ulimits: >-
+               fsize=-1 data=-1 stack=-1 rss=-1 core=-1 cpu=-1 nofiles=65536
+
+    grid:
+      uid:          "1100"
+      pgid:         "1000"
+      pgroup:       "oinstall"
+      home:         "/home/grid"
+      groups:       "oinstall,dba,asmadmin,oper,asmdba,hagsuser"
+      shell:        "/usr/bin/ksh"
+      capabilities: "CAP_BYPASS_RAC_VMM,CAP_PROPAGATE,CAP_NUMA_ATTACH"
+      password:       "${ORA_DB_PASSWORD}"
+      ulimits: >-
+               fsize=-1 data=-1 stack=-1 rss=-1 core=-1 cpu=-1 nofiles=65536
+
+    oracle:
+      uid:          "1101"
+      pgid:         "1000"
+      pgroup:       "oinstall"
+      home:         "/home/oracle"
+      groups:       "oinstall,dba,asmadmin,oper,asmdba,hagsuser"
+      shell:        "/usr/bin/bash"
+      capabilities: "CAP_BYPASS_RAC_VMM,CAP_PROPAGATE,CAP_NUMA_ATTACH"
+      password:       "${ORA_DB_PASSWORD}"
+      ulimits: >-
+               fsize=-1 data=-1 stack=-1 rss=-1 core=-1 cpu=-1 nofiles=65536
+
+  cluster_domain: "${CLUSTER_DOMAIN}"
+  networks:
+%{ for node in jsondecode(nodes) ~}
+    - host: "${node.name}"
+      ora_pub:  "${node.name}       ${node.pub_if}   ${node.pub_ip}   ${netmask_pub}"
+      ora_pvt1: "${node.name}-priv1 ${node.priv1_if} ${node.priv1_ip} ${netmask_pvt}"
+      ora_pvt2: "${node.name}-priv2 ${node.priv2_if} ${node.priv2_ip} ${netmask_pvt}"
+
+%{ endfor ~}
+  etc_hosts:
+    [
+%{ for node in jsondecode(nodes) ~}
+      '${node.pub_ip}',  '${node.name}',  [ '${node.fqdn}', ],
+%{ endfor ~}
+
+      # Private IP addresses for private network interface 1:
+%{ for node in jsondecode(nodes) ~}
+      '${node.priv1_ip}', '${node.name}-priv1', [ '', ],
+%{ endfor ~}
+
+      # Private IP addresses for private network interface 2:
+%{ for node in jsondecode(nodes) ~}
+      '${node.priv2_ip}', '${node.name}-priv2', [ '', ],
+%{ endfor ~}
+    ]
+
+  dsh:
+    - DSH_CONTEXT=DSH
+    - DSH_NODE_LIST=/.wcoll
+    - DSH_NODE_RCP=/usr/bin/scp
+    - DSH_NODE_RSH=/usr/bin/ssh
+    - DSH_NODE_OPTS=
+
+install:
+  use_ignore_prechecks: true # known cluvfy issue in latest aix releases
+  asm_acfs:
+    group_name:     "ACFS"
+    dg_redundancy:  "EXTERNAL"
+    vol_name:       "acfs_vol"
+    vol_redundancy: "UNPROTECTED"
+    vol_size_GB:     "200"
+
+  ora_zips:
+    nfs_mount: [ '/repos',     '/repos',     '${ORA_NFS_HOST}', ]   
+    ora_binary_location: nfs
+    remote_local_mount: /repos 
+    goldimage_flag: false
+    opatch_subdir: ""
+    opatch_zips:
+      v12_2_0_1_46: &v12_2_0_1_46 "${OPATCH_FILE}"  
+      latest:       *v12_2_0_1_46              
+
+    base_subdir:  ""
+    grid19c_zip:  "${GRID_SW}"
+    db19c_zip:    "${DATABASE_SW}"
+    cluvfy_subdir:  ""
+    cluvfy_zip:     "${CLUVFY_FILE}"
+    ru_subdir: ""
+    ora19c_ru27: &ora19c_ru27 "${RU_FILE}"
+    ora19c_ru: *ora19c_ru27                
+    ru_version: "${RU_VERSION}"
+  
+  compiler:
+    base_fileset:
+      - xlCcmp.13.1.0
+      - xlCcmp.13.1.0.bundle
+      - xlCcmp.13.1.0.lib
+      - xlCcmp.13.1.0.license
+      - xlCcmp.13.1.0.ndi
+      - xlccmp.13.1.0.ndi
+    fp_fileset:
+      - xlccmp.13.1.0
+      - xlccmp.13.1.0.ndi
+      - xlccmp.13.1.0.lib
+    hosts:    [ '' ]
+    base_dir: ""
+    tl_dir:   ""
+    sp_dir:   ""
+    fp_dir:   ""
+    nfs_mount: [
+      '',  '',    ''
+    ]
+
+  asm_sys_password: &asm_sys_password "${ORA_DB_PASSWORD}"
+
+  grid_rsp:
+    INVENTORY_LOCATION: [ *ofa_fs, 'oraInventory' ]
+    ORACLE_BASE:        [ *grid_base ]
+    install:
+      crs:
+        config:
+          gpnp:
+            scanName: orac-scan
+            scanPort: 1521
+        configureGIMR: true
+      asm:
+        OSASM: *db_asmadmingroup
+        OSDBA: *db_asmdbagroup
+        SYSASMPassword: *asm_sys_password
+        monitorPassword: monitor
+        emAdminPassword:
+        diskGroup:
+          name: CRSDG
+          AUSize: 4
+          redundancy: EXTERNAL 
+        configureGIMRDataDG: true
+        gimrDG:
+          name: GIMR
+          AUSize: 4
+          redundancy: EXTERNAL 
+      config:
+        emAdminUser:
+        emAdminPassword: 
+        clusterName: "${CLUSTER_NAME}"
+        clusterNodes: "${CLUSTER_NODES}"
+
+  db_rsp:
+    INVENTORY_LOCATION: [ *ofa_fs, 'oraInventory' ]
+    ORACLE_BASE:        *db_base
+    db:
+      InstallEdition:   EE
+    OSDBA_GROUP:        *db_pgroup
+    OSOPER_GROUP:       oper
+    OSDGDBA_GROUP:
+    OSKMDBA_GROUP:
+    OSRACDBA_GROUP: 
+
+#Create/Drop database variables section
+oracle_user: "{{ ora_user }}"
+oracle_stage: "{{ work_dir }}"
+oracle_base: "{{ ora_base }}"
+oracle_dbf_dir_asm: '+DATA'
+ 
+# This is layout to create a database.
+oracle_databases:
+  - home:
+    oracle_version_db: "{{ ora_version }}"
+    oracle_home: "{{ ora_sw_fs }}/app/19c/oracle"
+    oracle_db_name: "{{ ora_sid }}"
+    oracle_db_type: "RAC"
+    is_container: "{{ is_container }}"
+    pdb_prefix: "{{ pdb_prefix }}"
+    num_pdbs: "{{ num_pdbs }}"
+    storage_type: "ASM"
+    state: "{{ state }}"
+    redolog_size_in_mb: "{{ redolog_size_in_mb }}"
+    oracle_init_params: "{{ 'db_create_online_log_dest_1=+REDO' }}"

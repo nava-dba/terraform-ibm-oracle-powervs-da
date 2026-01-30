@@ -1,14 +1,23 @@
 locals {
   src_ansible_templates_dir  = "${path.module}/templates-ansible"
-  ansible_node_config_script = "${path.module}/ansible_node_packages.sh"
+  src_ansible_files_dir     = "${path.module}/templates-ansible/aix-init/files"
   dst_files_dir              = "/root/terraform_files"
-
+  dst_ansible_files_dir      = "/root/terraform_files/files"
+  
   src_script_tftpl_path    = "${local.src_ansible_templates_dir}/${var.src_script_template_name}"
   dst_script_file_path     = "${local.dst_files_dir}/${var.dst_script_file_name}"
   src_playbook_tftpl_path  = "${local.src_ansible_templates_dir}/${var.src_playbook_template_name}"
   dst_playbook_file_path   = "${local.dst_files_dir}/${var.dst_playbook_file_name}"
+  src_vars_template_path  = "${local.src_ansible_templates_dir}/${var.src_vars_template_name}"
+  dst_vars_file_path      = "${local.dst_files_dir}/${var.dst_vars_file_name}"
   src_inventory_tftpl_path = "${local.src_ansible_templates_dir}/${var.src_inventory_template_name}"
   dst_inventory_file_path  = "${local.dst_files_dir}/${var.dst_inventory_file_name}"
+
+  ansible_node_config_script = (
+    var.deployment_type == "private"
+    ? "${path.module}/ansible_node_packages_private.sh"
+    : "${path.module}/ansible_node_packages_public.sh"
+  )
 
 }
 
@@ -19,6 +28,18 @@ resource "random_id" "filename" {
 locals {
   private_key_file = "/root/.ssh/id_rsa_${substr(random_id.filename.b64_url, 0, 4)}"
 }
+
+locals {
+  normalized_host_or_ip = flatten([
+    try(var.inventory_template_vars.host_or_ip, [])
+  ])
+
+  inventory_vars = {
+    host_or_ip     = local.normalized_host_or_ip
+    hosts_and_vars = try(var.inventory_template_vars.hosts_and_vars, [])
+  }
+}
+
 ##############################################################
 # 1. Execute shell script to install ansible roles/collections
 ##############################################################
@@ -51,7 +72,7 @@ resource "terraform_data" "setup_ansible_host" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x ${local.dst_files_dir}/ansible_node_packages.sh",
-      "squid_server_ip=${var.squid_server_ip} ${local.dst_files_dir}/ansible_node_packages.sh"
+      "squid_server_ip=${var.squid_server_ip} hosts_file_entries='${var.hosts_file_entries}' ${local.dst_files_dir}/ansible_node_packages.sh"
     ]
   }
 
@@ -92,11 +113,22 @@ resource "terraform_data" "execute_playbooks" {
     destination = local.dst_playbook_file_path
   }
 
+   # Copy and create ansible vars template file on ansible host
+  provisioner "file" {
+  content = length(var.vars_template_vars) > 0 ? templatefile(local.src_vars_template_path, var.vars_template_vars) : ""
+  destination = local.dst_vars_file_path
+}
+
   # Copy and create ansible inventory template file on ansible host
   provisioner "file" {
     content     = templatefile(local.src_inventory_tftpl_path, var.inventory_template_vars)
     destination = local.dst_inventory_file_path
   }
+
+  provisioner "file" {
+  source      = local.src_ansible_files_dir
+  destination = local.dst_ansible_files_dir
+}
 
   # Copy and create ansible shell template file which will trigger the playbook on ansible host
   provisioner "file" {
@@ -163,6 +195,12 @@ resource "terraform_data" "execute_playbooks_with_vault" {
     destination = local.dst_playbook_file_path
   }
 
+  # Copy and create ansible vars template file on ansible host
+  provisioner "file" {
+    content     = templatefile(local.src_vars_template_path, var.playbook_template_vars)
+    destination = local.dst_vars_file_path
+  }
+
   #########  Encrypting the ansible playbook file with sensitive information using ansible vault  #########
   provisioner "remote-exec" {
     inline = [
@@ -175,6 +213,18 @@ resource "terraform_data" "execute_playbooks_with_vault" {
   provisioner "file" {
     content     = templatefile(local.src_inventory_tftpl_path, var.inventory_template_vars)
     destination = local.dst_inventory_file_path
+  }
+
+  # Copy and create ansible playbook template file on ansible host
+  provisioner "file" {
+    content     = templatefile(local.src_playbook_tftpl_path, var.playbook_template_vars)
+    destination = local.dst_playbook_file_path
+  }
+  
+  # Copy and create ansible vars template file on ansible host
+  provisioner "file" {
+    content     = templatefile(local.src_vars_template_path, var.playbook_template_vars)
+    destination = local.dst_vars_file_path
   }
 
   # Copy and create ansible shell template file which will trigger the playbook on ansible host

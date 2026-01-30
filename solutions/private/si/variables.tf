@@ -1,3 +1,13 @@
+variable "deployment_type" {
+  description = "Deployment type: public or private"
+  type        = string
+  validation {
+    condition     = contains(["public", "private"], var.deployment_type)
+    error_message = "deployment_type must be either 'public' or 'private'"
+  }
+}
+
+
 variable "ibmcloud_api_key" {
   description = "API Key of IBM Cloud Account."
   type        = string
@@ -48,6 +58,12 @@ variable "pi_rhel_image_name" {
   type        = string
 }
 
+variable "pi_memory_size" {
+  description = "Memory size in GB for RHEL."
+  type        = string
+  default     = "4"
+}
+
 variable "pi_aix_image_name" {
   description = "Name of the IBM PowerVS AIX boot image used to deploy and host Oracle Database Appliance."
   type        = string
@@ -58,7 +74,7 @@ variable "pi_aix_instance" {
 
   type = object({
     memory_size       = number # Memory size in GB
-    number_processors = number # Number of virtual processors
+    number_processors = optional(number) # Number of virtual processors
     cpu_proc_type     = string # Processor type: shared, capped, or dedicated
     server_type       = string # System type (e.g., s1022, e980)
     pin_policy        = string # Pin policy (e.g., hard, soft)
@@ -182,4 +198,10 @@ variable "ora_db_password" {
 variable "oracle_install_type" {
   description = "Oracle install type, value would be either ASM or JFS"
   type        = string
+}
+
+variable "no_proxy_list" {
+  description = "Comma-separated list of hosts/domains to exclude from proxy"
+  type        = string
+  default     = "localhost,127.0.0.1"
 }

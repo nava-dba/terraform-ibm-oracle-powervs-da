@@ -25,19 +25,31 @@ locals {
     "count" : "4",
     "tier" : "tier1"
   }
+
+  pi_cpu_map = {
+    public  = 0.25
+    private = 0.05
+  }
+
+  pi_rhel_cpu_cores = lookup(local.pi_cpu_map, var.deployment_type, 0.25)
+
+  pi_aix_cpu_cores = coalesce(
+    try(var.pi_aix_instance.number_processors, null),
+    lookup(local.pi_cpu_map, var.deployment_type, 0.25)
+  )
 }
 
 module "pi_instance_rhel" {
   source  = "terraform-ibm-modules/powervs-instance/ibm"
-  version = "2.7.0"
+  version = "2.8.6"
 
   pi_workspace_guid       = var.pi_existing_workspace_guid
   pi_ssh_public_key_name  = var.pi_ssh_public_key_name
   pi_image_id             = var.pi_rhel_image_name
   pi_networks             = var.pi_networks
   pi_instance_name        = "${var.prefix}-mgmt-rhel"
-  pi_memory_size          = "4"
-  pi_number_of_processors = ".05"
+  pi_memory_size          = var.pi_memory_size
+  pi_number_of_processors = local.pi_rhel_cpu_cores
   pi_server_type          = var.pi_rhel_management_server_type
   pi_cpu_proc_type        = "shared"
   pi_storage_config = [{
@@ -53,7 +65,7 @@ module "pi_instance_rhel" {
 # Create AIX VM for Oracle database
 module "pi_instance_aix" {
   source  = "terraform-ibm-modules/powervs-instance/ibm"
-  version = "2.7.0"
+  version = "2.8.6"
 
   pi_workspace_guid          = var.pi_existing_workspace_guid
   pi_ssh_public_key_name     = var.pi_ssh_public_key_name
@@ -62,7 +74,7 @@ module "pi_instance_aix" {
   pi_instance_name           = "${var.prefix}-ora-aix"
   pi_pin_policy              = var.pi_aix_instance.pin_policy
   pi_server_type             = var.pi_aix_instance.server_type
-  pi_number_of_processors    = var.pi_aix_instance.number_processors
+  pi_number_of_processors    = local.pi_aix_cpu_cores
   pi_memory_size             = var.pi_aix_instance.memory_size
   pi_cpu_proc_type           = var.pi_aix_instance.cpu_proc_type
   pi_boot_image_storage_tier = "tier1"
@@ -99,6 +111,7 @@ module "pi_instance_rhel_init" {
   source     = "../../../modules/ansible"
   depends_on = [module.pi_instance_rhel]
 
+  deployment_type        = var.deployment_type
   bastion_host_ip        = var.bastion_host_ip
   ansible_host_or_ip     = module.pi_instance_rhel.pi_instance_primary_ip
   ssh_private_key        = var.ssh_private_key
@@ -137,10 +150,12 @@ locals {
   squid_server_ip = var.squid_server_ip
   playbook_aix_init_vars = {
     PROXY_IP_PORT          = "${local.squid_server_ip}:3128"
-    NO_PROXY               = "TODO"
+    NO_PROXY               = var.no_proxy_list
     ORA_NFS_HOST           = module.pi_instance_aix.pi_instance_primary_ip
     ORA_NFS_DEVICE         = local.nfs_mount
     EXTEND_ROOT_VOLUME_WWN = module.pi_instance_aix.pi_storage_configuration[0].wwns
+    AIX_INIT_MODE = ""
+    ROOT_PASSWORD = ""
   }
 
 }

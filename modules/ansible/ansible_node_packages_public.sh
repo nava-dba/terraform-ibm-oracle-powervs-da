@@ -7,8 +7,8 @@
 #                                                          #
 ############################################################
 
-GLOBAL_RHEL_PACKAGES="rhel-system-roles expect perl nfs-utils"
-GLOBAL_GALAXY_COLLECTIONS="ibm.power_linux_sap:>=3.0.0,<4.0.0 ibm.power_aix:2.1.1 ibm.power_aix_oracle:1.3.2 ibm.power_aix_oracle_dba:2.0.8"
+GLOBAL_RHEL_PACKAGES="rhel-system-roles expect perl nfs-utils python3-pip net-tools bind-utils ansible-core"
+GLOBAL_GALAXY_COLLECTIONS="ibm.power_linux_sap:>=3.0.0,<4.0.0 ibm.power_aix:2.1.1 ibm.power_aix_oracle:1.3.2 ibm.power_aix_oracle_dba:2.0.8 ibm.power_aix_oracle_rac_asm:1.3.5 ansible.utils:6.0.0"
 
 ############################################################
 # Start functions
@@ -59,13 +59,16 @@ main::subscription_mgr_check_process() {
 # RHEL : Install Packages                                  #
 ############################################################
 main::install_packages() {
-
+  unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
   if [[ ${LINUX_DISTRO} = "RHEL" ]]; then
 
     main::subscription_mgr_check_process
 
     ## hotfix for subscription-manager broken pipe error in next step
     subscription-manager list --available --all
+
+    ## enable repository for RHEL sap roles
+    #subscription-manager repos --enable="rhel-$(rpm -E %rhel)-for-$(uname -m)-sap-solutions-rpms"
 
     ## Install packages
     for package in $GLOBAL_RHEL_PACKAGES; do
@@ -81,6 +84,25 @@ main::install_packages() {
         fi
       done
     done
+
+  fi
+}
+
+############################################################
+# RHEL : Install ansible collection                        #
+############################################################
+main::install_collections() {
+
+  # shellcheck disable=SC2154  # variable comes from Terraform template
+  local proxy_url="http://${squid_server_ip}:3128"
+  # Export for current shell
+  export http_proxy="$proxy_url"
+  export https_proxy="$proxy_url"
+  export HTTP_PROXY="$proxy_url"
+  export HTTPS_PROXY="$proxy_url"
+  export no_proxy="localhost,127.0.0.1,::1"
+
+  if [[ ${LINUX_DISTRO} = "RHEL" ]]; then
 
     ## Download and install collections from ansible-galaxy
 
@@ -150,30 +172,26 @@ EOF
   main::log_info "Proxy configured in $bashrc_file: $proxy_url"
 }
 
-#######################################################################################################
-# Call rhel-cloud-init.sh To register your LPAR with the RHEL subscription in PowerVS Private    #
-#######################################################################################################
+############################################################
+# RHEL : Install python pip packages                       #
+############################################################
+main::install_pip_packages() {
 
-main::run_cloud_init() {
-  # shellcheck disable=SC2154  # variable comes from Terraform template
-  squid_ip="${squid_server_ip}"
-  FILE_NAME="/usr/share/powervs-fls/powervs-fls-readme.md"
-  if [ -s "$FILE_NAME" ]; then
-    echo "File '$FILE_NAME' exists and has a size greater than zero."
-    echo -e "$(subscription-manager status)"
-    cloud_init_cmd=$(grep '\-t RHEL' "$FILE_NAME")
-    cloud_init_cmd_new=${cloud_init_cmd//Private.proxy.IP.address/$squid_ip}
-    $cloud_init_cmd_new
-    PID=$!
-    echo $'\nWaiting for background script to complete ....\n'
-    wait $PID
+  if [[ ${LINUX_DISTRO} = "RHEL" ]]; then
+    main::log_info "Installing python pip packages"
 
-    echo -e "$(subscription-manager status)"
-    echo -e "$(dnf repolist)"
-    echo -e "FLS registration completed successfully."
-  else
-    echo -e "FLS registration failed please refer https://www.ibm.com/docs/en/power-virtual-server?topic=linux-full-subscription-power-virtual-server-private-cloud "
-    exit 1
+    local count=0
+    local max_count=3
+    while ! pip3 install --upgrade netaddr; do
+      count=$((count + 1))
+      sleep 3
+      if [[ ${count} -gt ${max_count} ]]; then
+        main::log_error "Failed to install python package: netaddr"
+        break
+      fi
+    done
+
+    main::log_info "Python package netaddr installed successfully"
   fi
 }
 
@@ -181,8 +199,9 @@ main::run_cloud_init() {
 ############################################################
 # Main start here                                          #
 ############################################################
-main::setup_proxy
 main::get_os_version
 main::log_system_info
-main::run_cloud_init
 main::install_packages
+main::setup_proxy
+main::install_pip_packages
+main::install_collections
