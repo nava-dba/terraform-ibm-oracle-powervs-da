@@ -1,0 +1,17 @@
+---
+all:
+  hosts:
+%{ if can(hosts_and_vars) && hosts_and_vars != null && length(hosts_and_vars) > 0 ~}
+%{   for host, host_vars in hosts_and_vars ~}
+    "${host}":
+      ansible_host: ${host_vars.ip}
+%{     if can(host_vars.EXTEND_ROOT_VOLUME_WWN) && host_vars.EXTEND_ROOT_VOLUME_WWN != "" ~}
+      EXTEND_ROOT_VOLUME_WWN: "${host_vars.EXTEND_ROOT_VOLUME_WWN}"
+%{     endif ~}
+%{   endfor ~}
+%{ else ~}
+%{   for ip in host_or_ip ~}
+    "${ip}":
+      ansible_host: ${ip}
+%{   endfor ~}
+%{ endif ~}

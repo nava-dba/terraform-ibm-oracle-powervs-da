@@ -1,0 +1,69 @@
+#!/bin/bash
+set -e
+
+### Using input variables from Terraform
+ansible_playbook=${ansible_playbook_file}
+ansible_log_path=${ansible_log_path}
+ansible_inventory=${ansible_inventory}
+ansible_private_key_file=${ansible_private_key_file}
+
+# Get playbook name for log
+ansible_playbook_name=$(basename $${ansible_playbook})
+
+# Create ansible.cfg file
+cat <<EOF > /root/terraform_files/ansible.cfg
+[defaults]
+host_key_checking = False
+# SSH connect timeout per attempt
+timeout = 60
+
+[ssh_connection]
+ssh_args = -o ForwardAgent=yes -o ControlPersist=30m -o ServerAliveInterval=45 -o ServerAliveCountMax=10
+control_path = ~/.ansible/cp/%%h-%%p-%%r
+pipelining = True
+
+EOF
+
+# Export environment variables
+export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
+export ANSIBLE_LOG_PATH=$${ansible_log_path}/$${ansible_playbook_name}.$(date "+%Y.%m.%d-%H.%M.%S").log
+export ANSIBLE_PRIVATE_KEY_FILE=$${ansible_private_key_file}
+export ANSIBLE_REMOTE_USER=root
+
+# ---------------------------------------------------------------------
+# FIX: Replicate bootstrap role (required by IBM collection)
+# ---------------------------------------------------------------------
+echo "Syncing bootstrap role to Terraform working directory..."
+
+cd "$(dirname "$0")"
+mkdir -p ./roles/bootstrap/files
+mkdir -p ./roles/preconfig/files
+mkdir -p ./roles/config/files
+
+# Correctly copy BOTH directories
+cp -r /root/.ansible/collections/ansible_collections/ibm/power_aix_oracle_rac_asm/roles/bootstrap/files/* ./roles/bootstrap/files/ || true
+cp -r /root/.ansible/collections/ansible_collections/ibm/power_aix_oracle_rac_asm/roles/preconfig/files/* ./roles/preconfig/files || true
+cp -r /root/.ansible/collections/ansible_collections/ibm/power_aix_oracle_rac_asm/roles/config/files/* ./roles/config/files || true
+# ---------------------------------------------------------------------
+# Create SSH wrapper script with aggressive timeout handling
+# ---------------------------------------------------------------------
+
+echo "============================================================"
+echo "Running Ansible playbook: $${ansible_playbook}"
+echo "Inventory: $${ansible_inventory}"
+echo "Log file: $${ANSIBLE_LOG_PATH}"
+echo "============================================================"
+
+# Execute playbook
+unbuffer ansible-playbook -i $${ansible_inventory} $${ansible_playbook}
+rc=$?
+
+# Cleanup and exit
+rm -f $${ansible_private_key_file}
+
+if [ $rc -ne 0 ]; then
+    echo "Playbook execution failed with exit code $rc"
+    exit 1
+else
+    echo "Playbook command successful"
+fi

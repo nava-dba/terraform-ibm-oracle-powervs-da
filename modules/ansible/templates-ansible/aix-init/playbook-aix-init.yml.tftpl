@@ -11,10 +11,13 @@
   become_user: root
 
   vars:
-    EXTEND_ROOT_VOLUME_WWN: "${EXTEND_ROOT_VOLUME_WWN}"
+    # Try hostvars first (RAC), fallback to template variable (SI)
+    EXTEND_ROOT_VOLUME_WWN: "{{ hostvars[inventory_hostname].EXTEND_ROOT_VOLUME_WWN | default('${EXTEND_ROOT_VOLUME_WWN}', true) }}"
     PROXY_IP_PORT: "${PROXY_IP_PORT}"
     NO_PROXY: "${NO_PROXY}"
     done_file_dir: "/var/tmp/ansible_flags"
+    AIX_INIT_MODE: "${AIX_INIT_MODE}"
+    ROOT_PASSWORD: "${ROOT_PASSWORD}"
 
   tasks:
 
@@ -44,6 +47,11 @@
           register: hdisk_name
           changed_when: false
 
+        - name: Fail if disk WWN not found
+          fail:
+            msg: "EXTEND_ROOT_VOLUME_WWN not matched to any disk"
+          when: hdisk_name.stdout == ""
+
         - name: Get current MAX PPs per PV for rootvg
           ansible.builtin.shell: "lsvg rootvg | grep 'MAX PPs per PV' | awk '{print $5}'"
           register: chvg_limit
@@ -66,7 +74,14 @@
             force: true
             state: present
           when: hdisk_name.stdout != ""
-
+        
+        - name: Update hd6 partition limit for RAC initialization
+          ansible.builtin.command: "chlv -x 1024 hd6"
+          when: 
+            - hdisk_name.stdout != "" 
+            - AIX_INIT_MODE == "rac" 
+          changed_when: false
+        
         - name: Mark rootvg entension as done
           ansible.builtin.file:
             path: "{{ done_file_dir }}/root_vg_extended.done"
@@ -150,3 +165,161 @@
             export HTTPS_PROXY=http://{{ PROXY_IP_PORT }}
             export no_proxy={{ NO_PROXY }}
           changed_when: false
+
+    #################################################################
+    # 3. Reset root password
+    #################################################################
+    - name: Check if Reset root password on AIX already done
+      ansible.builtin.stat:
+        path: "{{ done_file_dir }}/root_pwd_reset.done"
+      register: pwd_reset_done
+
+    - name: Reset root password on AIX
+      when: 
+        - AIX_INIT_MODE == "rac" 
+        - ROOT_PASSWORD is defined
+        - not pwd_reset_done.stat.exists
+      block:
+
+        - name: Copy root password reset script
+          ansible.builtin.copy:
+            src: "/root/terraform_files/files/reset_root_pwd.sh"
+            dest: "/var/tmp/reset_root_pwd.sh"
+            owner: root
+            group: system
+            mode: '0700'
+
+        - name: Execute root password reset script with provided password
+          ansible.builtin.command: "/var/tmp/reset_root_pwd.sh {{ ROOT_PASSWORD }}"
+          register: rootpwd_output
+          changed_when: true
+
+        - name: Show reset password output
+          ansible.builtin.debug:
+            var: rootpwd_output.stdout_lines
+        
+        - name: Mark root password reset done
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/root_pwd_reset.done"
+            state: touch
+
+    #################################################################
+    # 4. Configure SSH for RAC (fix SSH negotiation error)
+    #################################################################
+    - name: Check if SSH config already updated
+      ansible.builtin.stat:
+        path: "{{ done_file_dir }}/ssh_config_updated.done"
+      register: ssh_config_done
+
+    - name: Configure SSH for RAC compatibility
+      when: 
+        - AIX_INIT_MODE == "rac"
+        - not ssh_config_done.stat.exists
+      block:
+
+        - name: Backup sshd_config
+          ansible.builtin.copy:
+            src: /etc/ssh/sshd_config
+            dest: /etc/ssh/sshd_config.backup
+            remote_src: true
+            mode: preserve
+
+        - name: Add HostkeyAlgorithms to sshd_config
+          ansible.builtin.lineinfile:
+            path: /etc/ssh/sshd_config
+            regexp: '^HostkeyAlgorithms.*'
+            line: 'HostkeyAlgorithms +ssh-rsa'
+            insertafter: EOF
+
+        - name: Add PubkeyAcceptedAlgorithms to sshd_config
+          ansible.builtin.lineinfile:
+            path: /etc/ssh/sshd_config
+            regexp: '^PubkeyAcceptedAlgorithms.*'
+            line: 'PubkeyAcceptedAlgorithms +ssh-rsa'
+            insertafter: EOF
+
+        - name: Stop sshd service
+          ansible.builtin.command: stopsrc -s sshd
+          register: sshd_stop
+          changed_when: true
+
+        - name: Start sshd service
+          ansible.builtin.command: startsrc -s sshd
+          register: sshd_start
+          changed_when: true
+
+        - name: Verify sshd service is running
+          ansible.builtin.command: lssrc -s sshd
+          register: sshd_status
+          changed_when: false
+
+        - name: Display sshd status
+          ansible.builtin.debug:
+            var: sshd_status.stdout_lines
+
+        - name: Mark SSH config update as done
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/ssh_config_updated.done"
+            state: touch
+
+    #################################################################
+    # 5. Rename shared disk device names (Node1 = reference)
+    #################################################################
+    - name: Check if DISK rename already done
+      ansible.builtin.stat:
+        path: "{{ done_file_dir }}/rename_disk.done"
+      register: rename_disk
+    
+    # ---------------------------------------------------------------
+    # STEP 1: Run ONLY on Node1 → generate reference file
+    # ---------------------------------------------------------------
+    - name: Generate Node1 lsmpio reference
+      when:
+        - AIX_INIT_MODE == "rac"
+        - inventory_hostname == groups['all'][0]
+      block:
+    
+        - name: Generate Node1 lsmpio output
+          ansible.builtin.shell: "lsmpio -q > /tmp/node1_lsmpio.out"
+          changed_when: false
+    
+        - name: Fetch Node1 lsmpio output to controller
+          ansible.builtin.fetch:
+            src: "/tmp/node1_lsmpio.out"
+            dest: "/tmp/node1_lsmpio.out"
+            flat: true
+    
+    # ---------------------------------------------------------------
+    # STEP 2: Copy reference + run rename on ALL OTHER NODES
+    # ---------------------------------------------------------------
+    - name: Rename shared disks to match Node1
+      when:
+        - AIX_INIT_MODE == "rac"
+        - inventory_hostname != groups['all'][0]
+        - not rename_disk.stat.exists
+      block:
+    
+        - name: Copy Node1 reference lsmpio file
+          ansible.builtin.copy:
+            src: "/tmp/node1_lsmpio.out"
+            dest: "/tmp/node1_lsmpio.out"
+            mode: '0644'
+    
+        - name: Copy rename disk script
+          ansible.builtin.copy:
+            src: "/root/terraform_files/files/rename_disk.sh"
+            dest: "/var/tmp/rename_disk.sh"
+            mode: '0755'
+    
+        - name: Execute rename disk script
+          ansible.builtin.command: "/var/tmp/rename_disk.sh asm /tmp/node1_lsmpio.out"
+          register: rename_output
+    
+        - name: Show rename results
+          ansible.builtin.debug:
+            var: rename_output.stdout_lines
+    
+        - name: Mark disk rename done
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/rename_disk.done"
+            state: touch

@@ -1,3 +1,9 @@
+variable "deployment_type" {
+  description = "Deployment type: public or private"
+  type        = string
+  default = null
+}
+
 variable "bastion_host_ip" {
   description = "Jump/Bastion server public IP address to reach the ansible host which has private IP."
   type        = string
@@ -60,9 +66,13 @@ variable "dst_inventory_file_name" {
 }
 
 variable "inventory_template_vars" {
-  description = "Map values for the inventory template."
-  type        = map(any)
+  type = object({
+    host_or_ip     = optional(any)
+    hosts_and_vars = optional(any)
+  })
+  default = {}
 }
+
 
 variable "ansible_vault_password" {
   description = "Vault password to encrypt ansible playbooks that contain sensitive information. Password requirements: 15-100 characters and at least one uppercase letter, one lowercase letter, one number, and one special character. Allowed characters: A-Z, a-z, 0-9, !#$%&()*+-.:;<=>?@[]_{|}~."
@@ -93,4 +103,29 @@ variable "ansible_vault_password" {
     condition     = var.ansible_vault_password == null ? true : can(regex("^[A-Za-z0-9!#$%&()*+\\-.:;<=>?@[\\]_{|}~]+$", var.ansible_vault_password))
     error_message = "ansible_vault_password contains illegal characters. Allowed characters: A-Z, a-z, 0-9, !#$%&()*+-.:;<=>?@[]_{|}~"
   }
+}
+
+## Rac variables
+
+variable "hosts_file_entries" {
+  description = "Entries to add to /etc/hosts file (newline-separated IP hostname pairs)"
+  type        = string
+  default     = ""
+}
+variable "vars_template_vars" {
+  description = "Map values for the ansible playbook template."
+  type        = map(any)
+  default = {}
+}
+
+variable "src_vars_template_name" {
+  description = "Name of the vars template file located within the 'templates-ansible' directory."
+  type        = string
+  default     = "oracle-grid-install-rac/rac_vars.yml.tftpl"
+}
+
+variable "dst_vars_file_name" {
+  description = "Name for the vars file to be generated on the Ansible host."
+  type        = string
+  default     = "rac_vars.yml"
 }

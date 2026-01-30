@@ -1,0 +1,139 @@
+---
+- name: Configure BIND DNS Server on AIX for N-Node RAC
+  hosts: all
+  gather_facts: false
+
+  vars:
+    dns_server_ip: "${dns_server_ip}"
+    dns_domain_name: "${dns_domain_name}"
+    dns_hostname: "${dns_hostname}"
+    scan_name: "${scan_name}"
+    rac_nodes_count: ${rac_nodes_count}
+    scan_ips: ${scan_ips}
+    rac_nodes: ${rac_nodes}
+
+  tasks:
+    - name: Check if fileset bind.rte is installed
+      ansible.builtin.shell: "lslpp -l bind.rte"
+      register: lslpp_check
+      ignore_errors: true
+      changed_when: false
+
+    - name: Install additional AIX filesets using PowerVS nim mount
+      ansible.builtin.command:
+        cmd: "/usr/sbin/installp -acgXd . -Y bind.rte"
+        chdir: "/usr/sys/inst.images/installp/ppc"
+      when: lslpp_check.rc != 0
+
+    - name: Verify fileset bind.rte is installed
+      ansible.builtin.shell: "lslpp -l bind.rte"
+      register: lslpp_check1
+      ignore_errors: true
+      changed_when: false
+
+    - name: Print fileset bind.rte status
+      ansible.builtin.debug:
+        msg: "Fileset status output: {{ lslpp_check1.stdout }}"
+
+    - name: Create named.conf configuration
+      ansible.builtin.copy:
+        dest: "/etc/named.conf"
+        owner: "root"
+        group: "system"
+        mode: "0644"
+        content: |
+          server {{ dns_server_ip }} {
+          transfer-format many-answers;
+          };
+
+          options {
+              directory "/etc";
+              listen-on port 53 { any; };
+              allow-query     { any; };
+              recursion yes;
+          };
+
+          zone "{{ dns_domain_name }}" in {
+            type master;
+            file "/etc/named.{{ dns_domain_name }}";
+          };
+
+          zone "." in {
+          type hint;
+          file "/etc/named.root.hints";
+          };
+
+    - name: Create forward zone file for {{ dns_domain_name }}
+      ansible.builtin.copy:
+        dest: "/etc/named.{{ dns_domain_name }}"
+        owner: "root"
+        group: "system"
+        mode: "0644"
+        content: |
+          $TTL 86400
+          @   IN  SOA {{ dns_hostname }}. root.{{ dns_hostname }}. (
+                  41        ; serial (increment every change)
+                  3600      ; refresh
+                  600       ; retry
+                  3600000   ; expire
+                  86400     ; minimum
+          )
+
+          ; Name server
+                  IN  NS  {{ dns_hostname }}.
+
+          ; DNS server
+          {{ dns_hostname }}        IN  A   {{ dns_server_ip }}
+
+          ; =========================
+          ;RAC Public Hostnames
+          ; (MUST be controller reachable)
+          ; =========================
+          {% for node in rac_nodes %}
+          {{ node.hostname }}      IN  A   {{ node.pub_ip }}
+          {% endfor %}
+
+          ; =========================
+          ; VIPs
+          ; =========================
+          {% for node in rac_nodes %}
+          {{ node.hostname }}-vip       IN  A   {{ node.vip }}
+          {% endfor %}
+
+          ; SCAN (3 IPs required)
+          ; =========================
+          {% for ip in scan_ips %}
+          {{ scan_name }}       IN  A   {{ ip }}
+          {% endfor %}
+
+    - name: Copy hint file (empty root servers)
+      ansible.builtin.copy:
+        dest: "/etc/named.root.hints"
+        owner: "root"
+        group: "system"
+        mode: "0644"
+        content: |
+          ;
+          ;empty root servers so that dummy nameserver does not reach out to outside world
+          ;
+
+    - name: Stop named service
+      ansible.builtin.shell: "stopsrc -s named"
+      ignore_errors: true
+
+    - name: Start named service
+      ansible.builtin.shell: "startsrc -s named"
+
+    - name: Verify named service
+      ansible.builtin.shell: "lssrc -s named"
+      register: named_status
+      changed_when: false
+      failed_when: "'active' not in named_status.stdout"
+
+    - name: Display status
+      ansible.builtin.debug:
+        msg: "named service status: {{ named_status.stdout }}"
+
+    - name: Display configured RAC nodes
+      ansible.builtin.debug:
+        msg: "Configured {{ rac_nodes_count }} RAC nodes in DNS"
