@@ -373,7 +373,7 @@
             {
               "key": "ibmcloud_cos_service_credentials",
               "type": "multiline_secure_value",
-              "display_name": "Cloud Object Storage Credentials",
+              "display_name": "Cloud Object Storage(COS) Credentials",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -384,7 +384,7 @@
             },
             {
               "key": "ibmcloud_cos_configuration",
-              "display_name" : "Oracle Software Storage Configuration",
+              "display_name" : "COS Oracle Software Storage Configuration",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -411,7 +411,7 @@
               },
               "default_value": {
                 "memory_size": "16",
-                "number_processors": "null",
+                "number_processors": null,
                 "cpu_proc_type": "shared",
                 "server_type": "s1022",
                 "pin_policy": "hard",
@@ -451,21 +451,6 @@
             {
               "key": "pi_redo_volume",
               "display_name" : "Redo Log Disks",
-              "required": false,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "json_editor"
-              },
-              "default_value": {
-                "size": "10",
-                "count": "4",
-                "tier": "tier1"
-              }
-            },
-            {
-              "key": "pi_datavg_volume",
-              "display_name" : "JFS2 Database Data Disks",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -913,7 +898,7 @@
             {
               "key": "ibmcloud_cos_service_credentials",
               "type": "multiline_secure_value",
-              "display_name": "Cloud Object Storage Credentials",
+              "display_name": "Cloud Object Storage(COS) Credentials",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -924,7 +909,7 @@
             },
             {
               "key": "ibmcloud_cos_configuration",
-              "display_name" : "Oracle Software Storage Configuration",
+              "display_name" : "COS Oracle Software Storage Configuration",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -958,7 +943,7 @@
               },
               "default_value": {
                 "memory_size": "16",
-                "number_processors": "null",
+                "number_processors": null,
                 "cpu_proc_type": "shared",
                 "server_type": "s1022",
                 "pin_policy": "hard",
@@ -1006,21 +991,6 @@
               },
               "default_value": {
                 "size": "10",
-                "count": "4",
-                "tier": "tier1"
-              }
-            },
-            {
-              "key": "pi_datavg_volume",
-              "display_name" : "JFS2 Database Data Disks",
-              "required": false,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "json_editor"
-              },
-              "default_value": {
-                "size": "20",
                 "count": "4",
                 "tier": "tier1"
               }
@@ -1101,7 +1071,7 @@
                   "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/34c6bc870aa64824599ee3b353df71889a4dceb2/images/Oracle_Private_Cloud_DA-Private%20Cloud%20DA.drawio.svg",
                   "type": "image/svg+xml"
                 },
-                "description": "This deployable architecture is designed to assist you in deploying Oracle Real Application Cluster(RAC) into IBM Power Virtual Server. \n\nThis DA creates and prepares Power Virtual Server instances for Oracle RAC database workloads. \n\nThis provisions Red Hat Enterprise Linux as the Ansible controller,NFS and DNS. AIX virtual machines as Oracle instance, retrieves Oracle software from IBM Cloud Object Storage, and performs a guided GRID and RDBMS installation and creates Oracle database based on user-defined parameters."
+                "description": "This deployable architecture is designed to assist you in deploying Oracle Real Application Cluster(RAC) into IBM Power Virtual Server. \n\nThis DA creates and prepares Power Virtual Server instances for Oracle RAC database workloads. \n\nThis provisions Red Hat Enterprise Linux as the Ansible controller,NFS and DNS. AIX virtual machines as Oracle instance, retrieves Oracle software from IBM Cloud Object Storage(COS), and performs a guided GRID and RDBMS installation and creates Oracle database based on user-defined parameters."
               }
             ]
           },
