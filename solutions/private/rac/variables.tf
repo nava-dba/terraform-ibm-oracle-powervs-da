@@ -197,12 +197,6 @@ variable "pi_oravg_volume" {
     count = string
     tier  = string
   })
-  default = {
-    "name" : "oravg",
-    "size" : "200",
-    "count" : "1",
-    "tier" : "tier1"
-  }
 }
 
 # 2. DATA diskgroup
@@ -227,6 +221,10 @@ variable "pi_redo_volume" {
   })
 }
 
+variable "redolog_size_in_mb" {
+  description = "Redo log member size in MB."
+  type        = string
+}
 
 ############################################
 # Optional IBM PowerVS Instance Parameters

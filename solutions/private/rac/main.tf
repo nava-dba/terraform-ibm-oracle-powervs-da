@@ -20,16 +20,28 @@ locals {
 
   pi_crsdg_volume = {
     "name" : "CRSDG",
-    "size" : "8",
+    "size" : "4",
     "count" : "4",
     "tier" : "tier1"
   }
 
+  # Dynamic GIMR sizing based on RAC nodes
+  # Formula: 20GB base + (10GB per additional node beyond 2)
+  # 2 nodes = 40GB total, 4 nodes = 60GB total, 8 nodes = 100GB total
+
+  gimr_size_per_disk = var.rac_nodes <= 2 ? "20" : tostring(20 + ((var.rac_nodes - 2) * 5))
   pi_gimr_volume = {
     "name" : "GIMR",
-    "size" : "20",
+    "size" : local.gimr_size_per_disk,
     "count" : "2",
     "tier" : "tier1"
+  }
+
+  pi_arc_volume = {
+    "name" : "ARCH",
+    "size" : "4",
+    "count" : "10",
+    "tier" : "tier3"
   }
 
   pi_cpu_map = {
@@ -85,8 +97,16 @@ locals {
   idx => {
     name = net.name
     id   = net.id
+    }
   }
-}
+  # Auto-generate SCAN IPs and VIP base
+  pub_network_cidr = local.pub_network_name != null ? local.network_details[local.pub_network_name].cidr : null
+  
+  scan_ips_list = local.pub_network_cidr != null ? [
+    cidrhost(local.pub_network_cidr, 241),
+    cidrhost(local.pub_network_cidr, 242),
+    cidrhost(local.pub_network_cidr, 243)
+  ] : []
 }
 
 ###########################################################
@@ -196,6 +216,9 @@ locals {
       ][0], null) if net_name != null
     }
   }
+  
+  # Get dns server ip
+  dns_server_ip = module.pi_instance_dns.pi_instance_primary_ip
 
   hosts_and_vars = {
     for idx in range(var.rac_nodes) :
@@ -227,7 +250,7 @@ locals {
   ]
 
   expanded_shared_volumes = flatten([
-    for vol in [local.pi_crsdg_volume, var.pi_data_volume, var.pi_redo_volume, local.pi_gimr_volume] : [
+    for vol in [local.pi_crsdg_volume, var.pi_data_volume, var.pi_redo_volume, local.pi_gimr_volume, local.pi_arc_volume] : [
       for i in range(tonumber(vol.count)) : {
         name = "${lower(vol.name)}-${i + 1}"
         size = vol.size
@@ -449,19 +472,15 @@ locals {
     for idx in range(var.rac_nodes) : {
       hostname = data.ibm_pi_instance.attached_instances[idx].pi_instance_name
       pub_ip   = local.get_ip_by_network[idx][local.pub_network_name]
-      vip = (
-        var.rac_vip_base != null
-        ? cidrhost("${var.rac_vip_base}/24", idx + var.rac_vip_start_offset)
-        : null
-      )
+      vip      = cidrhost(local.pub_network_cidr, 245 + idx)
     }
   ]
 dns_playbook_vars = {
-    dns_server_ip   = tostring(var.dns_server_ip)
+    dns_server_ip   = tostring(local.dns_server_ip)
     dns_domain_name = tostring(var.cluster_domain)
     dns_hostname    = tostring(var.dns_hostname)
     scan_name       = tostring(var.scan_name)
-    scan_ips        = jsonencode(var.scan_ips)
+    scan_ips        = jsonencode(local.scan_ips_list)
     rac_nodes_count = tostring(var.rac_nodes)
     rac_nodes       = jsonencode(local.rac_nodes_list)
   }
@@ -488,7 +507,7 @@ module "dns_configuration" {
   src_inventory_template_name = "inventory-rac.tftpl"
   dst_inventory_file_name     = "dns-inventory"
   inventory_template_vars = {
-    host_or_ip = [var.dns_server_ip]
+    host_or_ip = [local.dns_server_ip]
   }
 }
 
@@ -620,12 +639,14 @@ locals {
       priv2_if   = var.aix_network_interfaces.private2
     }
   ]
+  # Calculate total size: size per disk * count
+  oravg_total_size = tonumber(var.pi_oravg_volume.size) * tonumber(var.pi_oravg_volume.count)
 
   # Base playbook vars - encode nodes as JSON string to ensure all values are strings
   playbook_oracle_install_base_vars = {
     ORA_NFS_HOST    = module.pi_instance_rhel.pi_instance_primary_ip
     ORA_NFS_DEVICE  = local.nfs_mount
-    DNS_SERVER_IP   = var.dns_server_ip
+    DNS_SERVER_IP   = local.dns_server_ip
     DATABASE_SW     = var.ibmcloud_cos_configuration.cos_oracle_database_sw_path
     GRID_SW         = var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path
     RU_FILE         = var.ibmcloud_cos_configuration.cos_oracle_ru_file_path
@@ -640,6 +661,9 @@ locals {
     CLUSTER_NAME    = var.cluster_name
     CLUSTER_NODES   = local.cluster_nodes
     ORA_VERSION     = local.ora_version
+    REDOLOG_SIZE_IN_MB  = var.redolog_size_in_mb
+    # Pass calculated sizes to Ansible (subtract 1GB for VG overhead)
+    ORAVG_SIZE          = tostring(local.oravg_total_size - 1)
     netmask_pub     = local.netmask_pub
     netmask_pvt     = local.netmask_priv1
     nodes           = jsonencode(local.oracle_rac_nodes)  # Encode as JSON string
