@@ -237,7 +237,7 @@
               "display_name": "RHEL OS Image Name",
               "type": "string",
               "default_value": "RHEL9-SP6",
-              "required": false,
+              "required": true,
               "options": [
                 {
                   "displayname": "RHEL9-SP6",
@@ -364,8 +364,8 @@
                   "value": "ASM"
                 },
                 {
-                  "displayname": "JFS",
-                  "value": "JFS"
+                  "displayname": "JFS2",
+                  "value": "JFS2"
                 }
               ],
               "custom_config": {}
@@ -443,8 +443,8 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "20",
-                "count": "4",
+                "size": "5",
+                "count": "8",
                 "tier": "tier1"
               }
             },
@@ -458,10 +458,17 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "10",
+                "size": "2",
                 "count": "4",
-                "tier": "tier1"
+                "tier": "tier5K"
               }
+            },
+            {
+              "key": "redolog_size_in_mb",
+              "display_name" : "Redo log member size (MB)",
+              "type": "string",
+              "required": false,
+              "default_value": "1024"
             },
             {
               "key": "pi_user_tags",
@@ -594,7 +601,7 @@
             },
             {
               "key": "zone",
-              "display_name" : "Availability Zone",
+              "display_name" : "PowerVS Zone",
               "type": "string",
               "required": true,
               "default_value": ""
@@ -673,7 +680,7 @@
               "display_name": "RHEL Management Server Type",
               "type": "string",
               "default_value": "",
-              "required": false,
+              "required": true,
               "options": [
                 { "displayname": "s1122", "value": "s1122" },
                 { "displayname": "s1022", "value": "s1022" },
@@ -688,7 +695,7 @@
               "display_name": "RHEL OS Image Name",
               "type": "string",
               "default_value": "RHEL9-SP6",
-              "required": false,
+              "required": true,
               "options": [{ "displayname": "RHEL9-SP6", "value": "RHEL9-SP6" }]
             },
             {
@@ -927,12 +934,6 @@
               }
             },
             {
-              "key":"skip_validation",
-              "display_name":"Skip Pre-Deployment Validation",
-              "type":"boolean",
-              "required" : true
-            },
-            {
               "key": "pi_aix_instance",
               "display_name" : "AIX Instance Configuration(CPU,Mem)",
               "required": false,
@@ -975,8 +976,8 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "20",
-                "count": "4",
+                "size": "5",
+                "count": "8",
                 "tier": "tier1"
               }
             },
@@ -990,10 +991,17 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "10",
+                "size": "2",
                 "count": "4",
-                "tier": "tier1"
+                "tier": "tier5K"
               }
+            },
+            {
+              "key": "redolog_size_in_mb",
+              "display_name" : "Redo log member size (MB)",
+              "type": "string",
+              "required": false,
+              "default_value": "1024"
             },
             {
               "key": "pi_user_tags",
