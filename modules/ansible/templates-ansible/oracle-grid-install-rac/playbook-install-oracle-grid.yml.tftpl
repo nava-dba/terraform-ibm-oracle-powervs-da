@@ -63,6 +63,12 @@
       register: gimr_disks
       changed_when: false
 
+    - name: Discover disks for ARCH (ASM)
+      ansible.builtin.shell: |
+        lsmpio -qa | grep -i arch | tr -s ' ' | cut -d' ' -f1
+      register: arch_disks
+      changed_when: false
+
     - name: Set discovered disk lists
       ansible.builtin.set_fact:
         ora_sw_vg_disk: "{{ oravg_disks.stdout_lines }}"
@@ -70,6 +76,7 @@
         asm_diskgroup_disk: "{{ crsdg_disks.stdout_lines }}"
         asm_data_diskgroup_disk: "{{ data_disks.stdout_lines }}"
         asm_redo_diskgroup_disk: "{{ redo_disks.stdout_lines }}"
+        asm_arch_diskgroup_disk: "{{ arch_disks.stdout_lines }}"
 
     - name: Debug disk vars
       ansible.builtin.debug:
@@ -79,6 +86,7 @@
           - "asm_diskgroup_disk = {{ asm_diskgroup_disk }}"
           - "asm_data_diskgroup_disk = {{ asm_data_diskgroup_disk }}"
           - "asm_redo_diskgroup_disk = {{ asm_redo_diskgroup_disk }}"
+          - "asm_arch_diskgroup_disk = {{ asm_arch_diskgroup_disk }}"
 
     - name: Convert disk lists to space-separated disk numbers ONLY
       ansible.builtin.set_fact:
@@ -97,6 +105,10 @@
         redo_disk_string: >-
           {{ asm_redo_diskgroup_disk
              | map('regex_replace', '^(hdisk|ASMREDO)', '')
+             | join(' ') }}
+        arch_disk_string: >-
+          {{ asm_arch_diskgroup_disk
+             | map('regex_replace', '^(hdisk|ASMARCH)', '')
              | join(' ') }}
 
     - name: Merge ASM disk configuration into config
@@ -140,6 +152,15 @@
                     'EXTERNAL',
                     redo_disk_string,
                     redo_disk_string,
+                    'clear_pvids',
+                    'zero_disks'
+                  ]
+                  [
+                    'ARCH',
+                    'ASMARCH',
+                    'EXTERNAL',
+                    arch_disk_string,
+                    arch_disk_string,
                     'clear_pvids',
                     'zero_disks'
                   ]
