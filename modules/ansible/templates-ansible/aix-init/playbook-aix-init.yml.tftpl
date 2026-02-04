@@ -88,6 +88,41 @@
             state: touch
 
     #################################################################
+    # 1.5 Disk Performance Tuning (queue_depth + reserve_policy)
+    #################################################################
+
+    - name: Check if disk tuning already done
+      ansible.builtin.stat:
+        path: "{{ done_file_dir }}/disk_tuning.done"
+      register: disk_tuning_done
+
+    - name: Tune AIX disk attributes online
+      when: not disk_tuning_done.stat.exists
+      block:
+
+        - name: Get all hdisk devices
+          ansible.builtin.shell: |
+            lsdev -Cc disk | awk '{print $1}'
+          register: hdisk_list
+          changed_when: false
+
+        - name: Apply queue_depth and reserve_policy
+          ansible.builtin.shell: |
+            chdev -l {{ item }} -a queue_depth=64 -a reserve_policy=no_reserve -U
+          loop: "{{ hdisk_list.stdout_lines }}"
+
+        - name: Verify attributes
+          ansible.builtin.shell: |
+            lsattr -El {{ item }} | egrep "queue_depth|reserve_policy"
+          loop: "{{ hdisk_list.stdout_lines }}"
+          changed_when: false
+
+        - name: Mark disk tuning done
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/disk_tuning.done"
+            state: touch
+
+    #################################################################
     # 2. Proxy Setup
     #################################################################
     - name: Proxy Setup

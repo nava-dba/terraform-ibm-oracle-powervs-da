@@ -21,9 +21,16 @@ locals {
 
   pi_crsdg_volume = {
     "name" : "CRSDG",
-    "size" : "8",
+    "size" : "4",
     "count" : "4",
     "tier" : "tier1"
+  }
+
+  pi_arc_volume = {
+    "name" : "ARCH",
+    "size" : "4",
+    "count" : "10",
+    "tier" : "tier3"
   }
 
   pi_cpu_map = {
@@ -79,12 +86,26 @@ module "pi_instance_aix" {
   pi_cpu_proc_type           = var.pi_aix_instance.cpu_proc_type
   pi_boot_image_storage_tier = "tier1"
   pi_user_tags               = var.pi_user_tags
+  
+  # Storage configuration based on install type - using user-provided variables
   pi_storage_config = (
     var.oracle_install_type == "ASM" ?
-    [local.pi_boot_volume, var.pi_oravg_volume, local.pi_crsdg_volume, var.pi_data_volume, var.pi_redo_volume] :
-    [local.pi_boot_volume, var.pi_oravg_volume, var.pi_datavg_volume]
+    [
+      local.pi_boot_volume,
+      var.pi_oravg_volume,        # Oracle software VG
+      local.pi_crsdg_volume,      # ASM CRSDG
+      var.pi_data_volume,         # ASM DATA diskgroup
+      var.pi_redo_volume,         # ASM REDO diskgroup
+      local.pi_arc_volume         # ASM ARCH diskgroup
+    ] :
+    [
+      local.pi_boot_volume,
+      var.pi_oravg_volume,        # Oracle software VG
+      var.pi_data_volume,         # JFS2 DATAVG (for datafiles)
+      var.pi_redo_volume,         # JFS2 REDOVG (for redo + control files)
+      local.pi_arc_volume         # JFS2 ARCHVG (for archives)
+    ]
   )
-
 }
 
 ###########################################################
@@ -283,6 +304,15 @@ module "ibmcloud_cos_grid" {
 ###########################################################
 
 locals {
+  # Calculate total sizes from user variables for passing to Ansible
+  # Each volume object has: size (per disk) and count (number of disks)
+  
+  # Calculate total size: size per disk * count
+  oravg_total_size = tonumber(var.pi_oravg_volume.size) * tonumber(var.pi_oravg_volume.count)
+  data_total_size  = tonumber(var.pi_data_volume.size) * tonumber(var.pi_data_volume.count)
+  redo_total_size  = tonumber(var.pi_redo_volume.size) * tonumber(var.pi_redo_volume.count)
+  arch_total_size  = tonumber(local.pi_arc_volume.size) * tonumber(local.pi_arc_volume.count)
+
   playbook_oracle_install_vars = {
     ORA_NFS_HOST        = module.pi_instance_rhel.pi_instance_primary_ip
     ORA_NFS_DEVICE      = local.nfs_mount
@@ -293,6 +323,12 @@ locals {
     ORA_SID             = var.ora_sid
     ORACLE_INSTALL_TYPE = var.oracle_install_type
     ORA_DB_PASSWORD     = var.ora_db_password
+    REDOLOG_SIZE_IN_MB  = var.redolog_size_in_mb
+    # Pass calculated sizes to Ansible (subtract 1GB for VG overhead)
+    ORAVG_SIZE          = tostring(local.oravg_total_size - 1)
+    DATA_SIZE           = tostring(local.data_total_size - 1)
+    REDO_SIZE           = tostring(local.redo_total_size - 1)
+    ARCH_SIZE           = tostring(local.arch_total_size - 1)
   }
 }
 
