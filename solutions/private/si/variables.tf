@@ -117,9 +117,9 @@ variable "ibmcloud_cos_service_credentials" {
 # Oracle Storage Configuration
 #####################################################
 
-# 1. oravg
+# 1. oravg volume (Oracle software)
 variable "pi_oravg_volume" {
-  description = "ORAVG volume configuration"
+  description = "Oracle software VG disk configuration"
   type = object({
     name  = optional(string, "oravg")
     size  = string
@@ -128,9 +128,9 @@ variable "pi_oravg_volume" {
   })
 }
 
-# 2. DATA diskgroup
+# 2. DATA volume (DATA diskgroup for ASM, DATAVG for JFS2)
 variable "pi_data_volume" {
-  description = "Disk configuration for ASM"
+  description = "DATA disk configuration (ASM diskgroup or JFS2 DATAVG)"
   type = object({
     name  = optional(string, "DATA")
     size  = string
@@ -139,9 +139,9 @@ variable "pi_data_volume" {
   })
 }
 
-# 3. REDO diskgroup
+# 3. REDO volume (REDO diskgroup for ASM, REDOVG for JFS2)
 variable "pi_redo_volume" {
-  description = "Disk configuration for ASM"
+  description = "REDO disk configuration (ASM diskgroup or JFS2 REDOVG)"
   type = object({
     name  = optional(string, "REDO")
     size  = string
@@ -150,15 +150,9 @@ variable "pi_redo_volume" {
   })
 }
 
-# 4. oradatavg
-variable "pi_datavg_volume" {
-  description = "Disk configuration for ASM"
-  type = object({
-    name  = optional(string, "datavg")
-    size  = string
-    count = string
-    tier  = string
-  })
+variable "redolog_size_in_mb" {
+  description = "Redo log member size in MB."
+  type        = string
 }
 
 ############################################
