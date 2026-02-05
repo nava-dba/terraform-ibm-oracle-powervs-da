@@ -460,7 +460,7 @@
               "default_value": {
                 "size": "2",
                 "count": "4",
-                "tier": "tier5K"
+                "tier": "tier5k"
               }
             },
             {
@@ -993,7 +993,7 @@
               "default_value": {
                 "size": "2",
                 "count": "4",
-                "tier": "tier5K"
+                "tier": "tier5k"
               }
             },
             {
