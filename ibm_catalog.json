@@ -237,7 +237,7 @@
               "display_name": "RHEL OS Image Name",
               "type": "string",
               "default_value": "RHEL9-SP6",
-              "required": false,
+              "required": true,
               "options": [
                 {
                   "displayname": "RHEL9-SP6",
@@ -364,7 +364,7 @@
                   "value": "ASM"
                 },
                 {
-                  "displayname": "JFS",
+                  "displayname": "JFS2",
                   "value": "JFS"
                 }
               ],
@@ -373,7 +373,7 @@
             {
               "key": "ibmcloud_cos_service_credentials",
               "type": "multiline_secure_value",
-              "display_name": "Cloud Object Storage Credentials",
+              "display_name": "Cloud Object Storage(COS) Credentials",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -384,7 +384,7 @@
             },
             {
               "key": "ibmcloud_cos_configuration",
-              "display_name" : "Oracle Software Storage Configuration",
+              "display_name" : "COS Oracle Software Storage Configuration",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -411,7 +411,7 @@
               },
               "default_value": {
                 "memory_size": "16",
-                "number_processors": "null",
+                "number_processors": null,
                 "cpu_proc_type": "shared",
                 "server_type": "s1022",
                 "pin_policy": "hard",
@@ -443,8 +443,8 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "20",
-                "count": "4",
+                "size": "5",
+                "count": "8",
                 "tier": "tier1"
               }
             },
@@ -458,25 +458,17 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "10",
+                "size": "2",
                 "count": "4",
-                "tier": "tier1"
+                "tier": "tier5K"
               }
             },
             {
-              "key": "pi_datavg_volume",
-              "display_name" : "JFS2 Database Data Disks",
+              "key": "redolog_size_in_mb",
+              "display_name" : "Redo log member size (MB)",
+              "type": "string",
               "required": false,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "json_editor"
-              },
-              "default_value": {
-                "size": "10",
-                "count": "4",
-                "tier": "tier1"
-              }
+              "default_value": "1024"
             },
             {
               "key": "pi_user_tags",
@@ -609,7 +601,7 @@
             },
             {
               "key": "zone",
-              "display_name" : "Availability Zone",
+              "display_name" : "PowerVS Zone",
               "type": "string",
               "required": true,
               "default_value": ""
@@ -688,7 +680,7 @@
               "display_name": "RHEL Management Server Type",
               "type": "string",
               "default_value": "",
-              "required": false,
+              "required": true,
               "options": [
                 { "displayname": "s1122", "value": "s1122" },
                 { "displayname": "s1022", "value": "s1022" },
@@ -703,7 +695,7 @@
               "display_name": "RHEL OS Image Name",
               "type": "string",
               "default_value": "RHEL9-SP6",
-              "required": false,
+              "required": true,
               "options": [{ "displayname": "RHEL9-SP6", "value": "RHEL9-SP6" }]
             },
             {
@@ -913,7 +905,7 @@
             {
               "key": "ibmcloud_cos_service_credentials",
               "type": "multiline_secure_value",
-              "display_name": "Cloud Object Storage Credentials",
+              "display_name": "Cloud Object Storage(COS) Credentials",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -924,7 +916,7 @@
             },
             {
               "key": "ibmcloud_cos_configuration",
-              "display_name" : "Oracle Software Storage Configuration",
+              "display_name" : "COS Oracle Software Storage Configuration",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -942,12 +934,6 @@
               }
             },
             {
-              "key":"skip_validation",
-              "display_name":"Skip Pre-Deployment Validation",
-              "type":"boolean",
-              "required" : true
-            },
-            {
               "key": "pi_aix_instance",
               "display_name" : "AIX Instance Configuration(CPU,Mem)",
               "required": false,
@@ -958,7 +944,7 @@
               },
               "default_value": {
                 "memory_size": "16",
-                "number_processors": "null",
+                "number_processors": null,
                 "cpu_proc_type": "shared",
                 "server_type": "s1022",
                 "pin_policy": "hard",
@@ -990,8 +976,8 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "20",
-                "count": "4",
+                "size": "5",
+                "count": "8",
                 "tier": "tier1"
               }
             },
@@ -1005,25 +991,17 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "10",
+                "size": "2",
                 "count": "4",
-                "tier": "tier1"
+                "tier": "tier5K"
               }
             },
             {
-              "key": "pi_datavg_volume",
-              "display_name" : "JFS2 Database Data Disks",
+              "key": "redolog_size_in_mb",
+              "display_name" : "Redo log member size (MB)",
+              "type": "string",
               "required": false,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "json_editor"
-              },
-              "default_value": {
-                "size": "20",
-                "count": "4",
-                "tier": "tier1"
-              }
+              "default_value": "1024"
             },
             {
               "key": "pi_user_tags",
@@ -1101,7 +1079,7 @@
                   "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/34c6bc870aa64824599ee3b353df71889a4dceb2/images/Oracle_Private_Cloud_DA-Private%20Cloud%20DA.drawio.svg",
                   "type": "image/svg+xml"
                 },
-                "description": "This deployable architecture is designed to assist you in deploying Oracle Real Application Cluster(RAC) into IBM Power Virtual Server. \n\nThis DA creates and prepares Power Virtual Server instances for Oracle RAC database workloads. \n\nThis provisions Red Hat Enterprise Linux as the Ansible controller,NFS and DNS. AIX virtual machines as Oracle instance, retrieves Oracle software from IBM Cloud Object Storage, and performs a guided GRID and RDBMS installation and creates Oracle database based on user-defined parameters."
+                "description": "This deployable architecture is designed to assist you in deploying Oracle Real Application Cluster(RAC) into IBM Power Virtual Server. \n\nThis DA creates and prepares Power Virtual Server instances for Oracle RAC database workloads. \n\nThis provisions Red Hat Enterprise Linux as the Ansible controller,NFS and DNS. AIX virtual machines as Oracle instance, retrieves Oracle software from IBM Cloud Object Storage(COS), and performs a guided GRID and RDBMS installation and creates Oracle database based on user-defined parameters."
               }
             ]
           },
