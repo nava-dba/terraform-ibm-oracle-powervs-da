@@ -160,7 +160,7 @@
 
       - vg_name: archvg
         lv_name: archlv
-        fs_name: /oraarchlog
+        fs_name: /oraarchlogs
         size_gb: "{{ arch_size }}"
         pp_size: 512
         strip_size: 2M
@@ -234,7 +234,7 @@
         storage_type: "{{ 'ASM' if oracle_install_type == 'ASM' else 'FS' }}"
         state: "{{ state }}"
         redolog_size_in_mb: "{{ redolog_size_in_mb }}"
-        oracle_init_params: "{{ 'db_create_online_log_dest_1=+REDO,log_archive_dest_1=\"LOCATION=+ARCH\"' if oracle_install_type == 'ASM' else 'db_create_online_log_dest_1=/oraredologs,log_archive_dest_1=\"LOCATION=/oraarchlog\",filesystemio_options=SETALL' }}"
+        oracle_init_params: "{{ 'db_create_online_log_dest_1=+REDO,log_archive_dest_1=\"LOCATION=+ARCH\"' if oracle_install_type == 'ASM' else 'db_create_online_log_dest_1=/oraredologs,log_archive_dest_1=\"LOCATION=/oraarchlogs\",filesystemio_options=SETALL' }}"
 
   pre_tasks:
     #######################################################

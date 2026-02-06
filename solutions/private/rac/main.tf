@@ -39,8 +39,8 @@ locals {
 
   pi_arc_volume = {
     "name" : "ARCH",
-    "size" : "4",
-    "count" : "10",
+    "size" : "10",
+    "count" : "4",
     "tier" : "tier3"
   }
 
@@ -369,13 +369,6 @@ locals {
     squid = {
       enable     = true
       squid_port = "3128"
-    }
-    dns = {
-      enable      = true
-      dns_servers = "161.26.0.7; 161.26.0.8; 9.9.9.9;"
-    }
-    ntp = {
-      enable = true
     }
   }
 }
