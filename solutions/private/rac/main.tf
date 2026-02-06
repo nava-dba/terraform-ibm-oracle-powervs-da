@@ -443,6 +443,7 @@ module "pi_instance_aix_init" {
   source     = "../../../modules/ansible"
   depends_on = [module.pi_instance_rhel_init]
 
+  deployment_type        = var.deployment_type
   bastion_host_ip        = var.bastion_host_ip
   ansible_host_or_ip     = module.pi_instance_rhel.pi_instance_primary_ip
   ssh_private_key        = var.ssh_private_key
@@ -491,6 +492,7 @@ module "dns_configuration" {
   source     = "../../../modules/ansible"
   depends_on = [module.pi_instance_aix_init]
 
+  deployment_type        = var.deployment_type
   bastion_host_ip        = var.bastion_host_ip
   ansible_host_or_ip     = module.pi_instance_rhel.pi_instance_primary_ip
   ssh_private_key        = var.ssh_private_key
@@ -677,6 +679,7 @@ module "oracle_install" {
   source     = "../../../modules/ansible"
   depends_on = [module.ibmcloud_cos_grid, module.pi_instance_aix_init, module.dns_configuration.configuration_complete]
 
+  deployment_type        = var.deployment_type
   bastion_host_ip        = var.bastion_host_ip
   ansible_host_or_ip     = module.pi_instance_rhel.pi_instance_primary_ip
   ssh_private_key        = var.ssh_private_key
