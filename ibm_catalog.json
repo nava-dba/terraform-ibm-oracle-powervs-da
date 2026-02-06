@@ -395,7 +395,7 @@
                 "cos_region": "us-south",
                 "cos_bucket_name": "oracle-sw-123",
                 "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
-                "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
+                "cos_oracle_grid_sw_path": "",
                 "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
                 "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
               }
