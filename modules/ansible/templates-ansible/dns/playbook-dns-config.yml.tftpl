@@ -1,7 +1,8 @@
 ---
-- name: Configure BIND DNS Server on AIX for N-Node RAC
+- name: Configure BIND DNS Server on RHEL for N-Node RAC
   hosts: all
-  gather_facts: false
+  become: yes
+  gather_facts: true
 
   vars:
     dns_server_ip: "${dns_server_ip}"
@@ -13,124 +14,101 @@
     rac_nodes: ${rac_nodes}
 
   tasks:
-    - name: Check if fileset bind.rte is installed
-      ansible.builtin.shell: "lslpp -l bind.rte"
-      register: lslpp_check
-      ignore_errors: true
-      changed_when: false
+    - name: Install BIND packages on RHEL
+      ansible.builtin.package:
+        name:
+          - bind
+          - bind-utils
+        state: present
+      when: ansible_facts.os_family == "RedHat"
 
-    - name: Install additional AIX filesets using PowerVS nim mount
-      ansible.builtin.command:
-        cmd: "/usr/sbin/installp -acgXd . -Y bind.rte"
-        chdir: "/usr/sys/inst.images/installp/ppc"
-      when: lslpp_check.rc != 0
-
-    - name: Verify fileset bind.rte is installed
-      ansible.builtin.shell: "lslpp -l bind.rte"
-      register: lslpp_check1
-      ignore_errors: true
-      changed_when: false
-
-    - name: Print fileset bind.rte status
-      ansible.builtin.debug:
-        msg: "Fileset status output: {{ lslpp_check1.stdout }}"
+    - name: Enable named service
+      ansible.builtin.service:
+        name: named
+        enabled: yes
+      when: ansible_facts.os_family == "RedHat"
 
     - name: Create named.conf configuration
       ansible.builtin.copy:
-        dest: "/etc/named.conf"
-        owner: "root"
-        group: "system"
-        mode: "0644"
+        dest: /etc/named.conf
+        owner: root
+        group: root
+        mode: '0644'
         content: |
-          server {{ dns_server_ip }} {
-          transfer-format many-answers;
-          };
-
           options {
-              directory "/etc";
+              directory "/var/named";
               listen-on port 53 { any; };
-              allow-query     { any; };
+              allow-query { any; };
               recursion yes;
           };
 
-          zone "{{ dns_domain_name }}" in {
-            type master;
-            file "/etc/named.{{ dns_domain_name }}";
+          zone "{{ dns_domain_name }}" IN {
+              type master;
+              file "named.{{ dns_domain_name }}";
           };
 
-          zone "." in {
-          type hint;
-          file "/etc/named.root.hints";
+          zone "." IN {
+              type hint;
+              file "named.root.hints";
           };
 
     - name: Create forward zone file for {{ dns_domain_name }}
       ansible.builtin.copy:
-        dest: "/etc/named.{{ dns_domain_name }}"
-        owner: "root"
-        group: "system"
-        mode: "0644"
+        dest: /var/named/named.{{ dns_domain_name }}
+        owner: root
+        group: named
+        mode: '0644'
         content: |
           $TTL 86400
           @   IN  SOA {{ dns_hostname }}. root.{{ dns_hostname }}. (
-                  41        ; serial (increment every change)
-                  3600      ; refresh
-                  600       ; retry
-                  3600000   ; expire
-                  86400     ; minimum
+                  41
+                  3600
+                  600
+                  3600000
+                  86400
           )
 
-          ; Name server
-                  IN  NS  {{ dns_hostname }}.
+              IN  NS  {{ dns_hostname }}.
 
-          ; DNS server
           {{ dns_hostname }}        IN  A   {{ dns_server_ip }}
 
-          ; =========================
-          ;RAC Public Hostnames
-          ; (MUST be controller reachable)
-          ; =========================
           {% for node in rac_nodes %}
           {{ node.hostname }}      IN  A   {{ node.pub_ip }}
+          {{ node.hostname }}-vip  IN  A   {{ node.vip }}
           {% endfor %}
 
-          ; =========================
-          ; VIPs
-          ; =========================
-          {% for node in rac_nodes %}
-          {{ node.hostname }}-vip       IN  A   {{ node.vip }}
-          {% endfor %}
-
-          ; SCAN (3 IPs required)
-          ; =========================
           {% for ip in scan_ips %}
-          {{ scan_name }}       IN  A   {{ ip }}
+          {{ scan_name }}          IN  A   {{ ip }}
           {% endfor %}
 
-    - name: Copy hint file (empty root servers)
+    - name: Create root hints file
       ansible.builtin.copy:
-        dest: "/etc/named.root.hints"
-        owner: "root"
-        group: "system"
-        mode: "0644"
+        dest: /var/named/named.root.hints
+        owner: root
+        group: named
+        mode: '0644'
         content: |
           ;
-          ;empty root servers so that dummy nameserver does not reach out to outside world
+          ; empty root hints
           ;
 
-    - name: Stop named service
-      ansible.builtin.shell: "stopsrc -s named"
-      ignore_errors: true
+    - name: Restore SELinux context on named files
+      ansible.builtin.command: restorecon -Rv /var/named
+      when: ansible_facts.selinux.status == "enabled"
 
-    - name: Start named service
-      ansible.builtin.shell: "startsrc -s named"
+    - name: Restart named service
+      ansible.builtin.service:
+        name: named
+        state: restarted
+      when: ansible_facts.os_family == "RedHat"
 
-    - name: Verify named service
-      ansible.builtin.shell: "lssrc -s named"
+    - name: Verify named service status
+      ansible.builtin.command: systemctl is-active named
       register: named_status
       changed_when: false
-      failed_when: "'active' not in named_status.stdout"
+      failed_when: named_status.stdout.strip() != "active"
 
-    - name: Display status
+    - name: Display named service status
       ansible.builtin.debug:
         msg: "named service status: {{ named_status.stdout }}"
 

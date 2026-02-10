@@ -112,18 +112,6 @@ variable "pi_replication_policy" {
 ###########################################################
 # Network Configuration
 ###########################################################
-
-variable "pi_rhel_networks" {
-  description = <<-EOT
-    Networks for RHEL management server. 
-    Provide at least one network with name and id.
-  EOT
-  type = list(object({
-    name = string
-    id   = string
-  }))
-}
-
 variable "pi_networks" {
   description = <<-EOT
     Existing list of private subnet ids to be attached to an instance. The first element will become the primary interface. Run 'ibmcloud pi networks' to list available private subnets
@@ -304,37 +292,6 @@ variable "scan_name" {
   description = "SCAN (Single Client Access Name) hostname"
   type        = string
   default     = "orac-scan"
-}
-
-variable "scan_ips" {
-  description = "List of SCAN IP addresses for Oracle RAC (requires exactly 3 IPs)"
-  type        = list(string)
-  default = [
-  "172.16.10.241",
-  "172.16.10.242",
-  "172.16.10.243"
-]
-  validation {
-    condition     = length(var.scan_ips) == 3
-    error_message = "Oracle RAC requires exactly 3 SCAN IP addresses."
-  }
-
-}
-
-# ===========================
-# RAC VIP Configuration
-# ===========================
-
-variable "rac_vip_base" {
-  description = "Base IP address for calculating VIPs (e.g., '172.16.10.0')."
-  type        = string
-  default     = "172.16.10.0"
-}
-
-variable "rac_vip_start_offset" {
-  description = "Starting offset for VIP calculation from base IP"
-  type        = number
-  default     = 245
 }
 
 # ===========================

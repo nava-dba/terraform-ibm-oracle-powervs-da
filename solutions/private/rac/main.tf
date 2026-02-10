@@ -93,10 +93,10 @@ locals {
 
   # Build a stable, ordered list of networks based on user input order
   ordered_pi_networks = {
-  for idx, net in var.pi_networks :
-  idx => {
-    name = net.name
-    id   = net.id
+    for idx, net in var.pi_networks :
+    idx => {
+      name = net.name
+      id   = net.id
     }
   }
   # Auto-generate SCAN IPs and VIP base
@@ -119,7 +119,7 @@ module "pi_instance_rhel" {
   pi_workspace_guid       = var.pi_existing_workspace_guid
   pi_ssh_public_key_name  = var.pi_ssh_public_key_name
   pi_image_id             = var.pi_rhel_image_name
-  pi_networks             = var.pi_rhel_networks
+  pi_networks             = [var.pi_networks[0]]
   pi_instance_name        = "${var.prefix}-mgmt-rhel"
   pi_memory_size          = var.pi_memory_size
   pi_number_of_processors = local.pi_rhel_cpu_cores
@@ -144,7 +144,7 @@ module "pi_instance_dns" {
   pi_workspace_guid       = var.pi_existing_workspace_guid
   pi_ssh_public_key_name  = var.pi_ssh_public_key_name
   pi_image_id             = var.pi_rhel_image_name
-  pi_networks             = var.pi_rhel_networks
+  pi_networks             = [var.pi_networks[0]]
   pi_instance_name        = "${var.prefix}-dns"
   pi_memory_size          = var.pi_memory_size
   pi_number_of_processors = local.pi_rhel_cpu_cores
@@ -167,20 +167,20 @@ resource "ibm_pi_instance" "rac_nodes" {
   pi_sys_type            = var.pi_aix_instance.server_type
 
   dynamic "pi_network" {
-  for_each = local.ordered_pi_networks
-  content {
-    network_id = pi_network.value.id
+    for_each = local.ordered_pi_networks
+    content {
+      network_id = pi_network.value.id
+    }
   }
-}
 
   pi_storage_type          = "tier1"
   pi_pin_policy            = var.pi_aix_instance.pin_policy
   pi_health_status         = "OK"
   pi_storage_pool_affinity = false
-  pi_replicants           = var.rac_nodes
-  pi_replication_scheme   = "suffix"
-  pi_replication_policy   = "affinity"
-  pi_user_tags            = var.pi_user_tags
+  pi_replicants            = var.rac_nodes
+  pi_replication_scheme    = "suffix"
+  pi_replication_policy    = "affinity"
+  pi_user_tags             = var.pi_user_tags
 
   timeouts {
     create = "50m"
@@ -197,9 +197,16 @@ resource "ibm_pi_instance" "rac_nodes" {
   }
 }
 
+# delay after creation of VMS
+resource "time_sleep" "wait_after_rac_vm_creation" {
+  depends_on      = [ibm_pi_instance.rac_nodes]
+  create_duration = "180s"
+}
+
+
 # Refresh the data to get all IPs
 data "ibm_pi_instance" "attached_instances" {
-  depends_on           = [ibm_pi_instance.rac_nodes]
+  depends_on           = [time_sleep.wait_after_rac_vm_creation]
   count                = var.rac_nodes
   pi_cloud_instance_id = var.pi_existing_workspace_guid
   pi_instance_name     = "${var.prefix}-aix-${count.index + 1}"
@@ -249,6 +256,22 @@ locals {
     for i in range(var.rac_nodes) : data.ibm_pi_instance.attached_instances[i].id
   ]
 
+  # Expand oravg volumes per node
+  expanded_oravg_volumes = flatten([
+    for node_idx in range(var.rac_nodes) : [
+      for vol_idx in range(tonumber(var.pi_oravg_volume.count)) : {
+        node_index = node_idx
+        vol_index  = vol_idx
+        name       = "${lower(var.pi_oravg_volume.name)}-${vol_idx + 1}"
+        size       = var.pi_oravg_volume.size
+        tier       = var.pi_oravg_volume.tier
+      }
+    ]
+  ])
+
+  oravg_volumes_per_node = tonumber(var.pi_oravg_volume.count)
+  total_oravg_volumes    = var.rac_nodes * local.oravg_volumes_per_node
+
   expanded_shared_volumes = flatten([
     for vol in [local.pi_crsdg_volume, var.pi_data_volume, var.pi_redo_volume, local.pi_gimr_volume, local.pi_arc_volume] : [
       for i in range(tonumber(vol.count)) : {
@@ -262,7 +285,7 @@ locals {
   shared_count = length(local.expanded_shared_volumes)
 }
 
-# --- Node-local volumes: rootvg and oravg ---
+# --- Node-local volumes: rootvg ---
 resource "ibm_pi_volume" "node_rootvg" {
   depends_on = [data.ibm_pi_instance.attached_instances]
   count      = var.rac_nodes
@@ -273,25 +296,27 @@ resource "ibm_pi_volume" "node_rootvg" {
   pi_volume_type       = local.pi_boot_volume.tier
   pi_volume_shareable  = false
   pi_user_tags         = var.pi_user_tags
+  
   lifecycle {
-  ignore_changes = [pi_user_tags]
+    ignore_changes = [pi_user_tags]
+  }
 }
 
-}
-
+# --- Node-local volumes: oravg (multiple per node) ---
 resource "ibm_pi_volume" "node_oravg" {
   depends_on = [ibm_pi_volume.node_rootvg]
-  count      = var.rac_nodes
+  count      = local.total_oravg_volumes
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
-  pi_volume_name       = "${var.prefix}-aix-${count.index + 1}-${var.pi_oravg_volume.name}"
-  pi_volume_size       = var.pi_oravg_volume.size
-  pi_volume_type       = var.pi_oravg_volume.tier
+  pi_volume_name       = "${var.prefix}-aix-${local.expanded_oravg_volumes[count.index].node_index + 1}-${local.expanded_oravg_volumes[count.index].name}"
+  pi_volume_size       = local.expanded_oravg_volumes[count.index].size
+  pi_volume_type       = local.expanded_oravg_volumes[count.index].tier
   pi_volume_shareable  = false
   pi_user_tags         = var.pi_user_tags
+  
   lifecycle {
-  ignore_changes = [pi_user_tags]
-}
+    ignore_changes = [pi_user_tags]
+  }
 }
 
 # --- Shared volumes ---
@@ -305,12 +330,13 @@ resource "ibm_pi_volume" "shared" {
   pi_volume_type       = local.expanded_shared_volumes[count.index].tier
   pi_volume_shareable  = true
   pi_user_tags         = var.pi_user_tags
+  
   lifecycle {
-  ignore_changes = [pi_user_tags]
-}
+    ignore_changes = [pi_user_tags]
+  }
 }
 
-# --- Attach node-local volumes ---
+# --- Attach node-local volumes: rootvg ---
 resource "ibm_pi_volume_attach" "node_rootvg_attach" {
   count = var.rac_nodes
 
@@ -327,15 +353,17 @@ resource "ibm_pi_volume_attach" "node_rootvg_attach" {
   }
 }
 
+# --- Attach node-local volumes: oravg (multiple per node) ---
 resource "ibm_pi_volume_attach" "node_oravg_attach" {
-  count = var.rac_nodes
+  count = local.total_oravg_volumes
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
-  pi_instance_id       = local.aix_instance_ids[count.index]
+  pi_instance_id       = local.aix_instance_ids[local.expanded_oravg_volumes[count.index].node_index]
   pi_volume_id         = ibm_pi_volume.node_oravg[count.index].volume_id
 
   depends_on = [
-    ibm_pi_volume.node_oravg
+    ibm_pi_volume.node_oravg,
+    ibm_pi_volume_attach.node_rootvg_attach
   ]
 
   lifecycle {
@@ -343,22 +371,51 @@ resource "ibm_pi_volume_attach" "node_oravg_attach" {
   }
 }
 
-# --- Attach shared volumes to each node  ---
-resource "ibm_pi_volume_attach" "shared_attach" {
-  count = var.rac_nodes * local.shared_count
+# To avoid with multiattach enabled","error":"Conflict"
+# --- Attach shared volumes to first node  ---
+resource "ibm_pi_volume_attach" "shared_attach_node0" {
+  count = local.shared_count
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
-  pi_instance_id       = local.aix_instance_ids[floor(count.index / local.shared_count)]
-  pi_volume_id         = element([for v in ibm_pi_volume.shared : v.volume_id], count.index % local.shared_count)
+  pi_instance_id       = local.aix_instance_ids[0]
+  pi_volume_id         = ibm_pi_volume.shared[count.index].volume_id
 
   depends_on = [
-    ibm_pi_volume.shared
+    ibm_pi_volume.shared,
+    ibm_pi_volume_attach.node_oravg_attach
   ]
 
   lifecycle {
     ignore_changes = [pi_instance_id]
   }
 }
+
+
+# --- Attach shared volumes to rest nodes  ---
+resource "ibm_pi_volume_attach" "shared_attach_other_nodes" {
+  count = (var.rac_nodes - 1) * local.shared_count
+
+  pi_cloud_instance_id = var.pi_existing_workspace_guid
+
+  # node index: 1..N-1
+  pi_instance_id = local.aix_instance_ids[
+    1 + floor(count.index / local.shared_count)
+  ]
+
+  # volume index: 0..shared_count-1
+  pi_volume_id = ibm_pi_volume.shared[
+    count.index % local.shared_count
+  ].volume_id
+
+  depends_on = [
+    ibm_pi_volume_attach.shared_attach_node0
+  ]
+
+  lifecycle {
+    ignore_changes = [pi_instance_id]
+  }
+}
+
 
 ###########################################################
 # Ansible Host setup and configure as Proxy, NTP and DNS
@@ -422,13 +479,13 @@ locals {
   ]
 
   playbook_aix_init_vars = {
-    PROXY_IP_PORT  = "${local.squid_server_ip}:3128"
-    NO_PROXY       = var.no_proxy_list
-    ORA_NFS_HOST   = join(",", local.aix_primary_ips)
-    ORA_NFS_DEVICE = local.nfs_mount
-    AIX_INIT_MODE  = "rac"
-    ROOT_PASSWORD  = var.root_password
-    EXTEND_ROOT_VOLUME_WWN = ""  # Empty for RAC - will use hostvars instead
+    PROXY_IP_PORT          = "${local.squid_server_ip}:3128"
+    NO_PROXY               = var.no_proxy_list
+    ORA_NFS_HOST           = join(",", local.aix_primary_ips)
+    ORA_NFS_DEVICE         = local.nfs_mount
+    AIX_INIT_MODE          = "rac"
+    ROOT_PASSWORD          = var.root_password
+    EXTEND_ROOT_VOLUME_WWN = "" # Empty for RAC - will use hostvars instead
   }
 }
 
@@ -469,7 +526,8 @@ locals {
       vip      = cidrhost(local.pub_network_cidr, 245 + idx)
     }
   ]
-dns_playbook_vars = {
+  
+  dns_playbook_vars = {
     dns_server_ip   = tostring(local.dns_server_ip)
     dns_domain_name = tostring(var.cluster_domain)
     dns_hostname    = tostring(var.dns_hostname)
@@ -624,44 +682,45 @@ locals {
   # Build nodes list for Oracle installation (different from DNS rac_nodes_list)
   oracle_rac_nodes = [
     for idx in range(var.rac_nodes) : {
-      name       = data.ibm_pi_instance.attached_instances[idx].pi_instance_name
-      fqdn       = "${data.ibm_pi_instance.attached_instances[idx].pi_instance_name}.${var.cluster_domain}"
-      pub_ip     = local.get_ip_by_network[idx][local.pub_network_name]
-      priv1_ip   = local.get_ip_by_network[idx][local.priv1_network_name]
-      priv2_ip   = local.get_ip_by_network[idx][local.priv2_network_name]
-      pub_if     = var.aix_network_interfaces.public
-      priv1_if   = var.aix_network_interfaces.private1
-      priv2_if   = var.aix_network_interfaces.private2
+      name     = data.ibm_pi_instance.attached_instances[idx].pi_instance_name
+      fqdn     = "${data.ibm_pi_instance.attached_instances[idx].pi_instance_name}.${var.cluster_domain}"
+      pub_ip   = local.get_ip_by_network[idx][local.pub_network_name]
+      priv1_ip = local.get_ip_by_network[idx][local.priv1_network_name]
+      priv2_ip = local.get_ip_by_network[idx][local.priv2_network_name]
+      pub_if   = var.aix_network_interfaces.public
+      priv1_if = var.aix_network_interfaces.private1
+      priv2_if = var.aix_network_interfaces.private2
     }
   ]
-  # Calculate total size: size per disk * count
-  oravg_total_size = tonumber(var.pi_oravg_volume.size) * tonumber(var.pi_oravg_volume.count)
+  
+  # Calculate total size: (size per disk * count) - 1GB for VG overhead
+  oravg_total_size = (tonumber(var.pi_oravg_volume.size) * tonumber(var.pi_oravg_volume.count)) - 1
 
   # Base playbook vars - encode nodes as JSON string to ensure all values are strings
   playbook_oracle_install_base_vars = {
-    ORA_NFS_HOST    = module.pi_instance_rhel.pi_instance_primary_ip
-    ORA_NFS_DEVICE  = local.nfs_mount
-    DNS_SERVER_IP   = local.dns_server_ip
-    DATABASE_SW     = var.ibmcloud_cos_configuration.cos_oracle_database_sw_path
-    GRID_SW         = var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path
-    RU_FILE         = var.ibmcloud_cos_configuration.cos_oracle_ru_file_path
-    OPATCH_FILE     = var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path
-    CLUVFY_FILE     = var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path
-    RU_VERSION      = var.ru_version
-    ORA_SID         = var.ora_sid
-    ROOT_PASSWORD   = var.root_password
-    ORA_DB_PASSWORD = var.ora_db_password
-    TIME_ZONE       = var.time_zone
-    CLUSTER_DOMAIN  = var.cluster_domain
-    CLUSTER_NAME    = var.cluster_name
-    CLUSTER_NODES   = local.cluster_nodes
-    ORA_VERSION     = local.ora_version
+    ORA_NFS_HOST        = module.pi_instance_rhel.pi_instance_primary_ip
+    ORA_NFS_DEVICE      = local.nfs_mount
+    DNS_SERVER_IP       = local.dns_server_ip
+    DATABASE_SW         = var.ibmcloud_cos_configuration.cos_oracle_database_sw_path
+    GRID_SW             = var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path
+    RU_FILE             = var.ibmcloud_cos_configuration.cos_oracle_ru_file_path
+    OPATCH_FILE         = var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path
+    CLUVFY_FILE         = var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path
+    RU_VERSION          = var.ru_version
+    ORA_SID             = var.ora_sid
+    ROOT_PASSWORD       = var.root_password
+    ORA_DB_PASSWORD     = var.ora_db_password
+    TIME_ZONE           = var.time_zone
+    CLUSTER_DOMAIN      = var.cluster_domain
+    CLUSTER_NAME        = var.cluster_name
+    CLUSTER_NODES       = local.cluster_nodes
+    ORA_VERSION         = local.ora_version
     REDOLOG_SIZE_IN_MB  = var.redolog_size_in_mb
-    # Pass calculated sizes to Ansible (subtract 1GB for VG overhead)
-    ORAVG_SIZE          = tostring(local.oravg_total_size - 1)
-    netmask_pub     = local.netmask_pub
-    netmask_pvt     = local.netmask_priv1
-    nodes           = jsonencode(local.oracle_rac_nodes)  # Encode as JSON string
+    ORAVG_SIZE          = tostring(local.oravg_total_size)
+    ORAVG_DISK_COUNT    = tostring(var.pi_oravg_volume.count)
+    netmask_pub         = local.netmask_pub
+    netmask_pvt         = local.netmask_priv1
+    nodes               = jsonencode(local.oracle_rac_nodes)
   }
 
   # Use base vars directly

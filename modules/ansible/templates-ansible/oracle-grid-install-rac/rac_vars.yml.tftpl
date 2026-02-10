@@ -202,6 +202,7 @@ config:
                fsize=-1 data=-1 stack=-1 rss=-1 core=-1 cpu=-1 nofiles=65536
 
   cluster_domain: "${CLUSTER_DOMAIN}"
+  networks_defined: true
   networks:
 %{ for node in jsondecode(nodes) ~}
     - host: "${node.name}"

@@ -54,6 +54,47 @@ main::subscription_mgr_check_process() {
   done
 
 }
+############################################################
+# Update /etc/hosts with IP and hostname entries          #
+############################################################
+main::update_hosts_file() {
+  # shellcheck disable=SC2154  # variables come from Terraform template
+  local hosts_entries="${hosts_file_entries}"
+  
+  if [[ -z "${hosts_entries}" ]]; then
+    main::log_info "No host entries provided, skipping /etc/hosts update"
+    return 0
+  fi
+
+  main::log_info "Updating /etc/hosts file"
+  
+  # Backup existing hosts file
+  if [[ ! -f /etc/hosts.backup ]]; then
+    cp /etc/hosts /etc/hosts.backup
+    main::log_info "Created backup: /etc/hosts.backup"
+  fi
+
+  # Add marker for managed entries
+  local marker_start="# BEGIN ANSIBLE MANAGED HOSTS"
+  local marker_end="# END ANSIBLE MANAGED HOSTS"
+
+  # Remove old managed section if it exists
+  sed -i "/${marker_start}/,/${marker_end}/d" /etc/hosts
+
+  # Add new entries
+  cat <<EOF >> /etc/hosts
+
+${marker_start}
+${hosts_entries}
+${marker_end}
+EOF
+
+  main::log_info "/etc/hosts updated successfully"
+  main::log_info "Added entries:"
+  echo "${hosts_entries}" | while IFS= read -r line; do
+    [[ -n "$line" ]] && main::log_info "  $line"
+  done
+}
 
 ############################################################
 # RHEL : Install Packages                                  #
@@ -201,6 +242,7 @@ main::install_pip_packages() {
 ############################################################
 main::get_os_version
 main::log_system_info
+main::update_hosts_file
 main::install_packages
 main::setup_proxy
 main::install_pip_packages
