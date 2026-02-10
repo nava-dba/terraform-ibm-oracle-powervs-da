@@ -174,6 +174,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn NhAAAAAwEAAQAAAYEAzktNHnjjOVsLfBaTmN35MpEZgsTq5chJAKRVlmBqNBvmDZbKpMYE 84TyiSLwqEdYY7qF3H0EqmSCMpenrrScDqWpXPFJceDutuMER5UUfJ/vjdxtQ9aAOaMhAK 2NLyy9tH7RAFQRyz0hGIOUR9igUfUc90D209Jckv2kACOFueNM7XlpeVeNPwspXpSbNIjp L7zMF+aezsiweOm02I7TsYSfr8c8hF4tfiPnpP0vMooHhcQ9B7WD3xh27lV8TyZsC/iqx8 uPwDW/QMUedfu9K1z7OfUHzZgMaDKcB8+Nbj8TcvCSgIA1kOyK6TlMqAJP6nQ6mBYff9+V bEmunj90qASY8wuWm/v7R+EFlKV75fwWOgj5IMwcylB2sD6VyeMcku07jpDt5/bodoAi4S jsyyy+jomf5W6hq3XVm3wouFeXS8l/vL0npda6PXVlFatZ4TgYVhhsVJnwDsNoTj19fvkZ 3XShQLYc309YRQxZ3dzi6AePH9Mt6bFL4xLxq/7fAAAFgJvvloCb75aAAAAAB3NzaC1yc2 EAAAGBAM5LTR544zlbC3wWk5jd+TKRGYLE6uXISQCkVZZgajQb5g2WyqTGBPOE8oki8KhH WGO6hdx9BKpkgjKXp660nA6lqVzxSXHg7rbjBEeVFHyf743cbUPWgDmjIQCtjS8svbR+0Q T21kXQ9C1QE3CB9QeIw/8UuO+OwpCWgSNErkPr60bixn5+s/wAAADBAOfzzuDuDbB9cyRr X1B+QhWmSWl3nru5Y80+qThHEEyPtqaqmIXCMmC/J1ivpQH1UQNcfK/SB0NL3nXPJR1l3e n6qlfc1VKQpY5WPzj+YPisnCRnlJHOkjMxmA305o4C1s5wjs/LVqithCmyIxUZUddp9qtj aI7bpk3o/MVD4N8OF33TMeY6lZKYHzy95Aa2eGQUgMbEfNIZ3lketkeVOjZk6tYlRBK4Ep jFVGE+ayNG7xFZ5YN4ht1j+PFK20HafQAAAMEA466BFq8ssaCzA/UoQ9E2xof6zeYupnxP eJc2IOzWsDz9uIlj6oI1p86fipUTpJtl9XrZ5ULwXxgoAdY3RcMYzo8zXL/Tjl1ytolcPo ydpKVlZEYltg2ZHSYy+fTC82SBB6pTh9uYSIhjTapxJmYZ42Vn3Dt3/XRbmYEizoe1UJx0 L1ySDZ4CZsYXzUn/dyNQJibDwBmbZeL1ugjZeJAy2zcebrFj1O5zfTSmVBoYWyKrv8ZD6I DSqHHvL5tOdWGLAAAACnJvb3RAcmhlbDI= -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -365,7 +366,7 @@
                 },
                 {
                   "displayname": "JFS2",
-                  "value": "JFS2"
+                  "value": "JFS"
                 }
               ],
               "custom_config": {}
@@ -395,7 +396,7 @@
                 "cos_region": "us-south",
                 "cos_bucket_name": "oracle-sw-123",
                 "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
-                "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
+                "cos_oracle_grid_sw_path": "",
                 "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
                 "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
               }
@@ -460,7 +461,7 @@
               "default_value": {
                 "size": "2",
                 "count": "4",
-                "tier": "tier5K"
+                "tier": "tier5k"
               }
             },
             {
@@ -631,6 +632,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn NhAAAAAwEAAQAAAYEAzktNHnjjOVsLfBaTmN35MpEZgsTq5chJAKRVlmBqNBvmDZbKpMYE 84TyiSLwqEdYY7qF3H0EqmSCMpenrrScDqWpXPFJceDutuMER5UUfJ/vjdxtQ9aAOaMhAK 2NLyy9tH7RAFQRyz0hGIOUR9igUfUc90D209Jckv2kACOFueNM7XlpeVeNPwspXpSbNIjp L7zMF+aezsiweOm02I7TsYSfr8c8hF4tfiPnpP0vMooHhcQ9B7WD3xh27lV8TyZsC/iqx8 uPwDW/QMUedfu9K1z7OfUHzZgMaDKcB8+Nbj8TcvCSgIA1kOyK6TlMqAJP6nQ6mBYff9+V bEmunj90qASY8wuWm/v7R+EFlKV75fwWOgj5IMwcylB2sD6VyeMcku07jpDt5/bodoAi4S jsyyy+jomf5W6hq3XVm3wouFeXS8l/vL0npda6PXVlFatZ4TgYVhhsVJnwDsNoTj19fvkZ 3XShQLYc309YRQxZ3dzi6AePH9Mt6bFL4xLxq/7fAAAFgJvvloCb75aAAAAAB3NzaC1yc2 EAAAGBAM5LTR544zlbC3wWk5jd+TKRGYLE6uXISQCkVZZgajQb5g2WyqTGBPOE8oki8KhH WGO6hdx9BKpkgjKXp660nA6lqVzxSXHg7rbjBEeVFHyf743cbUPWgDmjIQCtjS8svbR+0Q T21kXQ9C1QE3CB9QeIw/8UuO+OwpCWgSNErkPr60bixn5+s/wAAADBAOfzzuDuDbB9cyRr X1B+QhWmSWl3nru5Y80+qThHEEyPtqaqmIXCMmC/J1ivpQH1UQNcfK/SB0NL3nXPJR1l3e n6qlfc1VKQpY5WPzj+YPisnCRnlJHOkjMxmA305o4C1s5wjs/LVqithCmyIxUZUddp9qtj aI7bpk3o/MVD4N8OF33TMeY6lZKYHzy95Aa2eGQUgMbEfNIZ3lketkeVOjZk6tYlRBK4Ep jFVGE+ayNG7xFZ5YN4ht1j+PFK20HafQAAAMEA466BFq8ssaCzA/UoQ9E2xof6zeYupnxP eJc2IOzWsDz9uIlj6oI1p86fipUTpJtl9XrZ5ULwXxgoAdY3RcMYzo8zXL/Tjl1ytolcPo ydpKVlZEYltg2ZHSYy+fTC82SBB6pTh9uYSIhjTapxJmYZ42Vn3Dt3/XRbmYEizoe1UJx0 L1ySDZ4CZsYXzUn/dyNQJibDwBmbZeL1ugjZeJAy2zcebrFj1O5zfTSmVBoYWyKrv8ZD6I DSqHHvL5tOdWGLAAAACnJvb3RAcmhlbDI= -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -650,16 +652,6 @@
               ]
             },
             {
-              "key": "pi_rhel_networks",
-              "display_name" : "RHEL Management Networks",
-              "required": true,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "json_editor"
-              }
-            },
-            {
               "key": "pi_networks",
               "display_name" : "PowerVS Networks",
               "required": true,
@@ -670,8 +662,20 @@
               },
               "default_value": [
                 {
-                  "name": "ora-subnet",
-                  "id": "asdg876a-f62i-12ha-abcd-89h08a7sd90d"
+                  "id": "c38d18ad-b39f-4ba0-94f0-ada107ab64df",
+                  "name": "ora_mgmt_net"
+                },
+                {
+                  "id": "47e38742-5850-411a-95ba-80fea41c12ec",
+                  "name": "ora-rac-pub"
+                },
+                {
+                  "id": "65167db2-715a-4cb9-b600-806c77d33cc4",
+                  "name": "ora-rac-priv1"
+                },
+                {
+                  "id": "856db87c-cb23-416d-898b-834bb2b8e0bc",
+                  "name": "ora-rac-priv2"
                 }
               ]
             },
@@ -728,7 +732,7 @@
               "displayname": "Number of RAC Nodes",
               "description": "Number of Oracle RAC instance nodes",
               "type": "int",
-              "default": 2,
+              "default_value": 2,
               "required": false,
               "options": [
                 {
@@ -742,7 +746,7 @@
               "displayname": "Oracle Server Time Zone",
               "description": "Time zone for Oracle instances",
               "type": "string",
-              "default": "America/Los_Angeles",
+              "default_value": "America/Los_Angeles",
               "required": false,
               "options": [
                 {
@@ -772,7 +776,7 @@
               "display_name" : "DNS/NTP Server IP Address",
               "description": "DNS IP to resolve Oracle VIPs and SCAN name",
               "type": "string",
-              "default": "192.10.10.0",
+              "default_value": "192.10.10.0",
               "required": true
             },
             {
@@ -815,7 +819,7 @@
               "display_name" : "RAC Nodes Root User Password",
               "description": "Root password for Oracle instances",
               "type": "password",
-              "default": "",
+              "default_value": "",
               "required": true,
               "value_constraints": [
                 {
@@ -834,6 +838,7 @@
             {
               "key": "cluster_name",
               "display_name" : "RAC Cluster Name",
+              "default_value" : "orac-cluster",
               "description": "Specify the cluster name (example: orac-cluster)",
               "type": "string",
               "required": true
@@ -842,7 +847,7 @@
               "key": "ru_version",
               "displayname": "Oracle Patch Version (RU)",
               "description": "Oracle Grid and Database RU patch version",
-              "default": "19.29",
+              "default_value": "19.29",
               "type": "string",
               "required": true,
               "options": [
@@ -930,7 +935,7 @@
                 "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
                 "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
                 "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip",
-                "cos_oracle_cluvfy_file_path": ""
+                "cos_oracle_cluvfy_file_path": "cvupack_aix_7_ppc64.zip"
               }
             },
             {
@@ -993,7 +998,7 @@
               "default_value": {
                 "size": "2",
                 "count": "4",
-                "tier": "tier5K"
+                "tier": "tier5k"
               }
             },
             {
