@@ -174,6 +174,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- Place your private key here .... -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -631,6 +632,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- Place your private key here .... -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -650,16 +652,6 @@
               ]
             },
             {
-              "key": "pi_rhel_networks",
-              "display_name" : "RHEL Management Networks",
-              "required": true,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "json_editor"
-              }
-            },
-            {
               "key": "pi_networks",
               "display_name" : "PowerVS Networks",
               "required": true,
@@ -670,8 +662,20 @@
               },
               "default_value": [
                 {
-                  "name": "ora-subnet",
-                  "id": "asdg876a-f62i-12ha-abcd-89h08a7sd90d"
+                  "id": "c38d18ad-b39f-4ba0-94f0-ada107ab64df",
+                  "name": "ora_mgmt_net"
+                },
+                {
+                  "id": "47e38742-5850-411a-95ba-80fea41c12ec",
+                  "name": "ora-rac-pub"
+                },
+                {
+                  "id": "65167db2-715a-4cb9-b600-806c77d33cc4",
+                  "name": "ora-rac-priv1"
+                },
+                {
+                  "id": "856db87c-cb23-416d-898b-834bb2b8e0bc",
+                  "name": "ora-rac-priv2"
                 }
               ]
             },
@@ -728,7 +732,7 @@
               "displayname": "Number of RAC Nodes",
               "description": "Number of Oracle RAC instance nodes",
               "type": "int",
-              "default": 2,
+              "default_value": 2,
               "required": false,
               "options": [
                 {
@@ -742,7 +746,7 @@
               "displayname": "Oracle Server Time Zone",
               "description": "Time zone for Oracle instances",
               "type": "string",
-              "default": "America/Los_Angeles",
+              "default_value": "America/Los_Angeles",
               "required": false,
               "options": [
                 {
@@ -766,6 +770,14 @@
                   "value": "Asia/Kolkata"
                 }
               ]
+            },
+            {
+              "key": "dns_server_ip",
+              "display_name" : "DNS/NTP Server IP Address",
+              "description": "DNS IP to resolve Oracle VIPs and SCAN name",
+              "type": "string",
+              "default_value": "x.x.x.x",
+              "required": true
             },
             {
               "key": "cluster_domain",
@@ -807,7 +819,7 @@
               "display_name" : "RAC Nodes Root User Password",
               "description": "Root password for Oracle instances",
               "type": "password",
-              "default": "",
+              "default_value": "",
               "required": true,
               "value_constraints": [
                 {
@@ -826,6 +838,7 @@
             {
               "key": "cluster_name",
               "display_name" : "RAC Cluster Name",
+              "default_value" : "orac-cluster",
               "description": "Specify the cluster name (example: orac-cluster)",
               "type": "string",
               "required": true
@@ -834,7 +847,7 @@
               "key": "ru_version",
               "displayname": "Oracle Patch Version (RU)",
               "description": "Oracle Grid and Database RU patch version",
-              "default": "19.29",
+              "default_value": "19.29",
               "type": "string",
               "required": true,
               "options": [
@@ -922,7 +935,7 @@
                 "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
                 "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
                 "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip",
-                "cos_oracle_cluvfy_file_path": ""
+                "cos_oracle_cluvfy_file_path": "cvupack_aix_7_ppc64.zip"
               }
             },
             {
