@@ -226,6 +226,7 @@ locals {
   
   # Get dns server ip
   dns_server_ip = module.pi_instance_dns.pi_instance_primary_ip
+  dns_hostname  = module.pi_instance_dns.pi_instance_name 
 
   hosts_and_vars = {
     for idx in range(var.rac_nodes) :
@@ -530,7 +531,7 @@ locals {
   dns_playbook_vars = {
     dns_server_ip   = tostring(local.dns_server_ip)
     dns_domain_name = tostring(var.cluster_domain)
-    dns_hostname    = tostring(var.dns_hostname)
+    dns_hostname    = tostring(local.dns_hostname)
     scan_name       = tostring(var.scan_name)
     scan_ips        = jsonencode(local.scan_ips_list)
     rac_nodes_count = tostring(var.rac_nodes)

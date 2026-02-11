@@ -272,21 +272,6 @@ variable "time_zone" {
   default = "America/Los_Angeles"
 }
 
-# ===========================
-# DNS Configuration
-# ===========================
-
-variable "dns_server_ip" {
-  description = "DNS IP ro resolve Oracle VIPs and SCAN name."
-  type        = string
-  default     = "192.10.10.0"
-}
-
-variable "dns_hostname" {
-  description = "Hostname for the DNS server"
-  type        = string
-  default     = "ora-dns"
-}
 
 variable "scan_name" {
   description = "SCAN (Single Client Access Name) hostname"

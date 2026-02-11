@@ -772,14 +772,6 @@
               ]
             },
             {
-              "key": "dns_server_ip",
-              "display_name" : "DNS/NTP Server IP Address",
-              "description": "DNS IP to resolve Oracle VIPs and SCAN name",
-              "type": "string",
-              "default_value": "x.x.x.x",
-              "required": true
-            },
-            {
               "key": "cluster_domain",
               "display_name" : "Cluster Domain Name",
               "description": "Specify the cluster domain (example: example.com)",
