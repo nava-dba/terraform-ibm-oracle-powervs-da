@@ -200,7 +200,7 @@ resource "ibm_pi_instance" "rac_nodes" {
 # delay after creation of VMS
 resource "time_sleep" "wait_after_rac_vm_creation" {
   depends_on      = [ibm_pi_instance.rac_nodes]
-  create_duration = "180s"
+  create_duration = "60s"
 }
 
 

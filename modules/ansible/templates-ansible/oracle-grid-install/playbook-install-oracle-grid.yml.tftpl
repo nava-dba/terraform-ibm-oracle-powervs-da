@@ -354,7 +354,7 @@
                 vg_name: "{{ item.vg_name }}"
                 pvs: "{{ discovered_disks[item.label] }}"
                 vg_type: scalable
-                pp_size: "{{ item.pp_size }}"
+                pp_size: "{{ item.pp_size if item.vg_name != 'oravg' else omit }}"
                 state: present
                 force: yes
               loop: "{{ jfs2_storage_config }}"

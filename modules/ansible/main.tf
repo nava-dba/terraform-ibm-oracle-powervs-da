@@ -36,9 +36,10 @@ locals {
 
   inventory_vars = {
     host_or_ip     = local.normalized_host_or_ip
-    hosts_and_vars = try(var.inventory_template_vars.hosts_and_vars, [])
+    hosts_and_vars = try(var.inventory_template_vars.hosts_and_vars, {})
   }
 }
+
 
 ##############################################################
 # 1. Execute shell script to install ansible roles/collections
@@ -83,7 +84,7 @@ resource "terraform_data" "setup_ansible_host" {
 ##############################################################
 
 resource "terraform_data" "trigger_ansible_vars" {
-  input = [var.playbook_template_vars, var.inventory_template_vars]
+  input = [var.playbook_template_vars, local.inventory_vars]
 }
 
 resource "terraform_data" "execute_playbooks" {
@@ -121,7 +122,7 @@ resource "terraform_data" "execute_playbooks" {
 
   # Copy and create ansible inventory template file on ansible host
   provisioner "file" {
-    content     = templatefile(local.src_inventory_tftpl_path, var.inventory_template_vars)
+    content     = templatefile(local.src_inventory_tftpl_path, local.inventory_vars)
     destination = local.dst_inventory_file_path
   }
 
@@ -211,7 +212,7 @@ resource "terraform_data" "execute_playbooks_with_vault" {
 
   # Copy and create ansible inventory template file on ansible host
   provisioner "file" {
-    content     = templatefile(local.src_inventory_tftpl_path, var.inventory_template_vars)
+    content     = templatefile(local.src_inventory_tftpl_path, local.inventory_vars)
     destination = local.dst_inventory_file_path
   }
 
