@@ -17,6 +17,7 @@ cluster_nodes: ${CLUSTER_NODES}
 ora_version: ${ORA_VERSION}
 # Sizes from Terraform (user-provided, minus 1GB for VG overhead)
 oravg_size: "${ORAVG_SIZE}"
+ora_sw_vg_disk: "{{ ora_sw_vg_disk }}"
 
 # Multitenant params
 oracle_db_type: "SI"                            # Type of database (RAC,RACONENODE,SI)
@@ -114,7 +115,7 @@ config:
   vgname: &oravg "oravg"
 
   ora_vg: [
-     *oravg,     '256',      "big",     ['hdisk2'], 'clear_pvids',  'zero_disks'
+     *oravg,     '256',      "big",     "{{ ora_sw_vg_disk }}", 'clear_pvids',  'zero_disks'
   ]
 
   fs:
