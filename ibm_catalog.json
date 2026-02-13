@@ -1005,7 +1005,7 @@
               "display_name" : "Resource Tags",
               "required": false,
               "type": "string",
-              "default_value": "[\"Tag-001\", \"Tag-002\"]"
+              "default_value": "[\"tag-001\", \"tag-002\"]"
             }
           ],
           "iam_permissions": [
