@@ -36,10 +36,9 @@ locals {
 
   inventory_vars = {
     host_or_ip     = local.normalized_host_or_ip
-    hosts_and_vars = try(var.inventory_template_vars.hosts_and_vars, {})
+    hosts_and_vars = var.inventory_template_vars.hosts_and_vars != null ? var.inventory_template_vars.hosts_and_vars : {}
   }
 }
-
 
 ##############################################################
 # 1. Execute shell script to install ansible roles/collections
