@@ -42,6 +42,12 @@ export IBMCOS_BUCKET="${cos_bucket_name}"
 export COS_FOLDER_NAME="${cos_dir_name}"
 export DOWNLOAD_DIRECTORY="${download_dir_path}"
 
+# Clean previous IBM Cloud CLI state
+if [ -d "$HOME/.bluemix" ]; then
+    echo "Cleaning existing .bluemix directory"
+    rm -rf "$HOME/.bluemix"
+fi
+
 # Install IBM Cloud CLI
 curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
 ibmcloud config --check-version false

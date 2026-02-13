@@ -1,1 +1,3 @@
-${host_or_ip}
+%{ for host in host_or_ip ~}
+${host}
+%{ endfor ~}
