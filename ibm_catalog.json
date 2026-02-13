@@ -174,7 +174,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
-              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- Place your private key here .... -----END OPENSSH PRIVATE KEY-----",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn NhAAAAAwEAAQAAAYEAzktNHnjjOVsLfBaTmN35MpEZgsTq5chJAKRVlmBqNBvmDZbKpMYE 84TyiSLwqEdYY7qF3H0EqmSCMpenrrScDqWpXPFJceDutuMER5UUfJ/vjdxtQ9aAOaMhAK 2NLyy9tH7RAFQRyz0hGIOUR9igUfUcabcdefJckv2kACOFueNM7XlpeVeNPwspXpSbNIjp L7zMF+aezsiweOm02I7TsYSfr8c8hF4tfiPnpP0vMooHhcQ9B7WD3xh27lV8TyZsC/iqx8 uPwDW/QMUedfu9K1z7OfUHzZgMaDKcB8+Nbj8TcvCSgIA1kOyK6TlMqAJP6nQ6mBYff9+V bEmunj90qASY8wuWm/v7R+EFlKV75fwWOgj5IMwcylB2sD6VyeMcku07jpDt5/bodoAi4S jsyyy+jomf5W6hq3XVm3wouFeXS8l/vL0npda6PXVlFatZ4TgYVhhsVJnwDsNoTj19fvkZ DSqHHvL5tOdWGLAAAACnJvb3Rabcdef= -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -632,7 +632,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
-              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- Place your private key here .... -----END OPENSSH PRIVATE KEY-----",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn NhAAAAAwEAAQAAAYEAzktNHnjjOVsLfBaTmN35MpEZgsTq5chJAKRVlmBqNBvmDZbKpMYE 84TyiSLwqEdYY7qF3H0EqmSCMpenrrScDqWpXPFJceDutuMER5UUfJ/vjdxtQ9aAOaMhAK 2NLyy9tH7RAFQRyz0hGIOUR9igUfUcabcdefJckv2kACOFueNM7XlpeVeNPwspXpSbNIjp L7zMF+aezsiweOm02I7TsYSfr8c8hF4tfiPnpP0vMooHhcQ9B7WD3xh27lV8TyZsC/iqx8 uPwDW/QMUedfu9K1z7OfUHzZgMaDKcB8+Nbj8TcvCSgIA1kOyK6TlMqAJP6nQ6mBYff9+V bEmunj90qASY8wuWm/v7R+EFlKV75fwWOgj5IMwcylB2sD6VyeMcku07jpDt5/bodoAi4S jsyyy+jomf5W6hq3XVm3wouFeXS8l/vL0npda6PXVlFatZ4TgYVhhsVJnwDsNoTj19fvkZ DSqHHvL5tOdWGLAAAACnJvb3Rabcdef= -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -770,14 +770,6 @@
                   "value": "Asia/Kolkata"
                 }
               ]
-            },
-            {
-              "key": "dns_server_ip",
-              "display_name" : "DNS/NTP Server IP Address",
-              "description": "DNS IP to resolve Oracle VIPs and SCAN name",
-              "type": "string",
-              "default_value": "192.10.10.0",
-              "required": true
             },
             {
               "key": "cluster_domain",
@@ -1016,15 +1008,7 @@
               "default_value": "[\"Tag-001\", \"Tag-002\"]"
             }
           ],
-          "scripts": [
-            {
-              "type": "ansible",
-              "short_description": "Running the functional validation for the specific inputs provided in the DA definition",
-              "path": "../../../scripts/pre-validate.yaml",
-              "stage": "pre",
-              "action": "validate"
-            }
-          ],
+          "scripts": [],
           "iam_permissions": [
             {
               "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
