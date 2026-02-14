@@ -733,13 +733,7 @@
               "description": "Number of Oracle RAC instance nodes",
               "type": "int",
               "default_value": 2,
-              "required": false,
-              "options": [
-                {
-                  "displayname": "2 Nodes",
-                  "value": 2
-                }
-              ]
+              "required": true
             },
             {
               "key": "time_zone",
