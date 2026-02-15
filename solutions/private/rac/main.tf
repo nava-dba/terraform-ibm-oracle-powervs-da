@@ -372,50 +372,55 @@ resource "ibm_pi_volume_attach" "node_oravg_attach" {
   }
 }
 
-# To avoid with multiattach enabled","error":"Conflict"
-# --- Attach shared volumes to first node  ---
-resource "ibm_pi_volume_attach" "shared_attach_node0" {
-  count = local.shared_count
+# delay after oravg attach before attaching shared volumes
+resource "time_sleep" "wait_after_oravg_attach" {
+  depends_on      = [ibm_pi_volume_attach.node_oravg_attach]
+  create_duration = "10s"
+}
+
+# Local to create node-volume combinations
+locals {
+  shared_matrix = flatten([
+    for vol_index in range(local.shared_count) : [
+      for node_index in range(var.rac_nodes) : {
+        key        = "${vol_index}-${node_index}"
+        vol_index  = vol_index
+        node_index = node_index
+      }
+    ]
+  ])
+}
+
+
+# --- Attach shared volumes to each node serially ---
+resource "ibm_pi_volume_attach" "shared_attach" {
+
+  for_each = {
+    for item in local.shared_matrix :
+    item.key => item
+  }
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
-  pi_instance_id       = local.aix_instance_ids[0]
-  pi_volume_id         = ibm_pi_volume.shared[count.index].volume_id
+  pi_instance_id       = local.aix_instance_ids[each.value.node_index]
+  pi_volume_id         = ibm_pi_volume.shared[each.value.vol_index].volume_id
 
-  depends_on = [
-    ibm_pi_volume.shared,
-    ibm_pi_volume_attach.node_oravg_attach
-  ]
+  depends_on = concat(
+    [time_sleep.wait_after_oravg_attach],
+
+    # Only serialize within same volume
+    each.value.node_index > 0 ?
+    [
+      ibm_pi_volume_attach.shared_attach[
+        "${each.value.vol_index}-${each.value.node_index - 1}"
+      ]
+    ] : []
+  )
 
   lifecycle {
     ignore_changes = [pi_instance_id]
   }
 }
 
-
-# --- Attach shared volumes to rest nodes  ---
-resource "ibm_pi_volume_attach" "shared_attach_other_nodes" {
-  count = (var.rac_nodes - 1) * local.shared_count
-
-  pi_cloud_instance_id = var.pi_existing_workspace_guid
-
-  # node index: 1..N-1
-  pi_instance_id = local.aix_instance_ids[
-    1 + floor(count.index / local.shared_count)
-  ]
-
-  # volume index: 0..shared_count-1
-  pi_volume_id = ibm_pi_volume.shared[
-    count.index % local.shared_count
-  ].volume_id
-
-  depends_on = [
-    ibm_pi_volume_attach.shared_attach_node0
-  ]
-
-  lifecycle {
-    ignore_changes = [pi_instance_id]
-  }
-}
 
 
 ###########################################################
