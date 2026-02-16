@@ -590,6 +590,155 @@
             state: touch
             mode: '0644'
           when: not lock_flag.stat.exists
+    ##############################################################
+    # Create .profile for Oracle and Grid users (AIX specific)
+    ##############################################################
+    - name: Ensure home directories exist
+      ansible.builtin.file:
+        path: "/home/{{ item }}"
+        state: directory
+        owner: "{{ item }}"
+        group: "{{ ora_oinstall_group }}"
+        mode: '0755'
+      loop:
+        - "{{ ora_user }}"
+        - "{{ ora_grid_user }}"
+      loop_control:
+        label: "{{ item }}"
+      when: item == ora_user or (item == ora_grid_user and oracle_install_type == "ASM")
+
+    - name: Create .profile for oracle user
+      ansible.builtin.blockinfile:
+        path: "/home/{{ ora_user }}/.profile"
+        create: yes
+        owner: "{{ ora_user }}"
+        group: "{{ ora_oinstall_group }}"
+        mode: '0644'
+        marker: "# {mark} ANSIBLE MANAGED ORACLE ENVIRONMENT"
+        block: |
+          # Oracle Environment Settings for AIX
+          umask 022
+          
+          export ORACLE_BASE={{ ora_base }}
+          export ORACLE_HOME={{ ora_sw_fs }}/19c/database/home
+          export ORACLE_SID={{ ora_sid }}
+          export ORACLE_TERM=xterm
+          export TERM=xterm
+          
+          # NLS Settings
+          export NLS_LANG={{ ora_character_set }}
+          export NLS_DATE_FORMAT="DD-MON-YYYY HH24:MI:SS"
+          
+          # AIX specific - LIBPATH (not LD_LIBRARY_PATH)
+          export LIBPATH=$ORACLE_HOME/lib:$ORACLE_HOME/lib32:/usr/lib:/lib
+          
+          # Path settings for AIX
+          export PATH=$ORACLE_HOME/bin:/usr/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:$PATH
+          
+          # TNS Admin
+          export TNS_ADMIN=$ORACLE_HOME/network/admin
+          
+          # Editor
+          export EDITOR=vi
+          
+          # Timezone (adjust as needed)
+          export TZ={{ ansible_date_time.tz | default('UTC') }}
+          
+          # Prompt
+          export PS1='[$LOGNAME@$(hostname):$ORACLE_SID]$ '
+          
+          # Aliases for common tasks
+          alias ll='ls -la'
+          alias df='df -g'
+          alias sqlplus='sqlplus'
+          alias rman='rman'
+          alias lsnr='lsnrctl'
+          alias cdob='cd $ORACLE_BASE'
+          alias cdoh='cd $ORACLE_HOME'
+          alias cdtns='cd $TNS_ADMIN'
+          alias alert='tail -100f $ORACLE_BASE/diag/rdbms/$(echo $ORACLE_SID | tr "[A-Z]" "[a-z]")/$ORACLE_SID/trace/alert_$ORACLE_SID.log'
+          alias listener='tail -100f $ORACLE_BASE/diag/tnslsnr/$(hostname)/listener/trace/listener.log'
+          
+          # Display environment on login
+          echo "Oracle Environment:"
+          echo "  ORACLE_SID  : $ORACLE_SID"
+          echo "  ORACLE_HOME : $ORACLE_HOME"
+          echo "  ORACLE_BASE : $ORACLE_BASE"
+
+    - name: Create .profile for grid user
+      ansible.builtin.blockinfile:
+        path: "/home/{{ ora_grid_user }}/.profile"
+        create: yes
+        owner: "{{ ora_grid_user }}"
+        group: "{{ ora_oinstall_group }}"
+        mode: '0644'
+        marker: "# {mark} ANSIBLE MANAGED GRID ENVIRONMENT"
+        block: |
+          # Grid Infrastructure Environment Settings for AIX
+          umask 022
+          
+          export ORACLE_BASE={{ ora_base }}
+          export ORACLE_HOME={{ grid_ora_home }}
+          export ORACLE_SID=+ASM
+          export ORACLE_TERM=xterm
+          export TERM=xterm
+          
+          # AIX specific - LIBPATH (not LD_LIBRARY_PATH)
+          export LIBPATH=$ORACLE_HOME/lib:$ORACLE_HOME/lib32:/usr/lib:/lib
+          
+          # Path settings for AIX
+          export PATH=$ORACLE_HOME/bin:/usr/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:$PATH
+          
+          # TNS Admin
+          export TNS_ADMIN=$ORACLE_HOME/network/admin
+          
+          # Editor
+          export EDITOR=vi
+          
+          # Timezone (adjust as needed)
+          export TZ={{ ansible_date_time.tz | default('UTC') }}
+          
+          # Prompt
+          export PS1='[$LOGNAME@$(hostname):$ORACLE_SID]$ '
+          
+          # Aliases for Grid operations
+          alias ll='ls -la'
+          alias df='df -g'
+          alias sqlplus='sqlplus'
+          alias asmcmd='asmcmd'
+          alias srvctl='srvctl'
+          alias crsctl='crsctl'
+          alias asmca='asmca'
+          alias cdob='cd $ORACLE_BASE'
+          alias cdoh='cd $ORACLE_HOME'
+          alias grid_alert='tail -100f $ORACLE_BASE/diag/asm/+asm/+ASM/trace/alert_+ASM.log'
+          alias crs_stat='crsctl stat res -t'
+          
+          # Display environment on login
+          echo "Grid Infrastructure Environment:"
+          echo "  ORACLE_SID  : $ORACLE_SID"
+          echo "  ORACLE_HOME : $ORACLE_HOME"
+          echo "  ORACLE_BASE : $ORACLE_BASE"
+      when: oracle_install_type == "ASM"
+
+    - name: Verify .profile files were created
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: profile_check
+      loop:
+        - "/home/{{ ora_user }}/.profile"
+        - "/home/{{ ora_grid_user }}/.profile"
+      loop_control:
+        label: "{{ item }}"
+      when: item == "/home/{{ ora_user }}/.profile" or (oracle_install_type == "ASM" and item == "/home/{{ ora_grid_user }}/.profile")
+
+    - name: Display profile creation status
+      ansible.builtin.debug:
+        msg: "Profile created successfully for {{ item.item | basename | replace('.profile', '') | replace('/home/', '') }}"
+      loop: "{{ profile_check.results }}"
+      when: 
+        - item.stat is defined
+        - item.stat.exists
 
     ##############################################################
     # Remove proxy settings

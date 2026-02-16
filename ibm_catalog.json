@@ -254,6 +254,10 @@
               "required": false,
               "options": [
                 {
+                  "displayname": "7100-05-09",
+                  "value": "7100-05-09"
+                },
+                {
                   "displayname": "7200-05-09",
                   "value": "7200-05-09"
                 },
@@ -266,12 +270,12 @@
                   "value": "7300-03-01"
                 },
                 {
-                  "displayname": "7100-05-09",
-                  "value": "7100-05-09"
-                },
-                {
                   "displayname": "7300-02-02",
                   "value": "7300-02-02"
+                },
+                {
+                  "displayname": "7300-04-00",
+                  "value": "7300-04-00"
                 }
               ]
             },
@@ -733,7 +737,13 @@
               "description": "Number of Oracle RAC instance nodes",
               "type": "int",
               "default_value": 2,
-              "required": true
+              "required": false,
+              "options": [
+                {
+                  "displayname": "2 Nodes",
+                  "value": 2
+                }
+              ]
             },
             {
               "key": "time_zone",

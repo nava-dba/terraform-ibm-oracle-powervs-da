@@ -245,6 +245,462 @@
           ansible.builtin.debug:
             var: sshd_status_revert.stdout_lines
     
+    ##############################################################
+    # Create .profile for Oracle and Grid users (RAC Multi-Node)
+    ##############################################################
+    - name: Ensure home directories exist for oracle and grid users
+      ansible.builtin.file:
+        path: "/home/{{ item }}"
+        state: directory
+        owner: "{{ item }}"
+        group: "{{ oracle_group }}"
+        mode: '0755'
+      loop:
+        - "{{ oracle_user }}"
+        - "{{ global.grid_owner }}"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Detect RAC node number from hostname
+      ansible.builtin.set_fact:
+        rac_node_number: "{{ ansible_hostname | regex_search('[0-9]+$') }}"
+
+    - name: Set Grid Home path
+      ansible.builtin.set_fact:
+        grid_home_path: "{{ config.fs.ofa_fs }}/{{ config.acfs[1] }}/{{ global.grid_owner }}"
+
+    - name: Set node-specific ORACLE_SID and ASM SID
+      ansible.builtin.set_fact:
+        node_oracle_sid: "{{ oracle_databases[0].oracle_db_name }}{{ rac_node_number }}"
+        node_asm_sid: "+ASM{{ rac_node_number }}"
+
+    - name: Display node information
+      ansible.builtin.debug:
+        msg: |
+          Node: {{ ansible_hostname }}
+          Node Number: {{ rac_node_number }}
+          ORACLE_SID: {{ node_oracle_sid }}
+          ASM SID: {{ node_asm_sid }}
+          Cluster: {{ cluster_name }}
+          SCAN Name: {{ install.grid_rsp.install.crs.config.gpnp.scanName }}
+
+    - name: Create .profile for oracle user on RAC node
+      ansible.builtin.blockinfile:
+        path: "/home/{{ oracle_user }}/.profile"
+        create: yes
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_group }}"
+        mode: '0644'
+        marker: "# {mark} ANSIBLE MANAGED ORACLE RAC ENVIRONMENT"
+        block: |
+          # Oracle RAC Environment Settings for AIX - Node {{ rac_node_number }}
+          umask 022
+          
+          # Oracle Base Settings
+          export ORACLE_BASE={{ oracle_base }}
+          export ORACLE_HOME={{ oracle_databases[0].oracle_home }}
+          export ORACLE_SID={{ node_oracle_sid }}
+          export ORACLE_UNQNAME={{ oracle_databases[0].oracle_db_name }}
+          export ORACLE_TERM=xterm
+          export TERM=xterm
+          
+          # RAC Specific
+          export ORACLE_HOSTNAME={{ ansible_hostname }}
+          export THREADS_FLAG=native
+          
+          # NLS Settings
+          export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+          export NLS_DATE_FORMAT="DD-MON-YYYY HH24:MI:SS"
+          
+          # AIX specific - LIBPATH (not LD_LIBRARY_PATH)
+          export LIBPATH=$ORACLE_HOME/lib:$ORACLE_HOME/lib32:/usr/lib:/lib
+          
+          # Path settings for AIX
+          export PATH=$ORACLE_HOME/bin:/usr/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:$PATH
+          
+          # TNS Admin
+          export TNS_ADMIN=$ORACLE_HOME/network/admin
+          
+          # Editor
+          export EDITOR=vi
+          
+          # Timezone
+          export TZ={{ time_zone }}
+          
+          # Prompt with RAC node info
+          export PS1='[$LOGNAME@{{ ansible_hostname }}:$ORACLE_SID]$ '
+          
+          # Aliases for common tasks
+          alias ll='ls -la'
+          alias df='df -g'
+          alias sqlplus='sqlplus'
+          alias rman='rman'
+          alias lsnr='lsnrctl'
+          alias cdob='cd $ORACLE_BASE'
+          alias cdoh='cd $ORACLE_HOME'
+          alias cdtns='cd $TNS_ADMIN'
+          
+          # RAC specific aliases
+          alias srvctl='srvctl'
+          alias crsctl='crsctl'
+          alias cluvfy='cluvfy'
+          alias asmcmd='asmcmd'
+          
+          # Alert log aliases
+          alias alert='tail -100f $ORACLE_BASE/diag/rdbms/$(echo $ORACLE_UNQNAME | tr "[A-Z]" "[a-z]")/$ORACLE_SID/trace/alert_$ORACLE_SID.log'
+          alias listener='tail -100f $ORACLE_BASE/diag/tnslsnr/{{ ansible_hostname }}/listener/trace/listener.log'
+          
+          # RAC status aliases
+          alias racstat='srvctl status database -d $ORACLE_UNQNAME'
+          alias racconfig='srvctl config database -d $ORACLE_UNQNAME'
+          alias crsstat='crsctl stat res -t'
+          alias asmstat='srvctl status asm'
+          alias scanstat='srvctl status scan'
+          alias vipstat='srvctl status vip -node {{ ansible_hostname }}'
+          alias nodestat='srvctl status nodeapps'
+          
+          # Cluster verification
+          alias clustercheck='cluvfy comp healthcheck -collect cluster -bestpractice'
+          alias clusterstat='crsctl check cluster -all'
+          
+          # Display environment on login
+          echo "================================================"
+          echo "Oracle RAC Environment - Node {{ rac_node_number }}"
+          echo "================================================"
+          echo "  Cluster     : {{ cluster_name }}"
+          echo "  Hostname    : {{ ansible_hostname }}"
+          echo "  ORACLE_SID  : $ORACLE_SID"
+          echo "  DB Name     : $ORACLE_UNQNAME"
+          echo "  ORACLE_HOME : $ORACLE_HOME"
+          echo "  ORACLE_BASE : $ORACLE_BASE"
+          echo "  SCAN Name   : {{ install.grid_rsp.install.crs.config.gpnp.scanName }}"
+          echo "================================================"
+
+    - name: Create .profile for grid user on RAC node
+      ansible.builtin.blockinfile:
+        path: "/home/{{ global.grid_owner }}/.profile"
+        create: yes
+        owner: "{{ global.grid_owner }}"
+        group: "{{ oracle_group }}"
+        mode: '0644'
+        marker: "# {mark} ANSIBLE MANAGED GRID RAC ENVIRONMENT"
+        block: |
+          # Grid Infrastructure RAC Environment Settings for AIX - Node {{ rac_node_number }}
+          umask 022
+          
+          # Grid Base Settings
+          export ORACLE_BASE={{ config.fs.ofa_fs }}/{{ global.grid_owner }}
+          export ORACLE_HOME={{ grid_home_path }}
+          export ORACLE_SID={{ node_asm_sid }}
+          export ORACLE_TERM=xterm
+          export TERM=xterm
+          
+          # RAC Specific
+          export ORACLE_HOSTNAME={{ ansible_hostname }}
+          
+          # CRS/Grid Settings
+          export CRS_HOME=$ORACLE_HOME
+          export GRID_HOME=$ORACLE_HOME
+          
+          # AIX specific - LIBPATH (not LD_LIBRARY_PATH)
+          export LIBPATH=$ORACLE_HOME/lib:$ORACLE_HOME/lib32:/usr/lib:/lib
+          
+          # Path settings for AIX
+          export PATH=$ORACLE_HOME/bin:/usr/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:$PATH
+          
+          # TNS Admin
+          export TNS_ADMIN=$ORACLE_HOME/network/admin
+          
+          # Editor
+          export EDITOR=vi
+          
+          # Timezone
+          export TZ={{ time_zone }}
+          
+          # Prompt with RAC node info
+          export PS1='[$LOGNAME@{{ ansible_hostname }}:$ORACLE_SID]$ '
+          
+          # Aliases for common tasks
+          alias ll='ls -la'
+          alias df='df -g'
+          alias sqlplus='sqlplus'
+          alias asmcmd='asmcmd'
+          alias cdob='cd $ORACLE_BASE'
+          alias cdoh='cd $ORACLE_HOME'
+          
+          # Grid/CRS Management aliases
+          alias srvctl='srvctl'
+          alias crsctl='crsctl'
+          alias asmca='asmca'
+          alias ocrcheck='ocrcheck'
+          alias ocrconfig='ocrconfig'
+          alias crsstat='crsctl stat res -t'
+          alias cluvfy='cluvfy'
+          
+          # ASM aliases
+          alias asmstat='srvctl status asm'
+          alias asmdisks='kfed read /dev/r* | grep -i name'
+          alias asmdg='asmcmd lsdg'
+          alias asmdu='asmcmd du'
+          alias asmlsdsk='asmcmd lsdsk'
+          
+          # RAC specific aliases
+          alias scanstat='srvctl status scan'
+          alias scanlsnr='srvctl status scan_listener'
+          alias vipstat='srvctl status vip -node {{ ansible_hostname }}'
+          alias nodeapps='srvctl status nodeapps'
+          alias diskgroups='srvctl status diskgroup -a'
+          
+          # Alert and log aliases
+          alias grid_alert='tail -100f $ORACLE_BASE/diag/asm/+asm/{{ node_asm_sid }}/trace/alert_{{ node_asm_sid }}.log'
+          alias crs_alert='tail -100f $ORACLE_BASE/diag/crs/{{ ansible_hostname }}/crs/trace/alert.log'
+          alias crsd_log='tail -100f $ORACLE_BASE/diag/crs/{{ ansible_hostname }}/crs/trace/crsd.log'
+          alias ohasd_log='tail -100f $ORACLE_BASE/diag/crs/{{ ansible_hostname }}/ohasd/trace/ohasd.log'
+          
+          # Cluster health check
+          alias clustercheck='crsctl check cluster -all'
+          alias clusterstatus='crsctl stat res -t'
+          alias crsactive='ps -ef | grep -i crs | grep -v grep'
+          alias hasactive='ps -ef | grep -i ohasd | grep -v grep'
+          
+          # Voting disk and OCR
+          alias votingdisk='crsctl query css votedisk'
+          alias ocrloc='ocrcheck'
+          alias ocrbackup='ocrconfig -showbackup'
+          
+          # Display environment on login
+          echo "================================================"
+          echo "Grid Infrastructure RAC - Node {{ rac_node_number }}"
+          echo "================================================"
+          echo "  Cluster     : {{ cluster_name }}"
+          echo "  Hostname    : {{ ansible_hostname }}"
+          echo "  ORACLE_SID  : $ORACLE_SID"
+          echo "  ORACLE_HOME : $ORACLE_HOME"
+          echo "  ORACLE_BASE : $ORACLE_BASE"
+          echo "  CRS_HOME    : $CRS_HOME"
+          echo "  SCAN Name   : {{ install.grid_rsp.install.crs.config.gpnp.scanName }}"
+          echo "================================================"
+
+    - name: Create cluster-wide status script for oracle user
+      ansible.builtin.copy:
+        dest: "/home/{{ oracle_user }}/cluster_status.sh"
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_group }}"
+        mode: '0755'
+        content: |
+          #!/bin/ksh
+          # Cluster-wide status check script
+          echo "=============================================="
+          echo "RAC Cluster Status - $(date)"
+          echo "Cluster: {{ cluster_name }}"
+          echo "=============================================="
+          echo ""
+          echo "--- Cluster Resources ---"
+          {{ grid_home_path }}/bin/crsctl stat res -t
+          echo ""
+          echo "--- Database Status ---"
+          {{ oracle_databases[0].oracle_home }}/bin/srvctl status database -d {{ oracle_databases[0].oracle_db_name }}
+          echo ""
+          echo "--- Database Config ---"
+          {{ oracle_databases[0].oracle_home }}/bin/srvctl config database -d {{ oracle_databases[0].oracle_db_name }}
+          echo ""
+          echo "--- ASM Status ---"
+          {{ grid_home_path }}/bin/srvctl status asm
+          echo ""
+          echo "--- SCAN Status ---"
+          {{ grid_home_path }}/bin/srvctl status scan
+          echo ""
+          echo "--- SCAN Listener Status ---"
+          {{ grid_home_path }}/bin/srvctl status scan_listener
+          echo ""
+          echo "--- Node Applications ---"
+          {{ grid_home_path }}/bin/srvctl status nodeapps
+          echo ""
+          echo "--- Diskgroup Status ---"
+          {{ grid_home_path }}/bin/srvctl status diskgroup -a
+          echo ""
+
+    - name: Create cluster-wide status script for grid user
+      ansible.builtin.copy:
+        dest: "/home/{{ global.grid_owner }}/grid_status.sh"
+        owner: "{{ global.grid_owner }}"
+        group: "{{ oracle_group }}"
+        mode: '0755'
+        content: |
+          #!/bin/ksh
+          # Grid Infrastructure status check script
+          echo "=============================================="
+          echo "Grid Infrastructure Status - $(date)"
+          echo "Cluster: {{ cluster_name }}"
+          echo "=============================================="
+          echo ""
+          echo "--- Cluster Check (All Nodes) ---"
+          {{ grid_home_path }}/bin/crsctl check cluster -all
+          echo ""
+          echo "--- All Resources ---"
+          {{ grid_home_path }}/bin/crsctl stat res -t
+          echo ""
+          echo "--- ASM Diskgroups ---"
+          {{ grid_home_path }}/bin/asmcmd lsdg
+          echo ""
+          echo "--- ASM Disk Usage ---"
+          {{ grid_home_path }}/bin/asmcmd du
+          echo ""
+          echo "--- ASM Disks ---"
+          {{ grid_home_path }}/bin/asmcmd lsdsk
+          echo ""
+          echo "--- Voting Disks ---"
+          {{ grid_home_path }}/bin/crsctl query css votedisk
+          echo ""
+          echo "--- OCR Status ---"
+          {{ grid_home_path }}/bin/ocrcheck
+          echo ""
+          echo "--- OCR Backup ---"
+          {{ grid_home_path }}/bin/ocrconfig -showbackup
+          echo ""
+          echo "--- Cluster Interconnect ---"
+          {{ grid_home_path }}/bin/oifcfg getif
+          echo ""
+          echo "--- GIMR Status ---"
+          {{ grid_home_path }}/bin/srvctl status mgmtdb
+          echo ""
+
+    - name: Create RAC database check script for oracle user
+      ansible.builtin.copy:
+        dest: "/home/{{ oracle_user }}/db_status.sh"
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_group }}"
+        mode: '0755'
+        content: |
+          #!/bin/ksh
+          # RAC Database status check script
+          export ORACLE_HOME={{ oracle_databases[0].oracle_home }}
+          export ORACLE_SID={{ oracle_databases[0].oracle_db_name }}{{ rac_node_number }}
+          export ORACLE_UNQNAME={{ oracle_databases[0].oracle_db_name }}
+          export PATH=$ORACLE_HOME/bin:$PATH
+          
+          echo "=============================================="
+          echo "RAC Database Check - $(date)"
+          echo "Database: {{ oracle_databases[0].oracle_db_name }}"
+          echo "=============================================="
+          echo ""
+          echo "--- Database Status ---"
+          srvctl status database -d {{ oracle_databases[0].oracle_db_name }}
+          echo ""
+          echo "--- Instance Status (SQL) ---"
+          sqlplus -s / as sysdba <<EOF
+          set linesize 200 pagesize 100
+          col instance_name format a15
+          col host_name format a20
+          col status format a12
+          col database_status format a15
+          select instance_name, host_name, status, database_status from gv\$instance order by instance_number;
+          EOF
+          echo ""
+          echo "--- Database Services ---"
+          sqlplus -s / as sysdba <<EOF
+          set linesize 200 pagesize 100
+          col name format a30
+          col network_name format a30
+          select name, network_name from v\$services order by name;
+          EOF
+          echo ""
+          echo "--- Tablespace Usage ---"
+          sqlplus -s / as sysdba <<EOF
+          set linesize 200 pagesize 100
+          col tablespace_name format a30
+          select tablespace_name, 
+                 round(sum(bytes)/1024/1024/1024,2) as size_gb,
+                 round(sum(case when maxbytes = 0 then bytes else maxbytes end)/1024/1024/1024,2) as max_size_gb
+          from dba_data_files
+          group by tablespace_name
+          order by tablespace_name;
+          EOF
+          echo ""
+          echo "--- ASM Diskgroup Usage ---"
+          sqlplus -s / as sysdba <<EOF
+          set linesize 200 pagesize 100
+          col name format a20
+          select name, 
+                 round(total_mb/1024,2) as total_gb,
+                 round(free_mb/1024,2) as free_gb,
+                 round((total_mb-free_mb)/1024,2) as used_gb
+          from v\$asm_diskgroup
+          order by name;
+          EOF
+          echo ""
+
+    - name: Create node-specific info script
+      ansible.builtin.copy:
+        dest: "/home/{{ oracle_user }}/node_info.sh"
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_group }}"
+        mode: '0755'
+        content: |
+          #!/bin/ksh
+          # Node information script
+          echo "================================================"
+          echo "RAC Node Information"
+          echo "================================================"
+          echo "Cluster Name     : {{ cluster_name }}"
+          echo "Node Hostname    : {{ ansible_hostname }}"
+          echo "Node Number      : {{ rac_node_number }}"
+          echo ""
+          echo "Database Details:"
+          echo "-----------------"
+          echo "DB Name          : {{ oracle_databases[0].oracle_db_name }}"
+          echo "Oracle SID       : {{ node_oracle_sid }}"
+          echo "Oracle Home      : {{ oracle_databases[0].oracle_home }}"
+          echo "Oracle Base      : {{ oracle_base }}"
+          echo ""
+          echo "Grid Details:"
+          echo "-------------"
+          echo "ASM SID          : {{ node_asm_sid }}"
+          echo "Grid Home        : {{ grid_home_path }}"
+          echo "Grid Base        : {{ config.fs.ofa_fs }}/{{ global.grid_owner }}"
+          echo ""
+          echo "Network Details:"
+          echo "----------------"
+          echo "SCAN Name        : {{ install.grid_rsp.install.crs.config.gpnp.scanName }}"
+          echo "Public IP        : {{ ansible_default_ipv4.address }}"
+          echo "VIP Name         : {{ ansible_hostname }}-vip"
+          echo "Domain           : {{ cluster_domain }}"
+          echo ""
+          echo "Useful Commands:"
+          echo "----------------"
+          echo "Check cluster    : crsctl check cluster -all"
+          echo "Check CRS        : crsctl stat res -t"
+          echo "Check DB         : srvctl status database -d {{ oracle_databases[0].oracle_db_name }}"
+          echo "Check ASM        : srvctl status asm"
+          echo "Run scripts      : ~/cluster_status.sh, ~/db_status.sh"
+          echo ""
+          echo "Generated on: {{ ansible_date_time.iso8601 }}"
+          echo "================================================"
+
+    - name: Verify .profile files were created on all nodes
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: profile_check
+      loop:
+        - "/home/{{ oracle_user }}/.profile"
+        - "/home/{{ global.grid_owner }}/.profile"
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Display profile creation status for each node
+      ansible.builtin.debug:
+        msg: |
+          ================================================
+          Profile Creation Status - {{ ansible_hostname }}
+          ================================================
+          Node Number: {{ rac_node_number }}
+          Oracle user ({{ oracle_user }}) profile: {{ 'Created ✓' if profile_check.results[0].stat.exists else 'Failed ✗' }}
+          Grid user ({{ global.grid_owner }}) profile: {{ 'Created ✓' if profile_check.results[1].stat.exists else 'Failed ✗' }}
+          Oracle SID: {{ node_oracle_sid }}
+          ASM SID: {{ node_asm_sid }}
+          Cluster: {{ cluster_name }}
+          SCAN: {{ install.grid_rsp.install.crs.config.gpnp.scanName }}
+          ================================================
     #################################################################
     # Remove proxy settings
     #################################################################

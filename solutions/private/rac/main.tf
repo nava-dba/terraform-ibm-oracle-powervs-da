@@ -179,7 +179,7 @@ resource "ibm_pi_instance" "rac_nodes" {
   pi_storage_pool_affinity = false
   pi_replicants            = var.rac_nodes
   pi_replication_scheme    = "suffix"
-  pi_replication_policy    = "affinity"
+  pi_replication_policy    = var.pi_replication_policy
   pi_user_tags             = var.pi_user_tags
 
   timeouts {
