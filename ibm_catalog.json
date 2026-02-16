@@ -533,7 +533,7 @@
               {
                 "diagram": {
                   "caption": "Full Oracle instance environment provisioned on a Power Virtual Server",
-                  "url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/c1dd13668b87806b256f3d04c6da95c4fdda6054/images/Oracle_Private_DA_SI.svg",
+                  "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/1ec76cabfacc03a5540173d48089df6e8094020f/images/Oracle_DA_SI.svg",
                   "type": "image/svg+xml"
                 },
                 "description": "Full Oracle instance environment provisioned on a Power Virtual Server"
@@ -1068,7 +1068,7 @@
               {
                 "diagram": {
                   "caption": "Full Oracle Real Application Cluster",
-                  "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/34c6bc870aa64824599ee3b353df71889a4dceb2/images/Oracle_Private_Cloud_DA-Private%20Cloud%20DA.drawio.svg",
+                  "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/1ec76cabfacc03a5540173d48089df6e8094020f/images/Oracle_DA_RAC.svg",
                   "type": "image/svg+xml"
                 },
                 "description": "This deployable architecture is designed to assist you in deploying Oracle Real Application Cluster(RAC) into IBM Power Virtual Server. \n\nThis DA creates and prepares Power Virtual Server instances for Oracle RAC database workloads. \n\nThis provisions Red Hat Enterprise Linux as the Ansible controller,NFS and DNS. AIX virtual machines as Oracle instance, retrieves Oracle software from IBM Cloud Object Storage(COS), and performs a guided GRID and RDBMS installation and creates Oracle database based on user-defined parameters."
