@@ -307,11 +307,7 @@
           # RAC Specific
           export ORACLE_HOSTNAME={{ ansible_hostname }}
           export THREADS_FLAG=native
-          
-          # NLS Settings
-          export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
-          export NLS_DATE_FORMAT="DD-MON-YYYY HH24:MI:SS"
-          
+
           # AIX specific - LIBPATH (not LD_LIBRARY_PATH)
           export LIBPATH=$ORACLE_HOME/lib:$ORACLE_HOME/lib32:/usr/lib:/lib
           

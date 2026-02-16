@@ -624,11 +624,7 @@
           export ORACLE_SID={{ ora_sid }}
           export ORACLE_TERM=xterm
           export TERM=xterm
-          
-          # NLS Settings
-          export NLS_LANG={{ ora_character_set }}
-          export NLS_DATE_FORMAT="DD-MON-YYYY HH24:MI:SS"
-          
+
           # AIX specific - LIBPATH (not LD_LIBRARY_PATH)
           export LIBPATH=$ORACLE_HOME/lib:$ORACLE_HOME/lib32:/usr/lib:/lib
           
