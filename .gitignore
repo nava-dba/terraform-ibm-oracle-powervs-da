@@ -13,7 +13,7 @@ module-assets/
 settings.json
 terraform.tfstate*
 .terraform.tfstate*
-solutions/private/si/input.auto.tfvars
+solutions/oracle/si/input.auto.tfvars
 .vscode
-solutions/private/si/*.tfvars
-solutions/private/rac/*.tfvars
+solutions/oracle/si/*.tfvars
+solutions/oracle/rac/*.tfvars
