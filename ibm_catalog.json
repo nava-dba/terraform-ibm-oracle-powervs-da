@@ -62,7 +62,7 @@
           "short_description": "Deploy Oracle Single Instance on IBM PowerVS",
           "install_type": "fullstack",
           "index": 1,
-          "working_directory": "solutions/private/si",
+          "working_directory": "solutions/oracle/si",
           "compliance": {
             "authority": "",
             "profiles": []
@@ -548,7 +548,7 @@
           "short_description": "Deploy Oracle RAC Database on IBM PowerVS",
           "install_type": "fullstack",
           "index": 2,
-          "working_directory": "solutions/private/rac",
+          "working_directory": "solutions/oracle/rac",
           "compliance": {
             "authority": "",
             "profiles": []
