@@ -174,7 +174,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
-              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- Place your private key here .... -----END OPENSSH PRIVATE KEY-----",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- xxxxxxxxxxxxxxx.... -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -632,7 +632,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
-              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- Place your private key here .... -----END OPENSSH PRIVATE KEY-----",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- xxxxxxxxxxxxxxx.... -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -1005,7 +1005,7 @@
               "display_name" : "Resource Tags",
               "required": false,
               "type": "string",
-              "default_value": "[\"Tag-001\", \"Tag-002\"]"
+              "default_value": "[\"tag-001\", \"tag-002\"]"
             }
           ],
           "scripts": [],
