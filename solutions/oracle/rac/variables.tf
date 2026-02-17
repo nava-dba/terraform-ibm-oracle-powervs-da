@@ -233,7 +233,7 @@ variable "bastion_host_ip" {
 }
 
 variable "squid_server_ip" {
-  description = "Squid server IP address to reach the internet from private network.
+  description = "Squid server IP address to reach the internet from private network."
   type        = string
 }
 
