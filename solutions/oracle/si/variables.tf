@@ -20,7 +20,7 @@ variable "region" {
 }
 
 variable "zone" {
-  description = "IBM data center location where IBM PowerVS infrastructure will be created. For more information about SSH keys, see [SSH keys](https://www.ibm.com/docs/en/power-virtual-server?topic=locations-cloud-regions)."
+  description = "IBM data center location where IBM PowerVS infrastructure will be created. For more information about zone, see [zone](https://www.ibm.com/docs/en/power-virtual-server?topic=locations-cloud-regions)."
   type        = string
 }
 

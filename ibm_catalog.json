@@ -733,16 +733,13 @@
             },
             {
               "key": "rac_nodes",
-              "displayname": "Number of RAC Nodes",
+              "display_name": "Number of RAC Nodes",
               "description": "Number of Oracle RAC instance nodes",
-              "type": "int",
-              "default_value": 2,
+              "type": "string",
+              "default_value": "2",
               "required": false,
               "options": [
-                {
-                  "displayname": "2 Nodes",
-                  "value": 2
-                }
+                { "displayname": "2 Nodes", "value": "2" }
               ]
             },
             {
