@@ -62,7 +62,7 @@
           "short_description": "Deploy Oracle Single Instance on IBM PowerVS",
           "install_type": "fullstack",
           "index": 1,
-          "working_directory": "solutions/oracle/si",
+          "working_directory": "solutions/private/si",
           "compliance": {
             "authority": "",
             "profiles": []
@@ -174,7 +174,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
-              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- xxxxxxxxxxxxxxx.... -----END OPENSSH PRIVATE KEY-----",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- Place your private key here .... -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -544,7 +544,7 @@
           "short_description": "Deploy Oracle RAC Database on IBM PowerVS",
           "install_type": "fullstack",
           "index": 2,
-          "working_directory": "solutions/oracle/rac",
+          "working_directory": "solutions/private/rac",
           "compliance": {
             "authority": "",
             "profiles": []
@@ -632,7 +632,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
-              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- xxxxxxxxxxxxxxx.... -----END OPENSSH PRIVATE KEY-----",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- Place your private key here .... -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -733,13 +733,7 @@
               "description": "Number of Oracle RAC instance nodes",
               "type": "int",
               "default_value": 2,
-              "required": false,
-              "options": [
-                {
-                  "displayname": "2 Nodes",
-                  "value": 2
-                }
-              ]
+              "required": true
             },
             {
               "key": "time_zone",
@@ -1008,7 +1002,6 @@
               "default_value": "[\"tag-001\", \"tag-002\"]"
             }
           ],
-          "scripts": [],
           "iam_permissions": [
             {
               "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
