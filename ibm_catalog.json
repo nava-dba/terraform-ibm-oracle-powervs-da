@@ -174,7 +174,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
-              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- Place your private key here .... -----END OPENSSH PRIVATE KEY-----",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- xxxxxxxxxxxxxxx.... -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -636,7 +636,7 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
-              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- Place your private key here .... -----END OPENSSH PRIVATE KEY-----",
+              "default_value": "-----BEGIN OPENSSH PRIVATE KEY----- xxxxxxxxxxxxxxx.... -----END OPENSSH PRIVATE KEY-----",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
