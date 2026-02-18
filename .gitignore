@@ -6,9 +6,8 @@ module-assets/
 
 .terraform/
 .terraform.lock.hcl
-.pre-commit-config.yaml
-.secrets.baseline
 .DS_Store
+.github/.DS_Store
 .lock
 settings.json
 terraform.tfstate*
@@ -17,4 +16,3 @@ solutions/oracle/si/input.auto.tfvars
 .vscode
 solutions/oracle/si/*.tfvars
 solutions/oracle/rac/*.tfvars
-.github

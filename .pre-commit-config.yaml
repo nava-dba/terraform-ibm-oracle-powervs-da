@@ -1,0 +1,77 @@
+##############################################################################
+# .pre-commit-config.yaml
+#
+# Mirrors the hook configuration used in:
+#   terraform-ibm-modules/terraform-ibm-powervs-oracle
+#
+# Install locally:
+#   pip install pre-commit
+#   pre-commit install
+#   pre-commit run --all-files
+#
+# Hooks run automatically in CI via the goldeneye-ci-image container.
+##############################################################################
+repos:
+
+  # -------------------------------------------------------------------------
+  # Standard pre-commit hooks (whitespace, EOF, YAML syntax, etc.)
+  # -------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        args: ["--allow-multiple-documents"]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # -------------------------------------------------------------------------
+  # Terraform-specific hooks (fmt, validate, tflint, docs, etc.)
+  # -------------------------------------------------------------------------
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.97.3
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+        args:
+          - "--args=-no-color"
+      - id: terraform_tflint
+        args:
+          - "--args=--only=terraform_deprecated_interpolation"
+          - "--args=--only=terraform_deprecated_index"
+          - "--args=--only=terraform_unused_declarations"
+          - "--args=--only=terraform_comment_syntax"
+          - "--args=--only=terraform_documented_outputs"
+          - "--args=--only=terraform_documented_variables"
+          - "--args=--only=terraform_typed_variables"
+          - "--args=--only=terraform_module_pinned_source"
+          - "--args=--only=terraform_naming_convention"
+          - "--args=--only=terraform_required_version"
+          - "--args=--only=terraform_required_providers"
+          - "--args=--only=terraform_unused_required_providers"
+          - "--args=--only=terraform_standard_module_structure"
+      - id: terraform_docs
+        args:
+          - "--args=--config=.terraform-docs.yml"
+
+  # -------------------------------------------------------------------------
+  # Secret detection baseline check
+  # -------------------------------------------------------------------------
+  - repo: https://github.com/ibm/detect-secrets
+    rev: 0.13.1+ibm.62.dss
+    hooks:
+      - id: detect-secrets
+        args:
+          - "--baseline"
+          - ".secrets.baseline"
+        exclude: go.sum
+
+  # -------------------------------------------------------------------------
+  # Conventional commit message linting
+  # -------------------------------------------------------------------------
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.1.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]

@@ -1,0 +1,60 @@
+##############################################################################
+# CI Pipeline
+#
+# Mirrors: terraform-ibm-modules/terraform-ibm-powervs-oracle
+# Target:  nava-dba/terraform-ibm-oracle-powervs-da
+#
+# Triggers:
+#   - Push to any branch
+#   - Pull requests targeting main
+#   - Manual dispatch from Actions tab
+#
+# What it does (two parallel jobs):
+#   1. ci-pipeline    → pre-commit hooks against ALL files
+#   2. infra-tests    → CRA scan (IBM compliance) + Go/Terratest unit tests
+#
+# Required repository secrets (Settings → Secrets → Actions):
+#   IC_API_KEY              IBM Cloud API key with PowerVS/IAM permissions
+#   TOOLCHAIN_ID            IBM Cloud Toolchain ID (for CRA profile lookup)
+#   GH_TOKEN                GitHub token for checkout (PAT or GITHUB_TOKEN)
+##############################################################################
+name: CI-Pipeline
+
+on:
+  push:
+    branches:
+      - "**"          # All branches
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  call-terraform-ci-pipeline:
+    # -------------------------------------------------------------------
+    # Calls the shared reusable CI workflow maintained by terraform-ibm-modules.
+    # Pin to a specific release tag for stability; Renovate will bump this.
+    # Latest release: v1.24.2  (as of Feb 2026)
+    # -------------------------------------------------------------------
+    uses: terraform-ibm-modules/common-pipeline-assets/.github/workflows/common-terraform-module-ci.yml@v1.24.2
+    secrets: inherit
+    with:
+      # ---------------------------------------------------------------
+      # (Optional) Point to a versions.tf file that contains a
+      # `required_version` constraint so the pipeline auto-downloads
+      # the correct Terraform binary.
+      # ---------------------------------------------------------------
+      # terraform_version_file: "versions.tf"
+
+      # ---------------------------------------------------------------
+      # CRA (Code Risk Analyzer) scan configuration.
+      # Set craTarget to the Terraform root you want scanned.
+      # Leave empty to skip the CRA scan job.
+      # ---------------------------------------------------------------
+      craTarget: ""
+
+      # ---------------------------------------------------------------
+      # (Optional) Override the default goldeneye CI container image.
+      # Uncomment if you need a specific image version.
+      # ---------------------------------------------------------------
+      # dockerImage: "icr.io/goldeneye_images/goldeneye-ci-image:stable"
