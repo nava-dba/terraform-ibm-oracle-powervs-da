@@ -492,7 +492,7 @@ locals {
 
 module "pi_instance_aix_init" {
   source     = "../../../modules/ansible"
-  depends_on = [module.pi_instance_rhel_init]
+  depends_on = [module.pi_instance_rhel_init,module.shared_attach_other_nodes]
 
   deployment_type        = var.deployment_type
   bastion_host_ip        = var.bastion_host_ip
