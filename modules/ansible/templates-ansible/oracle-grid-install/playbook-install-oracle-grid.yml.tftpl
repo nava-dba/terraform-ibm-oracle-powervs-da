@@ -641,7 +641,7 @@
           export TZ={{ ansible_date_time.tz | default('UTC') }}
           
           # Prompt
-          export PS1='[$LOGNAME@$(hostname):$ORACLE_SID]$ '
+          export PS1="[$LOGNAME@$(hostname):$ORACLE_SID]$ "
           
           # Aliases for common tasks
           alias ll='ls -la'
@@ -695,7 +695,7 @@
           export TZ={{ ansible_date_time.tz | default('UTC') }}
           
           # Prompt
-          export PS1='[$LOGNAME@$(hostname):$ORACLE_SID]$ '
+          export PS1="[$LOGNAME@$(hostname):$ORACLE_SID]$ "
           
           # Aliases for Grid operations
           alias ll='ls -la'
