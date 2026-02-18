@@ -1,11 +1,9 @@
 ##############################################################################
-# Release Pipeline
-#
-# Mirrors: terraform-ibm-modules/terraform-ibm-powervs-oracle
-# Target:  nava-dba/terraform-ibm-oracle-powervs-da
+# Release Pipeline — Fully Standalone
+# Repo: nava-dba/terraform-ibm-oracle-powervs-da
 #
 # Triggers:
-#   - Push (merge) to the main branch only
+#   - Push (merge) to main or prod branch
 #   - Manual dispatch from Actions tab
 #
 # What it does:
@@ -16,9 +14,9 @@
 #       * Create a GitHub Release with release notes
 #       * Push a git tag (e.g. v1.2.3)
 #
-# Required repository secrets (Settings → Secrets → Actions):
-#   GH_TOKEN   A GitHub Personal Access Token with `repo` scope.
-#              (The default GITHUB_TOKEN cannot push tags back to the repo.)
+# Required repository secret:
+#   GH_TOKEN   GitHub PAT with `repo` scope
+#              (default GITHUB_TOKEN cannot push tags back)
 ##############################################################################
 name: Release-Pipeline
 
@@ -26,13 +24,44 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # Allow manual trigger
+      - prod
+  workflow_dispatch:
 
 jobs:
-  call-release-pipeline:
-    # -------------------------------------------------------------------
-    # Calls the shared reusable release workflow maintained by terraform-ibm-modules.
-    # Pin to a specific release tag for stability; Renovate will bump this.
-    # -------------------------------------------------------------------
-    uses: terraform-ibm-modules/common-pipeline-assets/.github/workflows/common-release-pipeline.yml@v1.24.2
-    secrets: inherit
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # Full history needed for semantic-release
+          token: ${{ secrets.GH_TOKEN }}
+          submodules: recursive
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install semantic-release and plugins
+        run: |
+          npm install -g \
+            semantic-release \
+            @semantic-release/changelog \
+            @semantic-release/git \
+            @semantic-release/github \
+            @semantic-release/commit-analyzer \
+            @semantic-release/release-notes-generator \
+            conventional-changelog-conventionalcommits
+
+      - name: Run semantic-release
+        run: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

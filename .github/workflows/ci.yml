@@ -1,60 +1,140 @@
 ##############################################################################
-# CI Pipeline
-#
-# Mirrors: terraform-ibm-modules/terraform-ibm-powervs-oracle
-# Target:  nava-dba/terraform-ibm-oracle-powervs-da
+# CI Pipeline — Fully Standalone
+# Repo: nava-dba/terraform-ibm-oracle-powervs-da
 #
 # Triggers:
 #   - Push to any branch
-#   - Pull requests targeting main
+#   - Pull requests targeting main or prod
 #   - Manual dispatch from Actions tab
 #
-# What it does (two parallel jobs):
-#   1. ci-pipeline    → pre-commit hooks against ALL files
-#   2. infra-tests    → CRA scan (IBM compliance) + Go/Terratest unit tests
-#
-# Required repository secrets (Settings → Secrets → Actions):
-#   IC_API_KEY              IBM Cloud API key with PowerVS/IAM permissions
-#   TOOLCHAIN_ID            IBM Cloud Toolchain ID (for CRA profile lookup)
-#   GH_TOKEN                GitHub token for checkout (PAT or GITHUB_TOKEN)
+# Jobs:
+#   1. pre-commit       → fmt, validate, yaml checks, detect-secrets
+#   2. terraform        → terraform init + validate across all modules
+#   3. tfsec            → static security scanning
 ##############################################################################
 name: CI-Pipeline
 
 on:
   push:
     branches:
-      - "**"          # All branches
+      - "**"
   pull_request:
     branches:
       - main
-  workflow_dispatch: # Allow manual trigger from GitHub UI
+      - prod
+  workflow_dispatch:
 
 jobs:
-  call-terraform-ci-pipeline:
-    # -------------------------------------------------------------------
-    # Calls the shared reusable CI workflow maintained by terraform-ibm-modules.
-    # Pin to a specific release tag for stability; Renovate will bump this.
-    # Latest release: v1.24.2  (as of Feb 2026)
-    # -------------------------------------------------------------------
-    uses: terraform-ibm-modules/common-pipeline-assets/.github/workflows/common-terraform-module-ci.yml@v1.24.2
-    secrets: inherit
-    with:
-      # ---------------------------------------------------------------
-      # (Optional) Point to a versions.tf file that contains a
-      # `required_version` constraint so the pipeline auto-downloads
-      # the correct Terraform binary.
-      # ---------------------------------------------------------------
-      # terraform_version_file: "versions.tf"
 
-      # ---------------------------------------------------------------
-      # CRA (Code Risk Analyzer) scan configuration.
-      # Set craTarget to the Terraform root you want scanned.
-      # Leave empty to skip the CRA scan job.
-      # ---------------------------------------------------------------
-      craTarget: ""
+  ##############################################################################
+  # JOB 1 — Pre-commit checks
+  ##############################################################################
+  pre-commit:
+    name: Pre-Commit Checks
+    runs-on: ubuntu-latest
 
-      # ---------------------------------------------------------------
-      # (Optional) Override the default goldeneye CI container image.
-      # Uncomment if you need a specific image version.
-      # ---------------------------------------------------------------
-      # dockerImage: "icr.io/goldeneye_images/goldeneye-ci-image:stable"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      - name: Install TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint --version
+
+      - name: Install terraform-docs
+        run: |
+          curl -sSLo terraform-docs.tar.gz \
+            https://terraform-docs.io/dl/v0.18.0/terraform-docs-v0.18.0-linux-amd64.tar.gz
+          tar -xzf terraform-docs.tar.gz
+          chmod +x terraform-docs
+          sudo mv terraform-docs /usr/local/bin/
+          terraform-docs --version
+
+      - name: Install detect-secrets
+        run: pip install detect-secrets==1.4.0
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit on all files
+        run: pre-commit run --all-files --show-diff-on-failure
+
+      - name: Run TFLint
+        run: tflint --recursive --minimum-failure-severity=error
+
+  ##############################################################################
+  # JOB 2 — Terraform Init + Validate
+  ##############################################################################
+  terraform-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        terraform_dir:
+          - "modules/ansible"
+          - "solutions/oracle/si"
+          - "solutions/oracle/rac"
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      - name: Terraform Init — ${{ matrix.terraform_dir }}
+        working-directory: ${{ matrix.terraform_dir }}
+        run: terraform init -backend=false
+        env:
+          TF_VAR_ibmcloud_api_key: ${{ secrets.TF_VAR_IBMCLOUD_API_KEY }}
+
+      - name: Terraform Format Check — ${{ matrix.terraform_dir }}
+        working-directory: ${{ matrix.terraform_dir }}
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate — ${{ matrix.terraform_dir }}
+        working-directory: ${{ matrix.terraform_dir }}
+        run: terraform validate
+        env:
+          TF_VAR_ibmcloud_api_key: ${{ secrets.TF_VAR_IBMCLOUD_API_KEY }}
+
+  ##############################################################################
+  # JOB 3 — Security Scan (tfsec)
+  ##############################################################################
+  tfsec:
+    name: TFSec Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          submodules: recursive
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          soft_fail: true
+          github_token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}

@@ -56,10 +56,10 @@ repos:
           - "--args=--config=.terraform-docs.yml"
 
   # -------------------------------------------------------------------------
-  # Secret detection baseline check
+  # Secret detection baseline check (standard public version)
   # -------------------------------------------------------------------------
-  - repo: https://github.com/ibm/detect-secrets
-    rev: 0.13.1+ibm.62.dss
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
     hooks:
       - id: detect-secrets
         args:
