@@ -267,7 +267,7 @@
 
     - name: Set Grid Home path
       ansible.builtin.set_fact:
-        grid_home_path: "{{ config.fs.ofa_fs }}/{{ config.acfs[1] }}/{{ global.grid_owner }}"
+        grid_home_path: "{{ config.grid_home | join('/') }}"
 
     - name: Set node-specific ORACLE_SID and ASM SID
       ansible.builtin.set_fact:
@@ -445,7 +445,6 @@
           alias scanlsnr='srvctl status scan_listener'
           alias vipstat='srvctl status vip -node {{ ansible_hostname }}'
           alias nodeapps='srvctl status nodeapps'
-          alias diskgroups='srvctl status diskgroup -a'
 
           # Alert and log aliases
           alias grid_alert='tail -100f $ORACLE_BASE/diag/asm/+asm/{{ node_asm_sid }}/trace/alert_{{ node_asm_sid }}.log'
@@ -513,7 +512,7 @@
           {{ grid_home_path }}/bin/srvctl status nodeapps
           echo ""
           echo "--- Diskgroup Status ---"
-          {{ grid_home_path }}/bin/srvctl status diskgroup -a
+          {{ grid_home_path }}/bin/asmcmd lsdg
           echo ""
 
     - name: Create cluster-wide status script for grid user
