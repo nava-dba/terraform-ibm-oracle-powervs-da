@@ -74,14 +74,14 @@
             force: true
             state: present
           when: hdisk_name.stdout != ""
-        
+
         - name: Update hd6 partition limit for RAC initialization
           ansible.builtin.command: "chlv -x 1024 hd6"
-          when: 
-            - hdisk_name.stdout != "" 
-            - AIX_INIT_MODE == "rac" 
+          when:
+            - hdisk_name.stdout != ""
+            - AIX_INIT_MODE == "rac"
           changed_when: false
-        
+
         - name: Mark rootvg entension as done
           ansible.builtin.file:
             path: "{{ done_file_dir }}/root_vg_extended.done"
@@ -210,8 +210,8 @@
       register: pwd_reset_done
 
     - name: Reset root password on AIX
-      when: 
-        - AIX_INIT_MODE == "rac" 
+      when:
+        - AIX_INIT_MODE == "rac"
         - ROOT_PASSWORD is defined
         - not pwd_reset_done.stat.exists
       block:
@@ -232,7 +232,7 @@
         - name: Show reset password output
           ansible.builtin.debug:
             var: rootpwd_output.stdout_lines
-        
+
         - name: Mark root password reset done
           ansible.builtin.file:
             path: "{{ done_file_dir }}/root_pwd_reset.done"
@@ -247,7 +247,7 @@
       register: ssh_config_done
 
     - name: Configure SSH for RAC compatibility
-      when: 
+      when:
         - AIX_INIT_MODE == "rac"
         - not ssh_config_done.stat.exists
       block:
@@ -304,7 +304,7 @@
       ansible.builtin.stat:
         path: "{{ done_file_dir }}/rename_disk.done"
       register: rename_disk
-    
+
     # ---------------------------------------------------------------
     # STEP 1: Run ONLY on Node1 → generate reference file
     # ---------------------------------------------------------------
@@ -313,17 +313,17 @@
         - AIX_INIT_MODE == "rac"
         - inventory_hostname == groups['all'][0]
       block:
-    
+
         - name: Generate Node1 lsmpio output
           ansible.builtin.shell: "lsmpio -q > /tmp/node1_lsmpio.out"
           changed_when: false
-    
+
         - name: Fetch Node1 lsmpio output to controller
           ansible.builtin.fetch:
             src: "/tmp/node1_lsmpio.out"
             dest: "/tmp/node1_lsmpio.out"
             flat: true
-    
+
     # ---------------------------------------------------------------
     # STEP 2: Copy reference + run rename on ALL OTHER NODES
     # ---------------------------------------------------------------
@@ -333,27 +333,27 @@
         - inventory_hostname != groups['all'][0]
         - not rename_disk.stat.exists
       block:
-    
+
         - name: Copy Node1 reference lsmpio file
           ansible.builtin.copy:
             src: "/tmp/node1_lsmpio.out"
             dest: "/tmp/node1_lsmpio.out"
             mode: '0644'
-    
+
         - name: Copy rename disk script
           ansible.builtin.copy:
             src: "/root/terraform_files/files/rename_disk.sh"
             dest: "/var/tmp/rename_disk.sh"
             mode: '0755'
-    
+
         - name: Execute rename disk script
           ansible.builtin.command: "/var/tmp/rename_disk.sh asm /tmp/node1_lsmpio.out"
           register: rename_output
-    
+
         - name: Show rename results
           ansible.builtin.debug:
             var: rename_output.stdout_lines
-    
+
         - name: Mark disk rename done
           ansible.builtin.file:
             path: "{{ done_file_dir }}/rename_disk.done"

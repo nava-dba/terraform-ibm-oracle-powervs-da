@@ -73,12 +73,12 @@ variable "pi_aix_instance" {
   description = "Configuration settings for the IBM PowerVS AIX instance where Oracle will be installed. Includes memory size, number of processors, processor type, and system type."
 
   type = object({
-    memory_size       = number # Memory size in GB
+    memory_size       = number           # Memory size in GB
     number_processors = optional(number) # Number of virtual processors
-    cpu_proc_type     = string # Processor type: shared, capped, or dedicated
-    server_type       = string # System type (e.g., s1022, e980)
-    pin_policy        = string # Pin policy (e.g., hard, soft)
-    health_status     = string # Health status (e.g., OK, Warning, Critical)
+    cpu_proc_type     = string           # Processor type: shared, capped, or dedicated
+    server_type       = string           # System type (e.g., s1022, e980)
+    pin_policy        = string           # Pin policy (e.g., hard, soft)
+    health_status     = string           # Health status (e.g., OK, Warning, Critical)
   })
 }
 

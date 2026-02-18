@@ -86,24 +86,24 @@ module "pi_instance_aix" {
   pi_cpu_proc_type           = var.pi_aix_instance.cpu_proc_type
   pi_boot_image_storage_tier = "tier1"
   pi_user_tags               = var.pi_user_tags
-  
+
   # Storage configuration based on install type - using user-provided variables
   pi_storage_config = (
     var.oracle_install_type == "ASM" ?
     [
       local.pi_boot_volume,
-      var.pi_oravg_volume,        # Oracle software VG
-      local.pi_crsdg_volume,      # ASM CRSDG
-      var.pi_data_volume,         # ASM DATA diskgroup
-      var.pi_redo_volume,         # ASM REDO diskgroup
-      local.pi_arc_volume         # ASM ARCH diskgroup
+      var.pi_oravg_volume,   # Oracle software VG
+      local.pi_crsdg_volume, # ASM CRSDG
+      var.pi_data_volume,    # ASM DATA diskgroup
+      var.pi_redo_volume,    # ASM REDO diskgroup
+      local.pi_arc_volume    # ASM ARCH diskgroup
     ] :
     [
       local.pi_boot_volume,
-      var.pi_oravg_volume,        # Oracle software VG
-      var.pi_data_volume,         # JFS2 DATAVG (for datafiles)
-      var.pi_redo_volume,         # JFS2 REDOVG (for redo + control files)
-      local.pi_arc_volume         # JFS2 ARCHVG (for archives)
+      var.pi_oravg_volume, # Oracle software VG
+      var.pi_data_volume,  # JFS2 DATAVG (for datafiles)
+      var.pi_redo_volume,  # JFS2 REDOVG (for redo + control files)
+      local.pi_arc_volume  # JFS2 ARCHVG (for archives)
     ]
   )
 }
@@ -168,16 +168,16 @@ locals {
     ORA_NFS_HOST           = module.pi_instance_aix.pi_instance_primary_ip
     ORA_NFS_DEVICE         = local.nfs_mount
     EXTEND_ROOT_VOLUME_WWN = module.pi_instance_aix.pi_storage_configuration[0].wwns
-    AIX_INIT_MODE = ""
-    ROOT_PASSWORD = ""
+    AIX_INIT_MODE          = ""
+    ROOT_PASSWORD          = ""
   }
 
 }
 
 module "pi_instance_aix_init" {
   source     = "../../../modules/ansible"
-  depends_on = [module.pi_instance_rhel_init,module.pi_instance_aix]
-  
+  depends_on = [module.pi_instance_rhel_init, module.pi_instance_aix]
+
   deployment_type        = var.deployment_type
   bastion_host_ip        = var.bastion_host_ip
   ansible_host_or_ip     = module.pi_instance_rhel.pi_instance_primary_ip
@@ -299,7 +299,7 @@ module "ibmcloud_cos_grid" {
 locals {
   # Calculate total sizes from user variables for passing to Ansible
   # Each volume object has: size (per disk) and count (number of disks)
-  
+
   # Calculate total size: size per disk * count
   oravg_total_size = tonumber(var.pi_oravg_volume.size) * tonumber(var.pi_oravg_volume.count)
   data_total_size  = tonumber(var.pi_data_volume.size) * tonumber(var.pi_data_volume.count)
@@ -318,10 +318,10 @@ locals {
     ORA_DB_PASSWORD     = var.ora_db_password
     REDOLOG_SIZE_IN_MB  = var.redolog_size_in_mb
     # Pass calculated sizes to Ansible (subtract 1GB for VG overhead)
-    ORAVG_SIZE          = tostring(local.oravg_total_size - 1)
-    DATA_SIZE           = tostring(local.data_total_size - 1)
-    REDO_SIZE           = tostring(local.redo_total_size - 1)
-    ARCH_SIZE           = tostring(local.arch_total_size - 1)
+    ORAVG_SIZE = tostring(local.oravg_total_size - 1)
+    DATA_SIZE  = tostring(local.data_total_size - 1)
+    REDO_SIZE  = tostring(local.redo_total_size - 1)
+    ARCH_SIZE  = tostring(local.arch_total_size - 1)
   }
 }
 

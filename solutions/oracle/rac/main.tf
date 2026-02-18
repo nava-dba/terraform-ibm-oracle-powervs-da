@@ -101,7 +101,7 @@ locals {
   }
   # Auto-generate SCAN IPs and VIP base
   pub_network_cidr = local.pub_network_name != null ? local.network_details[local.pub_network_name].cidr : null
-  
+
   scan_ips_list = local.pub_network_cidr != null ? [
     cidrhost(local.pub_network_cidr, 241),
     cidrhost(local.pub_network_cidr, 242),
@@ -156,15 +156,15 @@ module "pi_instance_dns" {
 # Create AIX VM for Oracle RAC database
 ###########################################################
 
-resource "ibm_pi_instance" "rac_nodes" {  
-  pi_cloud_instance_id   = var.pi_existing_workspace_guid
-  pi_instance_name       = "${var.prefix}-aix"
-  pi_image_id            = var.pi_aix_image_name
-  pi_key_pair_name       = var.pi_ssh_public_key_name
-  pi_memory              = var.pi_aix_instance.memory_size
-  pi_processors          = local.pi_aix_cpu_cores
-  pi_proc_type           = var.pi_aix_instance.cpu_proc_type
-  pi_sys_type            = var.pi_aix_instance.server_type
+resource "ibm_pi_instance" "rac_nodes" {
+  pi_cloud_instance_id = var.pi_existing_workspace_guid
+  pi_instance_name     = "${var.prefix}-aix"
+  pi_image_id          = var.pi_aix_image_name
+  pi_key_pair_name     = var.pi_ssh_public_key_name
+  pi_memory            = var.pi_aix_instance.memory_size
+  pi_processors        = local.pi_aix_cpu_cores
+  pi_proc_type         = var.pi_aix_instance.cpu_proc_type
+  pi_sys_type          = var.pi_aix_instance.server_type
 
   dynamic "pi_network" {
     for_each = local.ordered_pi_networks
@@ -223,10 +223,10 @@ locals {
       ][0], null) if net_name != null
     }
   }
-  
+
   # Get dns server ip
   dns_server_ip = module.pi_instance_dns.pi_instance_primary_ip
-  dns_hostname  = module.pi_instance_dns.pi_instance_name 
+  dns_hostname  = module.pi_instance_dns.pi_instance_name
 
   hosts_and_vars = {
     for idx in range(var.rac_nodes) :
@@ -297,7 +297,7 @@ resource "ibm_pi_volume" "node_rootvg" {
   pi_volume_type       = local.pi_boot_volume.tier
   pi_volume_shareable  = false
   pi_user_tags         = var.pi_user_tags
-  
+
   lifecycle {
     ignore_changes = [pi_user_tags]
   }
@@ -314,7 +314,7 @@ resource "ibm_pi_volume" "node_oravg" {
   pi_volume_type       = local.expanded_oravg_volumes[count.index].tier
   pi_volume_shareable  = false
   pi_user_tags         = var.pi_user_tags
-  
+
   lifecycle {
     ignore_changes = [pi_user_tags]
   }
@@ -331,7 +331,7 @@ resource "ibm_pi_volume" "shared" {
   pi_volume_type       = local.expanded_shared_volumes[count.index].tier
   pi_volume_shareable  = true
   pi_user_tags         = var.pi_user_tags
-  
+
   lifecycle {
     ignore_changes = [pi_user_tags]
   }
@@ -473,7 +473,7 @@ module "pi_instance_rhel_init" {
 
 locals {
   squid_server_ip = var.squid_server_ip
-
+  # tflint-ignore: terraform_unused_declarations
   aix_rootvg_wwns = [
     for idx in range(var.rac_nodes) :
     ibm_pi_volume.node_rootvg[idx].wwn
@@ -492,7 +492,7 @@ locals {
 
 module "pi_instance_aix_init" {
   source     = "../../../modules/ansible"
-  depends_on = [module.pi_instance_rhel_init,ibm_pi_volume_attach.shared_attach_other_nodes]
+  depends_on = [module.pi_instance_rhel_init, ibm_pi_volume_attach.shared_attach_other_nodes]
 
   deployment_type        = var.deployment_type
   bastion_host_ip        = var.bastion_host_ip
@@ -527,7 +527,7 @@ locals {
       vip      = cidrhost(local.pub_network_cidr, 245 + idx)
     }
   ]
-  
+
   dns_playbook_vars = {
     dns_server_ip   = tostring(local.dns_server_ip)
     dns_domain_name = tostring(var.cluster_domain)
@@ -693,35 +693,35 @@ locals {
       priv2_if = var.aix_network_interfaces.private2
     }
   ]
-  
+
   # Calculate total size: (size per disk * count) - 1GB for VG overhead
   oravg_total_size = (tonumber(var.pi_oravg_volume.size) * tonumber(var.pi_oravg_volume.count)) - 1
 
   # Base playbook vars - encode nodes as JSON string to ensure all values are strings
   playbook_oracle_install_base_vars = {
-    ORA_NFS_HOST        = module.pi_instance_rhel.pi_instance_primary_ip
-    ORA_NFS_DEVICE      = local.nfs_mount
-    DNS_SERVER_IP       = local.dns_server_ip
-    DATABASE_SW         = var.ibmcloud_cos_configuration.cos_oracle_database_sw_path
-    GRID_SW             = var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path
-    RU_FILE             = var.ibmcloud_cos_configuration.cos_oracle_ru_file_path
-    OPATCH_FILE         = var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path
-    CLUVFY_FILE         = var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path
-    RU_VERSION          = var.ru_version
-    ORA_SID             = var.ora_sid
-    ROOT_PASSWORD       = var.root_password
-    ORA_DB_PASSWORD     = var.ora_db_password
-    TIME_ZONE           = var.time_zone
-    CLUSTER_DOMAIN      = var.cluster_domain
-    CLUSTER_NAME        = var.cluster_name
-    CLUSTER_NODES       = local.cluster_nodes
-    ORA_VERSION         = local.ora_version
-    REDOLOG_SIZE_IN_MB  = var.redolog_size_in_mb
-    ORAVG_SIZE          = tostring(local.oravg_total_size)
-    ORAVG_DISK_COUNT    = tostring(var.pi_oravg_volume.count)
-    netmask_pub         = local.netmask_pub
-    netmask_pvt         = local.netmask_priv1
-    nodes               = jsonencode(local.oracle_rac_nodes)
+    ORA_NFS_HOST       = module.pi_instance_rhel.pi_instance_primary_ip
+    ORA_NFS_DEVICE     = local.nfs_mount
+    DNS_SERVER_IP      = local.dns_server_ip
+    DATABASE_SW        = var.ibmcloud_cos_configuration.cos_oracle_database_sw_path
+    GRID_SW            = var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path
+    RU_FILE            = var.ibmcloud_cos_configuration.cos_oracle_ru_file_path
+    OPATCH_FILE        = var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path
+    CLUVFY_FILE        = var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path
+    RU_VERSION         = var.ru_version
+    ORA_SID            = var.ora_sid
+    ROOT_PASSWORD      = var.root_password
+    ORA_DB_PASSWORD    = var.ora_db_password
+    TIME_ZONE          = var.time_zone
+    CLUSTER_DOMAIN     = var.cluster_domain
+    CLUSTER_NAME       = var.cluster_name
+    CLUSTER_NODES      = local.cluster_nodes
+    ORA_VERSION        = local.ora_version
+    REDOLOG_SIZE_IN_MB = var.redolog_size_in_mb
+    ORAVG_SIZE         = tostring(local.oravg_total_size)
+    ORAVG_DISK_COUNT   = tostring(var.pi_oravg_volume.count)
+    netmask_pub        = local.netmask_pub
+    netmask_pvt        = local.netmask_priv1
+    nodes              = jsonencode(local.oracle_rac_nodes)
   }
 
   # Use base vars directly

@@ -75,12 +75,12 @@ variable "pi_aix_instance" {
   description = "Configuration settings for the IBM PowerVS AIX instance where Oracle will be installed. Includes memory size, number of processors, processor type, and system type."
 
   type = object({
-    memory_size       = number # Memory size in GB
+    memory_size       = number           # Memory size in GB
     number_processors = optional(number) # Number of virtual processors
-    cpu_proc_type     = string # Processor type: shared, capped, or dedicated
-    server_type       = string # System type (e.g., s922, e980)
-    pin_policy        = string # Pin policy (e.g., hard, soft)
-    health_status     = string # Health status (e.g., OK, Warning, Critical)
+    cpu_proc_type     = string           # Processor type: shared, capped, or dedicated
+    server_type       = string           # System type (e.g., s922, e980)
+    pin_policy        = string           # Pin policy (e.g., hard, soft)
+    health_status     = string           # Health status (e.g., OK, Warning, Critical)
   })
 }
 
@@ -263,13 +263,15 @@ variable "rac_nodes" {
 }
 
 variable "root_password" {
-  type      = string
-  sensitive = true
+  description = "Root password for the Oracle RAC AIX virtual server instance."
+  type        = string
+  sensitive   = true
 }
 
 variable "time_zone" {
-  type    = string
-  default = "America/Los_Angeles"
+  description = "Time zone to configure on the Oracle RAC virtual server instance. Example: UTC, America/New_York."
+  type        = string
+  default     = "America/Los_Angeles"
 }
 
 

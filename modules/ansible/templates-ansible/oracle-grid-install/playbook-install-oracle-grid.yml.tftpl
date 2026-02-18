@@ -189,7 +189,7 @@
     oracle_rsp_stage: "{{ work_dir }}"
     oracle_group: "{{ ora_oinstall_group }}"
     oracle_asm_disk_string: "{{ asm_disk_loc_prefix }}"
-    
+
     asm_diskgroups:
       - diskgroup: DATA
         properties:
@@ -263,7 +263,7 @@
       loop: "{{ disk_discovery.results }}"
       loop_control:
         label: "{{ item.item }}"
-    
+
     - name: Set backward-compatible disk variables
       ansible.builtin.set_fact:
         ora_sw_vg_disk: "{{ discovered_disks.oravg }}"
@@ -315,7 +315,7 @@
           ansible.builtin.stat:
             path: "{{ done_file_dir }}/jfs2_storage_setup.done"
           register: jfs2_setup_done
-        
+
         - name: Creating group {{ora_group}} with gid {{ora_group_gid}}
           ansible.builtin.group:
             name: "{{ora_group}}"
@@ -345,7 +345,7 @@
         - name: Create JFS2 Volume Groups, Logical Volumes, and Filesystems
           when: not jfs2_setup_done.stat.exists
           block:
-        
+
             #######################################################
             # Step 1: Create Volume Groups
             #######################################################
@@ -361,12 +361,12 @@
               loop_control:
                 label: "{{ item.vg_name }}"
               register: vg_result
-        
+
             - name: Debug VG creation results
               ansible.builtin.debug:
                 msg: "VG {{ item.item.vg_name }} created successfully"
               loop: "{{ vg_result.results }}"
-        
+
             #######################################################
             # Step 2: Calculate MAX striped LV size per VG (AUTO)
             #######################################################
@@ -387,7 +387,7 @@
                 label: "{{ item.vg_name }}"
               register: max_lv_pp
               changed_when: false
-        
+
             - name: Build AUTO LV PP map
               ansible.builtin.set_fact:
                 final_lv_pp_map: >-
@@ -396,7 +396,7 @@
                     combine({ item.item.vg_name: (item.stdout | int) })
                   }}
               loop: "{{ max_lv_pp.results }}"
-        
+
             #######################################################
             # Step 3: Create Logical Volumes (Striped)
             #######################################################
@@ -406,7 +406,7 @@
                   echo "LV {{ item.lv_name }} already exists"
                   exit 0
                 fi
-        
+
                 mklv -S {{ item.strip_size }} \
                      -t jfs2 \
                      -y {{ item.lv_name }} \
@@ -425,7 +425,7 @@
               failed_when:
                 - lv_result.rc != 0
                 - "'already exists' not in lv_result.stdout"
-        
+
             #######################################################
             # Step 4: Create and Mount Filesystems
             #######################################################
@@ -435,14 +435,14 @@
                   echo "Filesystem exists"
                   exit 0
                 fi
-        
+
                 crfs -v jfs2 \
                      -d {{ item.lv_name }} \
                      -m {{ item.fs_name }} \
                      -A yes \
                      -p rw \
                      -a log=INLINE
-        
+
                 mount {{ item.fs_name }}
               args:
                 executable: /bin/ksh
@@ -454,7 +454,7 @@
               failed_when:
                 - fs_result.rc != 0
                 - "'exists' not in fs_result.stdout"
-        
+
             #######################################################
             # Step 5: Ownership and Permissions
             #######################################################
@@ -466,7 +466,7 @@
                 mode: '0775'
                 state: directory
               loop: "{{ jfs2_storage_config }}"
-        
+
             #######################################################
             # Step 6: Mark Completion
             #######################################################
@@ -618,7 +618,7 @@
         block: |
           # Oracle Environment Settings for AIX
           umask 022
-          
+
           export ORACLE_BASE={{ ora_base }}
           export ORACLE_HOME={{ ora_sw_fs }}/19c/database/home
           export ORACLE_SID={{ ora_sid }}
@@ -627,22 +627,22 @@
 
           # AIX specific - LIBPATH (not LD_LIBRARY_PATH)
           export LIBPATH=$ORACLE_HOME/lib:$ORACLE_HOME/lib32:/usr/lib:/lib
-          
+
           # Path settings for AIX
           export PATH=$ORACLE_HOME/bin:/usr/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:$PATH
-          
+
           # TNS Admin
           export TNS_ADMIN=$ORACLE_HOME/network/admin
-          
+
           # Editor
           export EDITOR=vi
-          
+
           # Timezone (adjust as needed)
           export TZ={{ ansible_date_time.tz | default('UTC') }}
-          
+
           # Prompt
           export PS1="[$LOGNAME@$(hostname):$ORACLE_SID]$ "
-          
+
           # Aliases for common tasks
           alias ll='ls -la'
           alias df='df -g'
@@ -654,7 +654,7 @@
           alias cdtns='cd $TNS_ADMIN'
           alias alert='tail -100f $ORACLE_BASE/diag/rdbms/$(echo $ORACLE_SID | tr "[A-Z]" "[a-z]")/$ORACLE_SID/trace/alert_$ORACLE_SID.log'
           alias listener='tail -100f $ORACLE_BASE/diag/tnslsnr/$(hostname)/listener/trace/listener.log'
-          
+
           # Display environment on login
           echo "Oracle Environment:"
           echo "  ORACLE_SID  : $ORACLE_SID"
@@ -672,31 +672,31 @@
         block: |
           # Grid Infrastructure Environment Settings for AIX
           umask 022
-          
+
           export ORACLE_BASE={{ ora_base }}
           export ORACLE_HOME={{ grid_ora_home }}
           export ORACLE_SID=+ASM
           export ORACLE_TERM=xterm
           export TERM=xterm
-          
+
           # AIX specific - LIBPATH (not LD_LIBRARY_PATH)
           export LIBPATH=$ORACLE_HOME/lib:$ORACLE_HOME/lib32:/usr/lib:/lib
-          
+
           # Path settings for AIX
           export PATH=$ORACLE_HOME/bin:/usr/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:$PATH
-          
+
           # TNS Admin
           export TNS_ADMIN=$ORACLE_HOME/network/admin
-          
+
           # Editor
           export EDITOR=vi
-          
+
           # Timezone (adjust as needed)
           export TZ={{ ansible_date_time.tz | default('UTC') }}
-          
+
           # Prompt
           export PS1="[$LOGNAME@$(hostname):$ORACLE_SID]$ "
-          
+
           # Aliases for Grid operations
           alias ll='ls -la'
           alias df='df -g'
@@ -709,7 +709,7 @@
           alias cdoh='cd $ORACLE_HOME'
           alias grid_alert='tail -100f $ORACLE_BASE/diag/asm/+asm/+ASM/trace/alert_+ASM.log'
           alias crs_stat='crsctl stat res -t'
-          
+
           # Display environment on login
           echo "Grid Infrastructure Environment:"
           echo "  ORACLE_SID  : $ORACLE_SID"
@@ -732,7 +732,7 @@
       ansible.builtin.debug:
         msg: "Profile created successfully for {{ item.item | basename | replace('.profile', '') | replace('/home/', '') }}"
       loop: "{{ profile_check.results }}"
-      when: 
+      when:
         - item.stat is defined
         - item.stat.exists
 

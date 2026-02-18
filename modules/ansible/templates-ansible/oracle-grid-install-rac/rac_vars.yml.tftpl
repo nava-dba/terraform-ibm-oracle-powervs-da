@@ -8,7 +8,7 @@ opatch_file: "${OPATCH_FILE}"
 cluvfy_file: "${CLUVFY_FILE}"
 ru_version: "${RU_VERSION}"
 ora_sid: "${ORA_SID}"
-root_password: "${ROOT_PASSWORD}"  
+root_password: "${ROOT_PASSWORD}"
 ora_db_password: "${ORA_DB_PASSWORD}"
 time_zone: "${TIME_ZONE}"
 cluster_domain: ${CLUSTER_DOMAIN}
@@ -36,7 +36,7 @@ work_dir: "/tmp/ansible"
 
 global:
 
-  root_password: "${ROOT_PASSWORD}" 
+  root_password: "${ROOT_PASSWORD}"
   grid_owner:  &grid_owner  "grid"
   grid_pgroup: &grid_pgroup "oinstall"
   db_owner:    &db_owner    "oracle"
@@ -61,15 +61,15 @@ bootstrap:
     options:  "timeout:1"
     nameservers: [ "\"${DNS_SERVER_IP}\"" ]
     search:   "${CLUSTER_DOMAIN}"
-      
-preconfig:    
-      
-  tz: "${TIME_ZONE}" 
+
+preconfig:
+
+  tz: "${TIME_ZONE}"
   aix_timeserver: "${DNS_SERVER_IP}"
-      
+
   ntp:
-    state: absent 
-    ntp_servers: 
+    state: absent
+    ntp_servers:
       - '0.pool.ntp.org prefer'
       - '1.pool.ntp.org'
     broadcastclient: present
@@ -81,8 +81,8 @@ preconfig:
 
     subdir: 'installp/ppc'
 
-  use_powervs_std_nim: true 
-  powervs_loc: '/usr/sys/inst.images/installp/ppc' 
+  use_powervs_std_nim: true
+  powervs_loc: '/usr/sys/inst.images/installp/ppc'
   aix_filesets: [
     'bos.adt.base',
     'bos.adt.lib',
@@ -132,8 +132,8 @@ config:
   db_base:   &db_base   [ *ofa_fs, *db_owner ]
   db_home:   &db_home   [ *acfs ]
 
-  paging_space_MB: 16384 
-  
+  paging_space_MB: 16384
+
   fs_sizes: [
     "/",       "1G",
     "/usr",    "2G",
@@ -246,14 +246,14 @@ install:
     vol_size_GB:     "200"
 
   ora_zips:
-    nfs_mount: [ '/repos',     '/repos',     '${ORA_NFS_HOST}', ]   
+    nfs_mount: [ '/repos',     '/repos',     '${ORA_NFS_HOST}', ]
     ora_binary_location: nfs
-    remote_local_mount: /repos 
+    remote_local_mount: /repos
     goldimage_flag: false
     opatch_subdir: ""
     opatch_zips:
-      v12_2_0_1_46: &v12_2_0_1_46 "${OPATCH_FILE}"  
-      latest:       *v12_2_0_1_46              
+      v12_2_0_1_46: &v12_2_0_1_46 "${OPATCH_FILE}"
+      latest:       *v12_2_0_1_46
 
     base_subdir:  ""
     grid19c_zip:  "${GRID_SW}"
@@ -262,9 +262,9 @@ install:
     cluvfy_zip:     "${CLUVFY_FILE}"
     ru_subdir: ""
     ora19c_ru27: &ora19c_ru27 "${RU_FILE}"
-    ora19c_ru: *ora19c_ru27                
+    ora19c_ru: *ora19c_ru27
     ru_version: "${RU_VERSION}"
-  
+
   compiler:
     base_fileset:
       - xlCcmp.13.1.0
@@ -307,15 +307,15 @@ install:
         diskGroup:
           name: CRSDG
           AUSize: 4
-          redundancy: EXTERNAL 
+          redundancy: EXTERNAL
         configureGIMRDataDG: true
         gimrDG:
           name: GIMR
           AUSize: 4
-          redundancy: EXTERNAL 
+          redundancy: EXTERNAL
       config:
         emAdminUser:
-        emAdminPassword: 
+        emAdminPassword:
         clusterName: "${CLUSTER_NAME}"
         clusterNodes: "${CLUSTER_NODES}"
 
@@ -328,14 +328,14 @@ install:
     OSOPER_GROUP:       oper
     OSDGDBA_GROUP:
     OSKMDBA_GROUP:
-    OSRACDBA_GROUP: 
+    OSRACDBA_GROUP:
 
 #Create/Drop database variables section
 oracle_user: "{{ ora_user }}"
 oracle_stage: "{{ work_dir }}"
 oracle_base: "{{ ora_base }}"
 oracle_dbf_dir_asm: '+DATA'
- 
+
 # This is layout to create a database.
 oracle_databases:
   - home:

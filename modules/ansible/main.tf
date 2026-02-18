@@ -1,15 +1,15 @@
 locals {
-  src_ansible_templates_dir  = "${path.module}/templates-ansible"
+  src_ansible_templates_dir = "${path.module}/templates-ansible"
   src_ansible_files_dir     = "${path.module}/templates-ansible/aix-init/files"
-  dst_files_dir              = "/root/terraform_files"
-  dst_ansible_files_dir      = "/root/terraform_files/files"
-  
+  dst_files_dir             = "/root/terraform_files"
+  dst_ansible_files_dir     = "/root/terraform_files/files"
+
   src_script_tftpl_path    = "${local.src_ansible_templates_dir}/${var.src_script_template_name}"
   dst_script_file_path     = "${local.dst_files_dir}/${var.dst_script_file_name}"
   src_playbook_tftpl_path  = "${local.src_ansible_templates_dir}/${var.src_playbook_template_name}"
   dst_playbook_file_path   = "${local.dst_files_dir}/${var.dst_playbook_file_name}"
-  src_vars_template_path  = "${local.src_ansible_templates_dir}/${var.src_vars_template_name}"
-  dst_vars_file_path      = "${local.dst_files_dir}/${var.dst_vars_file_name}"
+  src_vars_template_path   = "${local.src_ansible_templates_dir}/${var.src_vars_template_name}"
+  dst_vars_file_path       = "${local.dst_files_dir}/${var.dst_vars_file_name}"
   src_inventory_tftpl_path = "${local.src_ansible_templates_dir}/${var.src_inventory_template_name}"
   dst_inventory_file_path  = "${local.dst_files_dir}/${var.dst_inventory_file_name}"
 
@@ -113,11 +113,11 @@ resource "terraform_data" "execute_playbooks" {
     destination = local.dst_playbook_file_path
   }
 
-   # Copy and create ansible vars template file on ansible host
+  # Copy and create ansible vars template file on ansible host
   provisioner "file" {
-  content = length(var.vars_template_vars) > 0 ? templatefile(local.src_vars_template_path, var.vars_template_vars) : ""
-  destination = local.dst_vars_file_path
-}
+    content     = length(var.vars_template_vars) > 0 ? templatefile(local.src_vars_template_path, var.vars_template_vars) : ""
+    destination = local.dst_vars_file_path
+  }
 
   # Copy and create ansible inventory template file on ansible host
   provisioner "file" {
@@ -126,9 +126,9 @@ resource "terraform_data" "execute_playbooks" {
   }
 
   provisioner "file" {
-  source      = local.src_ansible_files_dir
-  destination = local.dst_ansible_files_dir
-}
+    source      = local.src_ansible_files_dir
+    destination = local.dst_ansible_files_dir
+  }
 
   # Copy and create ansible shell template file which will trigger the playbook on ansible host
   provisioner "file" {
@@ -220,7 +220,7 @@ resource "terraform_data" "execute_playbooks_with_vault" {
     content     = templatefile(local.src_playbook_tftpl_path, var.playbook_template_vars)
     destination = local.dst_playbook_file_path
   }
-  
+
   # Copy and create ansible vars template file on ansible host
   provisioner "file" {
     content     = templatefile(local.src_vars_template_path, var.playbook_template_vars)

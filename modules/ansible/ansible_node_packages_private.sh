@@ -62,14 +62,14 @@ main::subscription_mgr_check_process() {
 main::update_hosts_file() {
   # shellcheck disable=SC2154  # variables come from Terraform template
   local hosts_entries="${hosts_file_entries}"
-  
+
   if [[ -z "${hosts_entries}" ]]; then
     main::log_info "No host entries provided, skipping /etc/hosts update"
     return 0
   fi
 
   main::log_info "Updating /etc/hosts file"
-  
+
   # Backup existing hosts file
   if [[ ! -f /etc/hosts.backup ]]; then
     cp /etc/hosts /etc/hosts.backup

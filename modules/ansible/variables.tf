@@ -65,6 +65,7 @@ variable "dst_inventory_file_name" {
 }
 
 variable "inventory_template_vars" {
+  description = "Variables used to render the Ansible inventory template file."
   type = object({
     host_or_ip     = optional(any)
     hosts_and_vars = optional(any)
@@ -114,7 +115,7 @@ variable "hosts_file_entries" {
 variable "vars_template_vars" {
   description = "Map values for the ansible playbook template."
   type        = map(any)
-  default = {}
+  default     = {}
 }
 
 variable "src_vars_template_name" {

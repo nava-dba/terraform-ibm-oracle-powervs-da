@@ -244,7 +244,7 @@
         - name: Display sshd status after revert
           ansible.builtin.debug:
             var: sshd_status_revert.stdout_lines
-    
+
     ##############################################################
     # Create .profile for Oracle and Grid users (RAC Multi-Node)
     ##############################################################
@@ -295,7 +295,7 @@
         block: |
           # Oracle RAC Environment Settings for AIX - Node {{ rac_node_number }}
           umask 022
-          
+
           # Oracle Base Settings
           export ORACLE_BASE={{ oracle_base }}
           export ORACLE_HOME={{ oracle_databases[0].oracle_home }}
@@ -303,29 +303,29 @@
           export ORACLE_UNQNAME={{ oracle_databases[0].oracle_db_name }}
           export ORACLE_TERM=xterm
           export TERM=xterm
-          
+
           # RAC Specific
           export ORACLE_HOSTNAME={{ ansible_hostname }}
           export THREADS_FLAG=native
 
           # AIX specific - LIBPATH (not LD_LIBRARY_PATH)
           export LIBPATH=$ORACLE_HOME/lib:$ORACLE_HOME/lib32:/usr/lib:/lib
-          
+
           # Path settings for AIX
           export PATH=$ORACLE_HOME/bin:/usr/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:$PATH
-          
+
           # TNS Admin
           export TNS_ADMIN=$ORACLE_HOME/network/admin
-          
+
           # Editor
           export EDITOR=vi
-          
+
           # Timezone
           export TZ={{ time_zone }}
-          
+
           # Prompt with RAC node info
           export PS1="[$LOGNAME@{{ ansible_hostname }}:$ORACLE_SID]$ "
-          
+
           # Aliases for common tasks
           alias ll='ls -la'
           alias df='df -g'
@@ -335,17 +335,17 @@
           alias cdob='cd $ORACLE_BASE'
           alias cdoh='cd $ORACLE_HOME'
           alias cdtns='cd $TNS_ADMIN'
-          
+
           # RAC specific aliases
           alias srvctl='srvctl'
           alias crsctl='crsctl'
           alias cluvfy='cluvfy'
           alias asmcmd='asmcmd'
-          
+
           # Alert log aliases
           alias alert='tail -100f $ORACLE_BASE/diag/rdbms/$(echo $ORACLE_UNQNAME | tr "[A-Z]" "[a-z]")/$ORACLE_SID/trace/alert_$ORACLE_SID.log'
           alias listener='tail -100f $ORACLE_BASE/diag/tnslsnr/{{ ansible_hostname }}/listener/trace/listener.log'
-          
+
           # RAC status aliases
           alias racstat='srvctl status database -d $ORACLE_UNQNAME'
           alias racconfig='srvctl config database -d $ORACLE_UNQNAME'
@@ -354,11 +354,11 @@
           alias scanstat='srvctl status scan'
           alias vipstat='srvctl status vip -node {{ ansible_hostname }}'
           alias nodestat='srvctl status nodeapps'
-          
+
           # Cluster verification
           alias clustercheck='cluvfy comp healthcheck -collect cluster -bestpractice'
           alias clusterstat='crsctl check cluster -all'
-          
+
           # Display environment on login
           echo "================================================"
           echo "Oracle RAC Environment - Node {{ rac_node_number }}"
@@ -383,39 +383,39 @@
         block: |
           # Grid Infrastructure RAC Environment Settings for AIX - Node {{ rac_node_number }}
           umask 022
-          
+
           # Grid Base Settings
           export ORACLE_BASE={{ config.fs.ofa_fs }}/{{ global.grid_owner }}
           export ORACLE_HOME={{ grid_home_path }}
           export ORACLE_SID={{ node_asm_sid }}
           export ORACLE_TERM=xterm
           export TERM=xterm
-          
+
           # RAC Specific
           export ORACLE_HOSTNAME={{ ansible_hostname }}
-          
+
           # CRS/Grid Settings
           export CRS_HOME=$ORACLE_HOME
           export GRID_HOME=$ORACLE_HOME
-          
+
           # AIX specific - LIBPATH (not LD_LIBRARY_PATH)
           export LIBPATH=$ORACLE_HOME/lib:$ORACLE_HOME/lib32:/usr/lib:/lib
-          
+
           # Path settings for AIX
           export PATH=$ORACLE_HOME/bin:/usr/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:$PATH
-          
+
           # TNS Admin
           export TNS_ADMIN=$ORACLE_HOME/network/admin
-          
+
           # Editor
           export EDITOR=vi
-          
+
           # Timezone
           export TZ={{ time_zone }}
-          
+
           # Prompt with RAC node info
           export PS1="[$LOGNAME@{{ ansible_hostname }}:$ORACLE_SID]$ "
-          
+
           # Aliases for common tasks
           alias ll='ls -la'
           alias df='df -g'
@@ -423,7 +423,7 @@
           alias asmcmd='asmcmd'
           alias cdob='cd $ORACLE_BASE'
           alias cdoh='cd $ORACLE_HOME'
-          
+
           # Grid/CRS Management aliases
           alias srvctl='srvctl'
           alias crsctl='crsctl'
@@ -432,38 +432,38 @@
           alias ocrconfig='ocrconfig'
           alias crsstat='crsctl stat res -t'
           alias cluvfy='cluvfy'
-          
+
           # ASM aliases
           alias asmstat='srvctl status asm'
           alias asmdisks='kfed read /dev/r* | grep -i name'
           alias asmdg='asmcmd lsdg'
           alias asmdu='asmcmd du'
           alias asmlsdsk='asmcmd lsdsk'
-          
+
           # RAC specific aliases
           alias scanstat='srvctl status scan'
           alias scanlsnr='srvctl status scan_listener'
           alias vipstat='srvctl status vip -node {{ ansible_hostname }}'
           alias nodeapps='srvctl status nodeapps'
           alias diskgroups='srvctl status diskgroup -a'
-          
+
           # Alert and log aliases
           alias grid_alert='tail -100f $ORACLE_BASE/diag/asm/+asm/{{ node_asm_sid }}/trace/alert_{{ node_asm_sid }}.log'
           alias crs_alert='tail -100f $ORACLE_BASE/diag/crs/{{ ansible_hostname }}/crs/trace/alert.log'
           alias crsd_log='tail -100f $ORACLE_BASE/diag/crs/{{ ansible_hostname }}/crs/trace/crsd.log'
           alias ohasd_log='tail -100f $ORACLE_BASE/diag/crs/{{ ansible_hostname }}/ohasd/trace/ohasd.log'
-          
+
           # Cluster health check
           alias clustercheck='crsctl check cluster -all'
           alias clusterstatus='crsctl stat res -t'
           alias crsactive='ps -ef | grep -i crs | grep -v grep'
           alias hasactive='ps -ef | grep -i ohasd | grep -v grep'
-          
+
           # Voting disk and OCR
           alias votingdisk='crsctl query css votedisk'
           alias ocrloc='ocrcheck'
           alias ocrbackup='ocrconfig -showbackup'
-          
+
           # Display environment on login
           echo "================================================"
           echo "Grid Infrastructure RAC - Node {{ rac_node_number }}"
@@ -574,7 +574,7 @@
           export ORACLE_SID={{ oracle_databases[0].oracle_db_name }}{{ rac_node_number }}
           export ORACLE_UNQNAME={{ oracle_databases[0].oracle_db_name }}
           export PATH=$ORACLE_HOME/bin:$PATH
-          
+
           echo "=============================================="
           echo "RAC Database Check - $(date)"
           echo "Database: {{ oracle_databases[0].oracle_db_name }}"
@@ -605,7 +605,7 @@
           sqlplus -s / as sysdba <<EOF
           set linesize 200 pagesize 100
           col tablespace_name format a30
-          select tablespace_name, 
+          select tablespace_name,
                  round(sum(bytes)/1024/1024/1024,2) as size_gb,
                  round(sum(case when maxbytes = 0 then bytes else maxbytes end)/1024/1024/1024,2) as max_size_gb
           from dba_data_files
@@ -617,7 +617,7 @@
           sqlplus -s / as sysdba <<EOF
           set linesize 200 pagesize 100
           col name format a20
-          select name, 
+          select name,
                  round(total_mb/1024,2) as total_gb,
                  round(free_mb/1024,2) as free_gb,
                  round((total_mb-free_mb)/1024,2) as used_gb
