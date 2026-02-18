@@ -17,3 +17,4 @@ solutions/oracle/si/input.auto.tfvars
 .vscode
 solutions/oracle/si/*.tfvars
 solutions/oracle/rac/*.tfvars
+.github
