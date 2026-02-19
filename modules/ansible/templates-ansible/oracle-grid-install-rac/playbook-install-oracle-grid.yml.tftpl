@@ -14,7 +14,6 @@
   vars:
     # Set the playbook directory for relative paths
     playbook_dir: "/root/terraform_files"
-    #first_host: "{{ groups['all'][0] }}"
     ansible_ssh_user: root
 
   vars_files:
@@ -31,7 +30,7 @@
       run_once: true
 
     #######################################################
-    # Disk Discovery - ONCE with uppercase (matching volume names)
+    # Disk Discovery
     #######################################################
     - name: Discover disks for oravg (Oracle software VG)
       ansible.builtin.shell: |
@@ -63,7 +62,7 @@
       register: gimr_disks
       changed_when: false
 
-    - name: Discover disks for ARCH (ASM)
+    - name: Discover disks for ARCH (JFS2 — local per node)
       ansible.builtin.shell: |
         lsmpio -qa | grep -i arch | tr -s ' ' | cut -d' ' -f1
       register: arch_disks
@@ -76,17 +75,17 @@
         asm_diskgroup_disk: "{{ crsdg_disks.stdout_lines }}"
         asm_data_diskgroup_disk: "{{ data_disks.stdout_lines }}"
         asm_redo_diskgroup_disk: "{{ redo_disks.stdout_lines }}"
-        asm_arch_diskgroup_disk: "{{ arch_disks.stdout_lines }}"
+        arch_local_disks: "{{ arch_disks.stdout_lines }}"
 
     - name: Debug disk vars
       ansible.builtin.debug:
         msg:
-          - "ora_sw_vg_disk = {{ ora_sw_vg_disk }}"
+          - "ora_sw_vg_disk         = {{ ora_sw_vg_disk }}"
           - "ora_gimr_diskgroup_disk = {{ ora_gimr_diskgroup_disk }}"
-          - "asm_diskgroup_disk = {{ asm_diskgroup_disk }}"
+          - "asm_diskgroup_disk      = {{ asm_diskgroup_disk }}"
           - "asm_data_diskgroup_disk = {{ asm_data_diskgroup_disk }}"
           - "asm_redo_diskgroup_disk = {{ asm_redo_diskgroup_disk }}"
-          - "asm_arch_diskgroup_disk = {{ asm_arch_diskgroup_disk }}"
+          - "arch_local_disks        = {{ arch_local_disks }}"
 
     - name: Convert disk lists to space-separated disk numbers ONLY
       ansible.builtin.set_fact:
@@ -105,10 +104,6 @@
         redo_disk_string: >-
           {{ asm_redo_diskgroup_disk
              | map('regex_replace', '^(hdisk|ASMREDO)', '')
-             | join(' ') }}
-        arch_disk_string: >-
-          {{ asm_arch_diskgroup_disk
-             | map('regex_replace', '^(hdisk|ASMARCH)', '')
              | join(' ') }}
 
     - name: Merge ASM disk configuration into config
@@ -154,20 +149,111 @@
                     redo_disk_string,
                     'clear_pvids',
                     'zero_disks'
-                  ],
-                  [
-                    'ARCH',
-                    'ASMARCH',
-                    'EXTERNAL',
-                    arch_disk_string,
-                    arch_disk_string,
-                    'clear_pvids',
-                    'zero_disks'
                   ]
                 ]
               }
             }, recursive=True)
           }}
+
+    #######################################################
+    # ARCH JFS2 VG/LV/FS Creation — per node
+    #######################################################
+    - name: Create ARCH JFS2 filesystem for archive logs (per-node, local)
+      block:
+        - name: Check if ARCH JFS2 setup is already done on this node
+          ansible.builtin.stat:
+            path: "{{ done_file_dir }}/arch_jfs2_setup.done"
+          register: arch_jfs2_done
+
+        - name: Create archvg Volume Group on this node
+          ibm.power_aix.lvg:
+            vg_name: archvg
+            pvs: "{{ arch_local_disks }}"
+            vg_type: scalable
+            pp_size: 512
+            state: present
+            force: yes
+          when: not arch_jfs2_done.stat.exists
+
+        - name: Calculate MAX LV PP for archvg on this node
+          ansible.builtin.shell: |
+            min_pp=999999
+            for d in {{ arch_local_disks | join(' ') }}; do
+              pp=$(lspv $d | grep "FREE PPs" | awk '{print $3}')
+              if [ $pp -lt $min_pp ]; then
+                min_pp=$pp
+              fi
+            done
+            echo $((min_pp * {{ arch_local_disks | length }}))
+          args:
+            executable: /bin/ksh
+          register: arch_max_pp
+          changed_when: false
+          when: not arch_jfs2_done.stat.exists
+
+        - name: Create archlv Logical Volume (striped) on this node
+          ansible.builtin.shell: |
+            if lsvg -l archvg | grep -q "^archlv "; then
+              echo "LV archlv already exists"
+              exit 0
+            fi
+            mklv -S 2M \
+                 -t jfs2 \
+                 -y archlv \
+                 -c 1 \
+                 -C {{ arch_local_disks | length }} \
+                 archvg \
+                 {{ arch_max_pp.stdout | int }} \
+                 {{ arch_local_disks | join(' ') }}
+          args:
+            executable: /bin/ksh
+          register: arch_lv_result
+          changed_when: "'already exists' not in arch_lv_result.stdout"
+          failed_when:
+            - arch_lv_result.rc != 0
+            - "'already exists' not in arch_lv_result.stdout"
+          when: not arch_jfs2_done.stat.exists
+
+        - name: Create and mount /oraarchlogs filesystem on this node
+          ansible.builtin.shell: |
+            if lsfs | grep -q "^/oraarchlogs:"; then
+              echo "Filesystem exists"
+              exit 0
+            fi
+            crfs -v jfs2 \
+                 -d archlv \
+                 -m /oraarchlogs \
+                 -A yes \
+                 -p rw \
+                 -a log=INLINE \
+                 -a noatime=yes \
+                 -a agblksize=512
+            mount /oraarchlogs
+          args:
+            executable: /bin/ksh
+          register: arch_fs_result
+          changed_when: "'exists' not in arch_fs_result.stdout"
+          failed_when:
+            - arch_fs_result.rc != 0
+            - "'exists' not in arch_fs_result.stdout"
+          when: not arch_jfs2_done.stat.exists
+
+        - name: Set Oracle ownership on /oraarchlogs
+          ansible.builtin.file:
+            path: /oraarchlogs
+            owner: "{{ oracle_user }}"
+            group: "{{ oracle_group }}"
+            mode: '0775'
+            state: directory
+          when: not arch_jfs2_done.stat.exists
+
+        - name: Mark ARCH JFS2 setup complete on this node
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/arch_jfs2_setup.done"
+            state: touch
+            mode: '0644'
+          when: not arch_jfs2_done.stat.exists
+
 
   roles:
     - role: ibm.power_aix_oracle_rac_asm.bootstrap
@@ -511,8 +597,11 @@
           echo "--- Node Applications ---"
           {{ grid_home_path }}/bin/srvctl status nodeapps
           echo ""
-          echo "--- Diskgroup Status ---"
+          echo "--- Diskgroup Status (DATA + REDO + GIMR + CRSDG) ---"
           {{ grid_home_path }}/bin/asmcmd lsdg
+          echo ""
+          echo "--- Archive Log Filesystem (local JFS2) ---"
+          df -g /oraarchlogs
           echo ""
 
     - name: Create cluster-wide status script for grid user
@@ -535,7 +624,7 @@
           echo "--- All Resources ---"
           {{ grid_home_path }}/bin/crsctl stat res -t
           echo ""
-          echo "--- ASM Diskgroups ---"
+          echo "--- ASM Diskgroups (DATA + REDO + GIMR + CRSDG) ---"
           {{ grid_home_path }}/bin/asmcmd lsdg
           echo ""
           echo "--- ASM Disk Usage ---"
@@ -558,6 +647,9 @@
           echo ""
           echo "--- GIMR Status ---"
           {{ grid_home_path }}/bin/srvctl status mgmtdb
+          echo ""
+          echo "--- Archive Log Filesystem (local JFS2, this node only) ---"
+          df -g /oraarchlogs
           echo ""
 
     - name: Create RAC database check script for oracle user
@@ -612,7 +704,7 @@
           order by tablespace_name;
           EOF
           echo ""
-          echo "--- ASM Diskgroup Usage ---"
+          echo "--- ASM Diskgroup Usage (DATA + REDO) ---"
           sqlplus -s / as sysdba <<EOF
           set linesize 200 pagesize 100
           col name format a20
@@ -623,6 +715,9 @@
           from v\$asm_diskgroup
           order by name;
           EOF
+          echo ""
+          echo "--- Archive Log Filesystem Usage (local JFS2) ---"
+          df -g /oraarchlogs
           echo ""
 
     - name: Create node-specific info script
@@ -654,6 +749,9 @@
           echo "Grid Home        : {{ grid_home_path }}"
           echo "Grid Base        : {{ config.fs.ofa_fs }}/{{ global.grid_owner }}"
           echo ""
+          echo "ASM Diskgroups   : CRSDG, GIMR, DATA, REDO"
+          echo "Archive Storage  : JFS2 local — /oraarchlogs (not shared, not ASM)"
+          echo ""
           echo "Network Details:"
           echo "----------------"
           echo "SCAN Name        : {{ install.grid_rsp.install.crs.config.gpnp.scanName }}"
@@ -667,6 +765,7 @@
           echo "Check CRS        : crsctl stat res -t"
           echo "Check DB         : srvctl status database -d {{ oracle_databases[0].oracle_db_name }}"
           echo "Check ASM        : srvctl status asm"
+          echo "Archive space    : df -g /oraarchlogs"
           echo "Run scripts      : ~/cluster_status.sh, ~/db_status.sh"
           echo ""
           echo "Generated on: {{ ansible_date_time.iso8601 }}"
@@ -696,10 +795,10 @@
           Cluster: {{ cluster_name }}
           SCAN: {{ install.grid_rsp.install.crs.config.gpnp.scanName }}
           ================================================
+
     #################################################################
     # Remove proxy settings
     #################################################################
-
     - name: Remove proxy settings from /etc/profile
       ansible.builtin.lineinfile:
         path: /etc/profile

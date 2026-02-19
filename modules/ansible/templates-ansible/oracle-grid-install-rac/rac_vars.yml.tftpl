@@ -33,6 +33,7 @@ oracle_group: oinstall
 default_dbpass: "${ORA_DB_PASSWORD}"
 default_gipass: "${ORA_DB_PASSWORD}"
 work_dir: "/tmp/ansible"
+done_file_dir: "/var/tmp/ansible_flags"
 
 global:
 
@@ -349,4 +350,4 @@ oracle_databases:
     storage_type: "ASM"
     state: "{{ state }}"
     redolog_size_in_mb: "{{ redolog_size_in_mb }}"
-    oracle_init_params: "{{ 'db_create_online_log_dest_1=+REDO' }}"
+    oracle_init_params: "db_create_online_log_dest_1=+REDO,log_archive_dest_1=\"LOCATION=/oraarchlogs\""
