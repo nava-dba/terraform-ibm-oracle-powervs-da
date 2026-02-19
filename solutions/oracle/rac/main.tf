@@ -63,7 +63,8 @@ locals {
 data "ibm_pi_network" "networks" {
   count                = length(var.pi_networks)
   pi_cloud_instance_id = var.pi_existing_workspace_guid
-  pi_network_name      = var.pi_networks[count.index].name
+  pi_network_id        = var.pi_networks[count.index].id
+
 }
 
 locals {
