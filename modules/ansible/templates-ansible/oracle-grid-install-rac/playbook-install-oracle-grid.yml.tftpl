@@ -85,26 +85,57 @@
           - "asm_diskgroup_disk      = {{ asm_diskgroup_disk }}"
           - "asm_data_diskgroup_disk = {{ asm_data_diskgroup_disk }}"
           - "asm_redo_diskgroup_disk = {{ asm_redo_diskgroup_disk }}"
-          - "arch_local_disks        = {{ arch_local_disks }}"
+          - "arch_local_disks        = {{ arch_local_disks }} (JFS2 — not ASM)"
 
-    - name: Convert disk lists to space-separated disk numbers ONLY
+    - name: Extract current and target disk numbers from volume names
+      ansible.builtin.shell: |
+        lsmpio -qa | awk -v grp="{{ item.grep }}" -v pfx="{{ item.strip_prefix }}" -v kw="{{ item.vol_keyword }}" '
+          tolower($0) ~ tolower(grp) {
+            dev=$1
+            vol=$NF
+            # current number: strip known prefix from device name
+            curr=dev; sub(pfx, "", curr)
+            # new number: extract digit after keyword- in volume name
+            n=split(vol, a, "-")
+            for(i=1;i<=n;i++){
+              if(tolower(a[i])==tolower(kw) && i+1<=n && a[i+1]+0==a[i+1]){
+                new_num=a[i+1]; break
+              }
+            }
+            print curr, new_num
+          }
+        ' | sort -k2 -n
+      changed_when: false
+      register: disk_num_raw
+      loop:
+        - { grep: 'crsdg', strip_prefix: 'hdisk', vol_keyword: 'crsdg' }
+        - { grep: 'gimr',  strip_prefix: 'hdisk', vol_keyword: 'gimr'  }
+        - { grep: 'data',  strip_prefix: 'hdisk', vol_keyword: 'data'  }
+        - { grep: 'redo',  strip_prefix: 'hdisk', vol_keyword: 'redo'  }
+        - { grep: 'arch',  strip_prefix: 'hdisk', vol_keyword: 'arch'  }
+      loop_control:
+        label: "{{ item.grep }}"
+
+    - name: Build correlated current/new number strings per group
       ansible.builtin.set_fact:
-        gimr_disk_string: >-
-          {{ ora_gimr_diskgroup_disk
-             | map('regex_replace', '^(hdisk|ASMGIMR)', '')
-             | join(' ') }}
-        crsdg_disk_string: >-
-          {{ asm_diskgroup_disk
-             | map('regex_replace', '^(hdisk|ASMCRSDG)', '')
-             | join(' ') }}
-        data_disk_string: >-
-          {{ asm_data_diskgroup_disk
-             | map('regex_replace', '^(hdisk|ASMDATA)', '')
-             | join(' ') }}
-        redo_disk_string: >-
-          {{ asm_redo_diskgroup_disk
-             | map('regex_replace', '^(hdisk|ASMREDO)', '')
-             | join(' ') }}
+        crsdg_disk_string:     "{{ disk_num_raw.results[0].stdout_lines | map('split', ' ') | map(attribute=0) | join(' ') }}"
+        crsdg_new_disk_string: "{{ disk_num_raw.results[0].stdout_lines | map('split', ' ') | map(attribute=1) | join(' ') }}"
+        gimr_disk_string:      "{{ disk_num_raw.results[1].stdout_lines | map('split', ' ') | map(attribute=0) | join(' ') }}"
+        gimr_new_disk_string:  "{{ disk_num_raw.results[1].stdout_lines | map('split', ' ') | map(attribute=1) | join(' ') }}"
+        data_disk_string:      "{{ disk_num_raw.results[2].stdout_lines | map('split', ' ') | map(attribute=0) | join(' ') }}"
+        data_new_disk_string:  "{{ disk_num_raw.results[2].stdout_lines | map('split', ' ') | map(attribute=1) | join(' ') }}"
+        redo_disk_string:      "{{ disk_num_raw.results[3].stdout_lines | map('split', ' ') | map(attribute=0) | join(' ') }}"
+        redo_new_disk_string:  "{{ disk_num_raw.results[3].stdout_lines | map('split', ' ') | map(attribute=1) | join(' ') }}"
+        arch_rename_pairs:     "{{ disk_num_raw.results[4].stdout_lines | map('split', ' ') | list }}"
+
+    - name: Debug — correlated disk number mapping
+      ansible.builtin.debug:
+        msg:
+          - "CRSDG  curr={{ crsdg_disk_string }}  →  new={{ crsdg_new_disk_string }}  (prefix hdiskACR)"
+          - "GIMR   curr={{ gimr_disk_string   }}  →  new={{ gimr_new_disk_string   }}  (prefix hdiskAGM)"
+          - "DATA   curr={{ data_disk_string   }}  →  new={{ data_new_disk_string   }}  (prefix hdiskADT)"
+          - "REDO   curr={{ redo_disk_string   }}  →  new={{ redo_new_disk_string   }}  (prefix hdiskARD)"
+          - "ARCH   rename_pairs={{ arch_rename_pairs }} (rename to hdiskARn via rendev)"
 
     - name: Merge ASM disk configuration into config
       ansible.builtin.set_fact:
@@ -116,37 +147,37 @@
                 'diskgroups': [
                   [
                     'CRSDG',
-                    'ASMCRSDG',
+                    'hdiskACR',
                     'EXTERNAL',
                     crsdg_disk_string,
-                    crsdg_disk_string,
+                    crsdg_new_disk_string,
                     'clear_pvids',
                     'zero_disks'
                   ],
                   [
                     'GIMR',
-                    'ASMGIMR',
+                    'hdiskAGM',
                     'EXTERNAL',
                     gimr_disk_string,
-                    gimr_disk_string,
+                    gimr_new_disk_string,
                     'clear_pvids',
                     'zero_disks'
                   ],
                   [
                     'DATA',
-                    'ASMDATA',
+                    'hdiskADT',
                     'EXTERNAL',
                     data_disk_string,
-                    data_disk_string,
+                    data_new_disk_string,
                     'clear_pvids',
                     'zero_disks'
                   ],
                   [
                     'REDO',
-                    'ASMREDO',
+                    'hdiskARD',
                     'EXTERNAL',
                     redo_disk_string,
-                    redo_disk_string,
+                    redo_new_disk_string,
                     'clear_pvids',
                     'zero_disks'
                   ]
@@ -156,7 +187,62 @@
           }}
 
     #######################################################
-    # ARCH JFS2 VG/LV/FS Creation — per node
+    # Rename ARCH disks to hdiskAR1..n (per node, local)
+    #######################################################
+    - name: Ensure done_file_dir exists on this node
+      ansible.builtin.file:
+        path: "{{ done_file_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Rename ARCH disks to hdiskARn using volume-name sequence numbers (per node)
+      block:
+        - name: Check if ARCH disks already renamed on this node
+          ansible.builtin.stat:
+            path: "{{ done_file_dir }}/arch_disks_renamed.done"
+          register: arch_rename_done
+
+        - name: Rename each ARCH disk to hdiskARn (n from volume name)
+          ansible.builtin.shell: |
+            curr_dev="hdisk{{ item[0] }}"
+            new_name="hdiskAR{{ item[1] }}"
+            if lsdev -l "$new_name" > /dev/null 2>&1; then
+              echo "SKIP: $new_name already exists"
+            else
+              rendev -l "$curr_dev" -n "$new_name"
+              echo "RENAMED: $curr_dev -> $new_name"
+            fi
+          loop: "{{ arch_rename_pairs }}"
+          loop_control:
+            label: "hdisk{{ item[0] }} -> hdiskAR{{ item[1] }}"
+          register: arch_rename_result
+          changed_when: "'RENAMED' in arch_rename_result.stdout"
+          failed_when:
+            - arch_rename_result.rc != 0
+            - "'SKIP' not in arch_rename_result.stdout"
+          when: not arch_rename_done.stat.exists
+
+        - name: Mark ARCH disk rename complete on this node
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/arch_disks_renamed.done"
+            state: touch
+            mode: '0644'
+          when: not arch_rename_done.stat.exists
+
+        - name: Update arch_local_disks to hdiskARn names (volume-sequence based)
+          ansible.builtin.set_fact:
+            arch_local_disks: >-
+              {{ arch_rename_pairs
+                 | map(attribute=1)
+                 | map('regex_replace', '^(.*)$', 'hdiskAR\1')
+                 | list }}
+
+        - name: Debug — ARCH disks after rename on {{ ansible_hostname }}
+          ansible.builtin.debug:
+            msg: "ARCH disks (renamed): {{ arch_local_disks }}"
+
+    #######################################################
+    # ARCH JFS2 VG/LV/FS Creation
     #######################################################
     - name: Create ARCH JFS2 filesystem for archive logs (per-node, local)
       block:
