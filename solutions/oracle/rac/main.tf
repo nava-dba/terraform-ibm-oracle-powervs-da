@@ -20,8 +20,8 @@ locals {
 
   pi_crsdg_volume = {
     "name" : "CRSDG",
-    "size" : "2",
-    "count" : "1",
+    "size" : "1",
+    "count" : "4",
     "tier" : "tier1"
   }
 
