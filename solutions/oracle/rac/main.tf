@@ -136,24 +136,6 @@ module "pi_instance_rhel" {
 }
 
 ###########################################################
-# Create DNS VM
-###########################################################
-module "pi_instance_dns" {
-  source  = "terraform-ibm-modules/powervs-instance/ibm"
-  version = "2.7.0"
-
-  pi_workspace_guid       = var.pi_existing_workspace_guid
-  pi_ssh_public_key_name  = var.pi_ssh_public_key_name
-  pi_image_id             = var.pi_rhel_image_name
-  pi_networks             = [var.pi_networks[0]]
-  pi_instance_name        = "${var.prefix}-dns"
-  pi_memory_size          = var.pi_memory_size
-  pi_number_of_processors = local.pi_rhel_cpu_cores
-  pi_server_type          = var.pi_rhel_management_server_type
-  pi_cpu_proc_type        = "shared"
-}
-
-###########################################################
 # Create AIX VM for Oracle RAC database
 ###########################################################
 
@@ -225,9 +207,9 @@ locals {
     }
   }
 
-  # Get dns server ip
-  dns_server_ip = module.pi_instance_dns.pi_instance_primary_ip
-  dns_hostname  = module.pi_instance_dns.pi_instance_name
+  # Get dns server ip and hostname from RHEL management instance
+  dns_server_ip = module.pi_instance_rhel.pi_instance_primary_ip
+  dns_hostname  = module.pi_instance_rhel.pi_instance_name
 
   hosts_and_vars = {
     for idx in range(var.rac_nodes) :
@@ -543,7 +525,7 @@ locals {
 
 module "dns_configuration" {
   source     = "../../../modules/ansible"
-  depends_on = [module.pi_instance_aix_init]
+  depends_on = [module.pi_instance_aix_init, module.pi_instance_rhel_init]
 
   deployment_type        = var.deployment_type
   bastion_host_ip        = var.bastion_host_ip
