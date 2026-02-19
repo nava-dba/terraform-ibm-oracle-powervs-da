@@ -38,9 +38,9 @@ locals {
   }
 
   pi_arc_volume = {
-    "name" : "ARCH",
+    "name" : "arch",
     "size" : "10",
-    "count" : "4",
+    "count" : "2",
     "tier" : "tier3"
   }
 
@@ -240,7 +240,7 @@ locals {
     for i in range(var.rac_nodes) : data.ibm_pi_instance.attached_instances[i].id
   ]
 
-  # Expand oravg volumes per node
+  # --- oravg: node-local, multiple disks per node ---
   expanded_oravg_volumes = flatten([
     for node_idx in range(var.rac_nodes) : [
       for vol_idx in range(tonumber(var.pi_oravg_volume.count)) : {
@@ -256,8 +256,25 @@ locals {
   oravg_volumes_per_node = tonumber(var.pi_oravg_volume.count)
   total_oravg_volumes    = var.rac_nodes * local.oravg_volumes_per_node
 
+  # --- arch: node-local, non-shared ---
+  expanded_arch_volumes = flatten([
+    for node_idx in range(var.rac_nodes) : [
+      for vol_idx in range(tonumber(local.pi_arc_volume.count)) : {
+        node_index = node_idx
+        vol_index  = vol_idx
+        name       = "${local.pi_arc_volume.name}-${vol_idx + 1}"
+        size       = local.pi_arc_volume.size
+        tier       = local.pi_arc_volume.tier
+      }
+    ]
+  ])
+
+  arch_volumes_per_node = tonumber(local.pi_arc_volume.count)
+  total_arch_volumes    = var.rac_nodes * local.arch_volumes_per_node
+
+  # --- shared volumes: CRSDG, DATA, REDO, GIMR  ---
   expanded_shared_volumes = flatten([
-    for vol in [local.pi_crsdg_volume, var.pi_data_volume, var.pi_redo_volume, local.pi_gimr_volume, local.pi_arc_volume] : [
+    for vol in [local.pi_crsdg_volume, var.pi_data_volume, var.pi_redo_volume, local.pi_gimr_volume] : [
       for i in range(tonumber(vol.count)) : {
         name = "${lower(vol.name)}-${i + 1}"
         size = vol.size
@@ -303,9 +320,26 @@ resource "ibm_pi_volume" "node_oravg" {
   }
 }
 
-# --- Shared volumes ---
-resource "ibm_pi_volume" "shared" {
+# --- Node-local volumes: arch ---
+resource "ibm_pi_volume" "node_arch" {
   depends_on = [ibm_pi_volume.node_oravg]
+  count      = local.total_arch_volumes
+
+  pi_cloud_instance_id = var.pi_existing_workspace_guid
+  pi_volume_name       = "${var.prefix}-aix-${local.expanded_arch_volumes[count.index].node_index + 1}-${local.expanded_arch_volumes[count.index].name}"
+  pi_volume_size       = local.expanded_arch_volumes[count.index].size
+  pi_volume_type       = local.expanded_arch_volumes[count.index].tier
+  pi_volume_shareable  = false
+  pi_user_tags         = var.pi_user_tags
+
+  lifecycle {
+    ignore_changes = [pi_user_tags]
+  }
+}
+
+# --- Shared volumes: CRSDG, DATA, REDO, GIMR ---
+resource "ibm_pi_volume" "shared" {
+  depends_on = [ibm_pi_volume.node_arch]
   count      = local.shared_count
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
@@ -355,6 +389,23 @@ resource "ibm_pi_volume_attach" "node_oravg_attach" {
   }
 }
 
+# --- Attach node-local volumes: arch ---
+resource "ibm_pi_volume_attach" "node_arch_attach" {
+  count = local.total_arch_volumes
+
+  pi_cloud_instance_id = var.pi_existing_workspace_guid
+  pi_instance_id       = local.aix_instance_ids[local.expanded_arch_volumes[count.index].node_index]
+  pi_volume_id         = ibm_pi_volume.node_arch[count.index].volume_id
+
+  depends_on = [
+    ibm_pi_volume.node_arch,
+    ibm_pi_volume_attach.node_oravg_attach
+  ]
+
+  lifecycle {
+    ignore_changes = [pi_instance_id]
+  }
+}
 
 # To avoid with multiattach enabled","error":"Conflict"
 # --- Attach shared volumes to first node  ---
@@ -367,7 +418,7 @@ resource "ibm_pi_volume_attach" "shared_attach_node0" {
 
   depends_on = [
     ibm_pi_volume.shared,
-    ibm_pi_volume_attach.node_oravg_attach
+    ibm_pi_volume_attach.node_arch_attach
   ]
 
   lifecycle {
