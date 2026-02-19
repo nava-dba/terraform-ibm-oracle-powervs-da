@@ -441,7 +441,9 @@
                      -m {{ item.fs_name }} \
                      -A yes \
                      -p rw \
-                     -a log=INLINE
+                     -a log=INLINE \
+                     -a noatime=yes \
+                     -a agblksize={{ item.agblksize }}
 
                 mount {{ item.fs_name }}
               args:
