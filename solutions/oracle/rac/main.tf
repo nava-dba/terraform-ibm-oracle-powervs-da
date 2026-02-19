@@ -52,7 +52,7 @@ locals {
   pi_rhel_cpu_cores = lookup(local.pi_cpu_map, var.deployment_type, 0.25)
 
   pi_aix_cpu_cores = coalesce(
-    try(var.pi_aix_instance.number_processors, null),
+    try(var.pi_aix_instance.cores, null),
     lookup(local.pi_cpu_map, var.deployment_type, 0.25)
   )
 }
@@ -162,10 +162,10 @@ resource "ibm_pi_instance" "rac_nodes" {
   pi_instance_name     = "${var.prefix}-aix"
   pi_image_id          = var.pi_aix_image_name
   pi_key_pair_name     = var.pi_ssh_public_key_name
-  pi_memory            = var.pi_aix_instance.memory_size
+  pi_memory            = var.pi_aix_instance.memory_gb
   pi_processors        = local.pi_aix_cpu_cores
-  pi_proc_type         = var.pi_aix_instance.cpu_proc_type
-  pi_sys_type          = var.pi_aix_instance.server_type
+  pi_proc_type         = var.pi_aix_instance.core_type
+  pi_sys_type          = var.pi_aix_instance.machine_type
 
   dynamic "pi_network" {
     for_each = local.ordered_pi_networks

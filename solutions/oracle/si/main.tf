@@ -41,7 +41,7 @@ locals {
   pi_rhel_cpu_cores = lookup(local.pi_cpu_map, var.deployment_type, 0.25)
 
   pi_aix_cpu_cores = coalesce(
-    try(var.pi_aix_instance.number_processors, null),
+    try(var.pi_aix_instance.cores, null),
     lookup(local.pi_cpu_map, var.deployment_type, 0.25)
   )
 }
@@ -80,10 +80,10 @@ module "pi_instance_aix" {
   pi_networks                = var.pi_networks
   pi_instance_name           = "${var.prefix}-ora-aix"
   pi_pin_policy              = var.pi_aix_instance.pin_policy
-  pi_server_type             = var.pi_aix_instance.server_type
+  pi_server_type             = var.pi_aix_instance.machine_type
   pi_number_of_processors    = local.pi_aix_cpu_cores
-  pi_memory_size             = var.pi_aix_instance.memory_size
-  pi_cpu_proc_type           = var.pi_aix_instance.cpu_proc_type
+  pi_memory_size             = var.pi_aix_instance.memory_gb
+  pi_cpu_proc_type           = var.pi_aix_instance.core_type
   pi_boot_image_storage_tier = "tier1"
   pi_user_tags               = var.pi_user_tags
 

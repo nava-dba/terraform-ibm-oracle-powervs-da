@@ -412,10 +412,10 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "memory_size": "16",
-                "number_processors": null,
-                "cpu_proc_type": "shared",
-                "server_type": "s1022",
+                "memory_gb": "16",
+                "cores": null,
+                "core_type": "shared",
+                "machine_type": "s1022",
                 "pin_policy": "hard",
                 "health_status": "OK"
               }
@@ -942,10 +942,10 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "memory_size": "16",
-                "number_processors": null,
-                "cpu_proc_type": "shared",
-                "server_type": "s1022",
+                "memory_gb": "16",
+                "cores": null,
+                "core_type": "shared",
+                "machine_type": "s1022",
                 "pin_policy": "hard",
                 "health_status": "OK"
               }
