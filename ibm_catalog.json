@@ -95,8 +95,7 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[a-zA-Z0-9-]{1,5}$",
-                  "description": "The prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
+                  "value": "^[a-zA-Z0-9-]{1,5}$"
                 }
               ]
             },
@@ -158,8 +157,20 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12})$",
-                  "description": "The specified value shall be valid GUID"
+                  "value": "^(([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12})$"
+                }
+              ]
+            },
+            {
+              "key": "bastion_host_ip",
+              "display_name" : "Bastion Host IP Address",
+              "default_value": "",
+              "type": "string",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$"
                 }
               ]
             },
@@ -175,13 +186,25 @@
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
               "default_value": "",
-              "description": "SSH private key in OpenSSH PEM format. Paste the full multiline private key content including the header and footer lines.",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
                 "type": "multiline_secure_value"
               }
+            },
+            {
+              "key": "squid_server_ip",
+              "display_name" : "Squid - Proxy Server IP Address",
+              "default_value": "",
+              "type": "string",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$"
+                }
+              ]
             },
             {
               "key": "pi_networks",
@@ -198,8 +221,7 @@
                   ]
                 }
               },
-              "default_value": "[\n  {\n    name = \"ora-subnet\"\n    id   = \"asdg876a-f62i-92ua-abcd-89h08a7sd90d\"\n  }\n]",
-              "description": "Existing list of private subnet ids to be attached to an instance. The first element will become the primary interface."
+              "default_value": "[\n  {\n    name = \"ora-subnet\"\n    id   = \"asdg876a-f62i-92ua-abcd-89h08a7sd90d\"\n  }\n]"
             },
             {
               "key": "pi_rhel_management_server_type",
@@ -296,22 +318,7 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$",
-                  "description": "The specified value shall be a valid IPv4 address"
-                }
-              ]
-            },
-            {
-              "key": "squid_server_ip",
-              "display_name" : "Squid - Proxy Server IP Address",
-              "default_value": "",
-              "type": "string",
-              "required": true,
-              "value_constraints": [
-                {
-                  "type": "regex",
-                  "value": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$",
-                  "description": "The specified value shall be a valid IPv4 address"
+                  "value": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$"
                 }
               ]
             },
@@ -324,13 +331,11 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$",
-                  "description": "The specified value shall contain only alphabets, numbers and underscore, and it shall start with an alphabet"
+                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$"
                 },
                 {
                   "type": "regex",
-                  "value": "^.{3,8}$",
-                  "description": "the specified value length should be between 3 and 8 characters."
+                  "value": "^.{3,8}$"
                 }
               ]
             },
@@ -343,13 +348,11 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
-                  "description": "The specified value should be alpha-numeric and shall contain at least 1 upper, 1 lower, 1 digit and a special character"
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$"
                 },
                 {
                   "type": "regex",
-                  "value": "^.{8,30}$",
-                  "description": "the specified value length should be between 8 and 30 characters."
+                  "value": "^.{8,30}$"
                 }
               ],
               "custom_config": {}
@@ -578,8 +581,7 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[a-zA-Z0-9-]{1,5}$",
-                  "description": "The prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
+                  "value": "^[a-zA-Z0-9-]{1,5}$"
                 }
               ]
             },
@@ -617,8 +619,7 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12})$",
-                  "description": "The specified value shall be valid GUID"
+                  "value": "^(([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12})$"
                 }
               ]
             },
@@ -634,7 +635,6 @@
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
               "default_value": "",
-              "description": "SSH private key in OpenSSH PEM format. Paste the full multiline private key content including the header and footer lines.",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -732,7 +732,6 @@
             {
               "key": "rac_nodes",
               "displayname": "Number of RAC Nodes",
-              "description": "Number of Oracle RAC instance nodes",
               "type": "int",
               "default_value": 2,
               "required": false,
@@ -746,7 +745,6 @@
             {
               "key": "time_zone",
               "displayname": "Oracle Server Time Zone",
-              "description": "Time zone for Oracle instances",
               "type": "string",
               "default_value": "America/Los_Angeles",
               "required": false,
@@ -776,23 +774,8 @@
             {
               "key": "cluster_domain",
               "display_name" : "Cluster Domain Name",
-              "description": "Specify the cluster domain (example: example.com)",
               "type": "string",
               "required": false
-            },
-            {
-              "key": "bastion_host_ip",
-              "display_name" : "Bastion Host IP Address",
-              "default_value": "",
-              "type": "string",
-              "required": true,
-              "value_constraints": [
-                {
-                  "type": "regex",
-                  "value": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$",
-                  "description": "The specified value shall be a valid IPv4 address"
-                }
-              ]
             },
             {
               "key": "squid_server_ip",
@@ -803,28 +786,24 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$",
-                  "description": "The specified value shall be a valid IPv4 address"
+                  "value": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$"
                 }
               ]
             },
             {
               "key": "root_password",
               "display_name" : "RAC Nodes Root User Password",
-              "description": "Root password for Oracle instances",
               "type": "password",
               "default_value": "",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
-                  "description": "The specified value should be alpha-numeric and shall contain at least 1 upper, 1 lower, 1 digit and a special character"
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$"
                 },
                 {
                   "type": "regex",
-                  "value": "^.{8,30}$",
-                  "description": "the specified value length should be between 8 and 30 characters."
+                  "value": "^.{8,30}$"
                 }
               ],
               "custom_config": {}
@@ -833,14 +812,12 @@
               "key": "cluster_name",
               "display_name" : "RAC Cluster Name",
               "default_value" : "orac-cluster",
-              "description": "Specify the cluster name (example: orac-cluster)",
               "type": "string",
               "required": true
             },
             {
               "key": "ru_version",
               "displayname": "Oracle Patch Version (RU)",
-              "description": "Oracle Grid and Database RU patch version",
               "default_value": "19.29",
               "type": "string",
               "required": true,
@@ -871,13 +848,11 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$",
-                  "description": "The specified value shall contain only alphabets, numbers and underscore, and it shall start with an alphabet"
+                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$"
                 },
                 {
                   "type": "regex",
-                  "value": "^.{3,8}$",
-                  "description": "the specified value length should be between 3 and 8 characters."
+                  "value": "^.{3,8}$"
                 }
               ]
             },
@@ -890,13 +865,11 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
-                  "description": "The specified value should be alpha-numeric and shall contain at least 1 upper, 1 lower, 1 digit and a special character"
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$"
                 },
                 {
                   "type": "regex",
-                  "value": "^.{8,30}$",
-                  "description": "the specified value length should be between 8 and 30 characters."
+                  "value": "^.{8,30}$"
                 }
               ],
               "custom_config": {}

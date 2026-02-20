@@ -28,7 +28,7 @@ variable "zone" {
 #####################################################
 
 variable "prefix" {
-  description = "Unique identifier prepended to all resources created by this template. Use only lowercase letters, numbers, and hyphens (-). Maximum 5 characters."
+  description = "Unique identifier prepended to all resources created by this template. Use only lowercase letters the prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
   type        = string
 }
 

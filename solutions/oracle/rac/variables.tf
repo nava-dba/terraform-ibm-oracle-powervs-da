@@ -28,7 +28,7 @@ variable "zone" {
 #####################################################
 
 variable "prefix" {
-  description = "Unique identifier prepended to all resources created by this template. Use only lowercase letters, numbers, and hyphens (-). Maximum 16 characters."
+  description = "Unique identifier prepended to all resources created by this template. Use only lowercase letters the prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
   type        = string
 }
 
@@ -237,7 +237,7 @@ variable "rac_nodes" {
 }
 
 variable "root_password" {
-  description = "Root user password for all Oracle RAC AIX virtual server instances. This password is set on each RAC node during provisioning and is required for administrative access."
+  description = "Root user password for all Oracle RAC AIX virtual server instances. This password is set on each RAC node during provisioning and is required for administrative access.The specified value should be alpha-numeric and shall contain at least 1 upper, 1 lower, 1 digit and a special character,the specified value length should be between 8 and 30 characters."
   type        = string
   sensitive   = true
 }
