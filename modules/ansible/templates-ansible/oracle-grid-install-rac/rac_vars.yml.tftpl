@@ -116,7 +116,7 @@ config:
   vgname: &oravg "oravg"
 
   ora_vg: [
-     *oravg,     '256',      "big",     "{{ ora_sw_vg_disk }}", 'clear_pvids',  'zero_disks'
+     *oravg,     '32',      'scalable',     "{{ ora_sw_vg_disk }}", 'clear_pvids',  'zero_disks'
   ]
 
   fs:
