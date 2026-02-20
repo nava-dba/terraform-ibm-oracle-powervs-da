@@ -1040,7 +1040,7 @@
               {
                 "diagram": {
                   "caption": "Full Oracle Real Application Cluster",
-                  "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/54a750060690893d236bb3a80c6e78c781aefa82/images/Oracle_DA_RAC.svg",
+                  "url": "https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/3a7da500811cee221ecb81bf05a795f9c6a6bfd9/images/Oracle_DA_RAC.svg",
                   "type": "image/svg+xml"
                 },
                 "description": "This deployable architecture is designed to assist you in deploying Oracle Real Application Cluster(RAC) into IBM Power Virtual Server. \n\nThis DA creates and prepares Power Virtual Server instances for Oracle RAC database workloads. \n\nThis provisions Red Hat Enterprise Linux as the Ansible controller,NFS and DNS. AIX virtual machines as Oracle instance, retrieves Oracle software from IBM Cloud Object Storage(COS), and performs a guided GRID and RDBMS installation and creates Oracle database based on user-defined parameters."
