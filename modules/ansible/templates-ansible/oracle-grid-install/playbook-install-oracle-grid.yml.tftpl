@@ -231,6 +231,34 @@
         oracle_init_params: "{{ 'db_create_online_log_dest_1=+REDO,log_archive_dest_1=\"LOCATION=/oraarchlogs\"' if oracle_install_type == 'ASM' else 'db_create_online_log_dest_1=/oraredologs,log_archive_dest_1=\"LOCATION=/oraarchlogs\",filesystemio_options=SETALL' }}"
 
   pre_tasks:
+  #######################################################
+  # Create User and Group for both install_type
+  #######################################################
+    - name: Creating group {{ora_group}} with gid {{ora_group_gid}}
+      ansible.builtin.group:
+        name: "{{ora_group}}"
+        gid:  "{{ora_group_gid}}"
+        state: present
+
+    - name: Creating group {{ora_oinstall_group}} with gid {{ora_oinstall_group_gid}}
+      ansible.builtin.group:
+        name: "{{ora_oinstall_group}}"
+        gid:  "{{ora_oinstall_group_gid}}"
+        state: present
+
+    - name: Creating group {{ora_oper_group}} with gid {{ora_oper_group_gid}}
+      ansible.builtin.group:
+        name: "{{ora_oper_group}}"
+        gid:  "{{ora_oper_group_gid}}"
+        state: present
+
+    - name: Creating user {{ora_user}} with uid {{ora_user_uid}}
+      ansible.builtin.user:
+        name: "{{ora_user}}"
+        group: "{{ora_oinstall_group}}"
+        groups: "{{ora_group}},{{ora_oper_group}}"
+        append: yes
+        uid: "{{ora_user_uid}}"
     #######################################################
     # Disk Discovery
     #######################################################
@@ -310,38 +338,14 @@
             path: "{{ done_file_dir }}/jfs2_storage_setup.done"
           register: jfs2_setup_done
 
-        - name: Creating group {{ora_group}} with gid {{ora_group_gid}}
-          ansible.builtin.group:
-            name: "{{ora_group}}"
-            gid:  "{{ora_group_gid}}"
-            state: present
-
-        - name: Creating group {{ora_oinstall_group}} with gid {{ora_oinstall_group_gid}}
-          ansible.builtin.group:
-            name: "{{ora_oinstall_group}}"
-            gid:  "{{ora_oinstall_group_gid}}"
-            state: present
-
-        - name: Creating group {{ora_oper_group}} with gid {{ora_oper_group_gid}}
-          ansible.builtin.group:
-            name: "{{ora_oper_group}}"
-            gid:  "{{ora_oper_group_gid}}"
-            state: present
-
-        - name: Creating user {{ora_user}} with uid {{ora_user_uid}}
-          ansible.builtin.user:
-            name: "{{ora_user}}"
-            group: "{{ora_oinstall_group}}"
-            groups: "{{ora_group}},{{ora_oper_group}}"
-            append: yes
-            uid: "{{ora_user_uid}}"
-
         - name: Create JFS2 Volume Groups, Logical Volumes, and Filesystems
           when: not jfs2_setup_done.stat.exists
           block:
 
             #######################################################
             # Step 1: Create Volume Groups
+            # mkvg -S -f -s 512 -y datavg hdisk2 hdisk3
+            # mkvg -S -f -s 512 -y redovg hdisk4
             #######################################################
             - name: Create Volume Groups
               ibm.power_aix.lvg:
@@ -393,6 +397,8 @@
 
             #######################################################
             # Step 3: Create Logical Volumes (Striped)
+            # mklv -S 2M -t jfs2 -y datalv -c 1 -C 2 datavg 2000 hdisk2 hdisk3
+            # mklv -S 2M -t jfs2 -y redolv -c 1 -C 1 redovg 400 hdisk4
             #######################################################
             - name: Create Logical Volumes with striping
               ansible.builtin.shell: |
@@ -422,10 +428,12 @@
 
             #######################################################
             # Step 4: Create and Mount Filesystems
+            # crfs -v jfs2 -d datalv -m /oradatafiles -A yes -p rw -a log=INLINE -a noatime=yes -a agblksize=4096 && mount /oradatafiles
+            # crfs -v jfs2 -d redolv -m /oraredologs -A yes -p rw -a log=INLINE -a noatime=yes -a agblksize=512 && mount /oraredologs
             #######################################################
             - name: Create and Mount Filesystems
               ansible.builtin.shell: |
-                if lsfs | grep -q "^{{ item.fs_name }}:"; then
+                if lsfs | mount | grep -q " {{ item.fs_name }} "; then
                   echo "Filesystem exists"
                   exit 0
                 fi
@@ -533,6 +541,10 @@
 
         - name: Create and mount {{ arch_jfs2_config[0].fs_name }} filesystem
           ansible.builtin.shell: |
+            if mount | grep -q " {{ arch_jfs2_config[0].fs_name }} "; then
+              echo "Filesystem exists"
+              exit 0
+            fi
             if lsfs | grep -q "^{{ arch_jfs2_config[0].fs_name }}:"; then
               echo "Filesystem exists"
               exit 0
