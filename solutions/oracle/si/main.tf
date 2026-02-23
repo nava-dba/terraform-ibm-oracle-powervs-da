@@ -10,7 +10,9 @@
 # Create RHEL Management VM
 
 locals {
-  nfs_mount = "/repos"
+  nfs_mount      = "/repos"
+  no_proxy_list  = "localhost,127.0.0.1"
+  pi_memory_size = "4"
 
   pi_boot_volume = {
     "name" : "rootvg",
@@ -55,7 +57,7 @@ module "pi_instance_rhel" {
   pi_image_id             = var.pi_rhel_image_name
   pi_networks             = var.pi_networks
   pi_instance_name        = "${var.prefix}-mgmt-rhel"
-  pi_memory_size          = var.pi_memory_size
+  pi_memory_size          = local.pi_memory_size
   pi_number_of_processors = local.pi_rhel_cpu_cores
   pi_server_type          = var.pi_rhel_management_server_type
   pi_cpu_proc_type        = "shared"
@@ -164,7 +166,7 @@ locals {
   squid_server_ip = var.squid_server_ip
   playbook_aix_init_vars = {
     PROXY_IP_PORT          = "${local.squid_server_ip}:3128"
-    NO_PROXY               = var.no_proxy_list
+    NO_PROXY               = local.no_proxy_list
     ORA_NFS_HOST           = module.pi_instance_aix.pi_instance_primary_ip
     ORA_NFS_DEVICE         = local.nfs_mount
     EXTEND_ROOT_VOLUME_WWN = module.pi_instance_aix.pi_storage_configuration[0].wwns

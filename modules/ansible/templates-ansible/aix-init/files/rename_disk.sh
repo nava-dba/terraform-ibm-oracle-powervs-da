@@ -71,7 +71,7 @@ fi
 # Step 1: Temporarily rename local disks
 # -------------------------------
 echo "Assigning temporary names on $HOST..."
-while read line; do
+while read -r line; do
     disk=$(echo "$line" | awk '{print $1}')
     temp="${disk}_tmp"
 
@@ -91,7 +91,7 @@ grep "$TAG" "$CUR_FILE" > "$CUR_DATA"
 # Step 2: Rename to Node1 names
 # -------------------------------
 echo "Aligning disk names to Node1..."
-while read ref_line; do
+while read -r ref_line; do
     ref_disk=$(echo "$ref_line" | awk '{print $1}')
     ref_vol=$(echo "$ref_line" | awk '{print $NF}')
 

@@ -13,7 +13,7 @@ if [ -n "$1" ]; then
 else
     echo "Enter new password for $USERNAME:"
     stty -echo
-    read NEWPASSWORD
+    read -r NEWPASSWORD
     stty echo
     echo
 fi
@@ -22,17 +22,14 @@ fi
 echo "Resetting password for user: $USERNAME"
 
 # Update password
-echo "${USERNAME}:${NEWPASSWORD}" | chpasswd
-
-if [ $? -ne 0 ]; then
+if ! echo "${USERNAME}:${NEWPASSWORD}" | chpasswd; then
     echo "ERROR: chpasswd failed."
     exit 1
 fi
 
-# Clear login failures
-pwdadm -c "$USERNAME"
 
-if [ $? -ne 0 ]; then
+# Clear login failures
+if ! pwdadm -c "$USERNAME"; then
     echo "WARNING: pwdadm could not clear login failures."
 else
     echo "Login failures cleared for $USERNAME."

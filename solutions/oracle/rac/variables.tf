@@ -58,12 +58,6 @@ variable "pi_rhel_image_name" {
   type        = string
 }
 
-variable "pi_memory_size" {
-  description = "Memory size in GB for the RHEL management instance."
-  type        = string
-  default     = "4"
-}
-
 variable "pi_aix_image_name" {
   description = "Name of the IBM PowerVS AIX boot image used to host the Oracle Database. Must be a valid AIX image available in the workspace. To list available images, run: ibmcloud pi images."
   type        = string
@@ -107,26 +101,6 @@ variable "pi_networks" {
     condition     = length(var.pi_networks) >= 4
     error_message = "At least 4 networks are required: management, public, private1, and private2."
   }
-}
-
-variable "aix_network_interfaces" {
-  description = "AIX network interface names corresponding to the networks provided in 'pi_networks'. 'public' maps to index 1 (client network), 'private1' maps to index 2 (RAC interconnect 1), 'private2' maps to index 3 (RAC interconnect 2). Default values match standard AIX interface naming (en1, en2, en3). Change only if your AIX image uses different interface names."
-  type = object({
-    public   = string
-    private1 = string
-    private2 = string
-  })
-  default = {
-    public   = "en1"
-    private1 = "en2"
-    private2 = "en3"
-  }
-}
-
-variable "no_proxy_list" {
-  description = "Comma-separated list of hostnames, IP addresses, or domains that should bypass the Squid proxy server. Default covers localhost only."
-  type        = string
-  default     = "localhost,127.0.0.1"
 }
 
 variable "ibmcloud_cos_configuration" {
@@ -247,13 +221,6 @@ variable "time_zone" {
   type        = string
   default     = "America/Los_Angeles"
 }
-
-variable "scan_name" {
-  description = "SCAN (Single Client Access Name) hostname for the Oracle RAC cluster. This is the DNS name that clients use to connect to the RAC database, independent of which node is active. Must be resolvable by DNS to 3 IP addresses (one per SCAN listener). For more information, see [Oracle SCAN Documentation](https://docs.oracle.com/en/database/oracle/oracle-database/19/racad/administering-database-instances-and-cluster-databases.html)."
-  type        = string
-  default     = "orac-scan"
-}
-
 # ===========================
 # Database Configuration
 # ===========================

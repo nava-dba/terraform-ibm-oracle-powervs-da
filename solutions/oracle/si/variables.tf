@@ -58,12 +58,6 @@ variable "pi_rhel_image_name" {
   type        = string
 }
 
-variable "pi_memory_size" {
-  description = "Memory size in GB for the RHEL management instance."
-  type        = string
-  default     = "4"
-}
-
 variable "pi_aix_image_name" {
   description = "Name of the IBM PowerVS AIX boot image used to host the Oracle Database. Must be a valid AIX image available in the workspace. To list available images, run: ibmcloud pi images."
   type        = string
@@ -187,10 +181,4 @@ variable "ora_db_password" {
 variable "oracle_install_type" {
   description = "Oracle storage installation type. Use 'ASM' for Automatic Storage Management (requires Grid Infrastructure binaries in COS and 'cos_oracle_grid_sw_path' set) or 'JFS' for Journal File System (JFS2). ASM is recommended for production environments. "
   type        = string
-}
-
-variable "no_proxy_list" {
-  description = "Comma-separated list of hostnames, IP addresses, or domains that should bypass the Squid proxy server. Default covers localhost only."
-  type        = string
-  default     = "localhost,127.0.0.1"
 }

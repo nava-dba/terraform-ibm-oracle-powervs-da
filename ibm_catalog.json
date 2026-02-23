@@ -71,7 +71,7 @@
           "configuration": [
             {
               "key": "deployment_type",
-              "display_name" : "Deployment Type",
+              "display_name": "Deployment Type",
               "type": "string",
               "default_value": "",
               "required": true,
@@ -88,7 +88,7 @@
             },
             {
               "key": "prefix",
-              "display_name" : "Resource Name Prefix",
+              "display_name": "Resource Name Prefix",
               "default_value": "",
               "type": "string",
               "required": true,
@@ -101,7 +101,7 @@
             },
             {
               "key": "region",
-              "display_name" : "Deployment Region",
+              "display_name": "Deployment Region",
               "type": "string",
               "default_value": "",
               "required": true,
@@ -143,14 +143,14 @@
             },
             {
               "key": "zone",
-              "display_name" : "PowerVS Zone",
+              "display_name": "PowerVS Zone",
               "type": "string",
               "required": true,
               "default_value": ""
             },
             {
               "key": "pi_existing_workspace_guid",
-              "display_name" : "PowerVS Workspace GUID",
+              "display_name": "PowerVS Workspace GUID",
               "type": "string",
               "required": true,
               "default_value": "",
@@ -163,7 +163,7 @@
             },
             {
               "key": "bastion_host_ip",
-              "display_name" : "Bastion Host IP Address",
+              "display_name": "Bastion Host IP Address",
               "default_value": "",
               "type": "string",
               "required": true,
@@ -176,7 +176,7 @@
             },
             {
               "key": "pi_ssh_public_key_name",
-              "display_name" : "Bastion Host SSH Public Key Name",
+              "display_name": "Bastion Host SSH Public Key Name",
               "type": "string",
               "required": true,
               "default_value": ""
@@ -185,7 +185,6 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
-              "default_value": "",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -195,7 +194,7 @@
             },
             {
               "key": "squid_server_ip",
-              "display_name" : "Squid - Proxy Server IP Address",
+              "display_name": "Squid - Proxy Server IP Address",
               "default_value": "",
               "type": "string",
               "required": true,
@@ -208,7 +207,7 @@
             },
             {
               "key": "pi_networks",
-              "display_name" : "PowerVS Networks",
+              "display_name": "PowerVS Networks",
               "type": "array",
               "required": true,
               "custom_config": {
@@ -296,7 +295,6 @@
                   "displayname": "7300-04-00",
                   "value": "7300-04-00"
                 }
-
               ]
             },
             {
@@ -347,7 +345,7 @@
             },
             {
               "key": "oracle_install_type",
-              "display_name" : "Storage Type (ASM or File System JFS2)",
+              "display_name": "Storage Type (ASM or File System JFS2)",
               "type": "string",
               "default_value": "",
               "required": true,
@@ -377,7 +375,7 @@
             },
             {
               "key": "ibmcloud_cos_configuration",
-              "display_name" : "COS Oracle Software Storage Configuration",
+              "display_name": "COS Oracle Software Storage Configuration",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -395,7 +393,7 @@
             },
             {
               "key": "pi_aix_instance",
-              "display_name" : "AIX Instance Configuration(CPU,Mem)",
+              "display_name": "AIX Instance Configuration(CPU,Mem)",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -413,7 +411,7 @@
             },
             {
               "key": "pi_oravg_volume",
-              "display_name" : "Oracle Software Binary Disks",
+              "display_name": "Oracle Software Binary Disks",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -428,7 +426,7 @@
             },
             {
               "key": "pi_data_volume",
-              "display_name" : "Database Data Disks",
+              "display_name": "Database Data Disks",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -443,7 +441,7 @@
             },
             {
               "key": "pi_redo_volume",
-              "display_name" : "Redo Log Disks",
+              "display_name": "Redo Log Disks",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -458,14 +456,14 @@
             },
             {
               "key": "redolog_size_in_mb",
-              "display_name" : "Redo log member size (MB)",
+              "display_name": "Redo log member size (MB)",
               "type": "string",
               "required": false,
               "default_value": "1024"
             },
             {
               "key": "pi_user_tags",
-              "display_name" : "Resource Tags",
+              "display_name": "Resource Tags",
               "required": false,
               "type": "string",
               "default_value": "[\"tag-001\", \"tag-002\"]"
@@ -545,7 +543,7 @@
           "configuration": [
             {
               "key": "deployment_type",
-              "display_name" : "Deployment Type",
+              "display_name": "Deployment Type",
               "type": "string",
               "default_value": "",
               "required": true,
@@ -562,7 +560,7 @@
             },
             {
               "key": "prefix",
-              "display_name" : "Resource Name Prefix",
+              "display_name": "Resource Name Prefix",
               "default_value": "",
               "type": "string",
               "required": true,
@@ -575,32 +573,56 @@
             },
             {
               "key": "region",
-              "display_name" : "Deployment Region",
+              "display_name": "Deployment Region",
               "type": "string",
               "default_value": "",
               "required": true,
               "options": [
-                { "displayname": "Dallas (dallas)",   "value": "us-south" },
-                { "displayname": "Washington, D.C.",  "value": "us-east"  },
-                { "displayname": "Frankfurt",         "value": "eu-de"    },
-                { "displayname": "London",            "value": "eu-gb"    },
-                { "displayname": "Tokyo",             "value": "jp-tok"   },
-                { "displayname": "Sydney",            "value": "au-syd"   },
-                { "displayname": "Sao Paulo",         "value": "br-sao"   },
-                { "displayname": "Toronto",           "value": "ca-tor"   }
+                {
+                  "displayname": "Dallas (dallas)",
+                  "value": "us-south"
+                },
+                {
+                  "displayname": "Washington, D.C.",
+                  "value": "us-east"
+                },
+                {
+                  "displayname": "Frankfurt",
+                  "value": "eu-de"
+                },
+                {
+                  "displayname": "London",
+                  "value": "eu-gb"
+                },
+                {
+                  "displayname": "Tokyo",
+                  "value": "jp-tok"
+                },
+                {
+                  "displayname": "Sydney",
+                  "value": "au-syd"
+                },
+                {
+                  "displayname": "Sao Paulo",
+                  "value": "br-sao"
+                },
+                {
+                  "displayname": "Toronto",
+                  "value": "ca-tor"
+                }
               ],
               "custom_config": {}
             },
             {
               "key": "zone",
-              "display_name" : "PowerVS Zone",
+              "display_name": "PowerVS Zone",
               "type": "string",
               "required": true,
               "default_value": ""
             },
             {
               "key": "pi_existing_workspace_guid",
-              "display_name" : "PowerVS Workspace GUID",
+              "display_name": "PowerVS Workspace GUID",
               "type": "string",
               "required": true,
               "default_value": "",
@@ -613,7 +635,7 @@
             },
             {
               "key": "bastion_host_ip",
-              "display_name" : "Bastion Host IP Address",
+              "display_name": "Bastion Host IP Address",
               "default_value": "",
               "type": "string",
               "required": true,
@@ -626,7 +648,7 @@
             },
             {
               "key": "pi_ssh_public_key_name",
-              "display_name" : "Bastion Host SSH Public Key Name",
+              "display_name": "Bastion Host SSH Public Key Name",
               "type": "string",
               "required": true,
               "default_value": ""
@@ -635,7 +657,6 @@
               "key": "ssh_private_key",
               "type": "multiline_secure_value",
               "display_name": "Bastion Host SSH Private Key",
-              "default_value": "",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -650,37 +671,32 @@
               "default_value": "anti-affinity",
               "required": true,
               "options": [
-                { "displayname": "Same Server", "value": "affinity" },
-                { "displayname": "Different Server", "value": "anti-affinity" }
+                {
+                  "displayname": "Same Server",
+                  "value": "affinity"
+                },
+                {
+                  "displayname": "Different Server",
+                  "value": "anti-affinity"
+                }
               ]
             },
             {
               "key": "pi_networks",
-              "display_name" : "PowerVS Networks",
+              "display_name": "PowerVS Networks",
+              "type": "array",
               "required": true,
               "custom_config": {
+                "type": "code_editor",
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "json_editor"
-              },
-              "default_value": [
-                {
-                  "id": "c38d18ad-b39f-4ba0-94f0-ada107ab64df",
-                  "name": "ora_mgmt_net"
-                },
-                {
-                  "id": "47e38742-5850-411a-95ba-80fea41c12ec",
-                  "name": "ora-rac-pub"
-                },
-                {
-                  "id": "65167db2-715a-4cb9-b600-806c77d33cc4",
-                  "name": "ora-rac-priv1"
-                },
-                {
-                  "id": "856db87c-cb23-416d-898b-834bb2b8e0bc",
-                  "name": "ora-rac-priv2"
+                "config_constraints": {
+                  "supportedLanguages": [
+                    "hcl"
+                  ]
                 }
-              ]
+              },
+              "default_value": "[\n  {\n    name = \"ora_mgmt_net\"\n    id   = \"c38d18ad-b39f-4ba0-94f0-ada107ab64df\"\n  },\n  {\n    name = \"ora-rac-pub\"\n    id   = \"47e38742-5850-411a-95ba-80fea41c12ec\"\n  },\n  {\n    name = \"ora-rac-priv1\"\n    id   = \"65167db2-715a-4cb9-b600-806c77d33cc4\"\n  },\n  {\n    name = \"ora-rac-priv2\"\n    id   = \"856db87c-cb23-416d-898b-834bb2b8e0bc\"\n  }\n]"
             },
             {
               "key": "pi_rhel_management_server_type",
@@ -689,12 +705,30 @@
               "default_value": "",
               "required": true,
               "options": [
-                { "displayname": "s1122", "value": "s1122" },
-                { "displayname": "s1022", "value": "s1022" },
-                { "displayname": "s922",  "value": "s922"  },
-                { "displayname": "e980",  "value": "e980"  },
-                { "displayname": "e1080", "value": "e1080" },
-                { "displayname": "e1050", "value": "e1050" }
+                {
+                  "displayname": "s1122",
+                  "value": "s1122"
+                },
+                {
+                  "displayname": "s1022",
+                  "value": "s1022"
+                },
+                {
+                  "displayname": "s922",
+                  "value": "s922"
+                },
+                {
+                  "displayname": "e980",
+                  "value": "e980"
+                },
+                {
+                  "displayname": "e1080",
+                  "value": "e1080"
+                },
+                {
+                  "displayname": "e1050",
+                  "value": "e1050"
+                }
               ]
             },
             {
@@ -703,7 +737,12 @@
               "type": "string",
               "default_value": "RHEL9-SP6",
               "required": true,
-              "options": [{ "displayname": "RHEL9-SP6", "value": "RHEL9-SP6" }]
+              "options": [
+                {
+                  "displayname": "RHEL9-SP6",
+                  "value": "RHEL9-SP6"
+                }
+              ]
             },
             {
               "key": "pi_aix_image_name",
@@ -712,11 +751,26 @@
               "default_value": "7300-03-01",
               "required": false,
               "options": [
-                { "displayname": "7200-05-09", "value": "7200-05-09" },
-                { "displayname": "7300-03-00", "value": "7300-03-00" },
-                { "displayname": "7300-03-01", "value": "7300-03-01" },
-                { "displayname": "7100-05-09", "value": "7100-05-09" },
-                { "displayname": "7300-02-02", "value": "7300-02-02" }
+                {
+                  "displayname": "7200-05-09",
+                  "value": "7200-05-09"
+                },
+                {
+                  "displayname": "7300-03-00",
+                  "value": "7300-03-00"
+                },
+                {
+                  "displayname": "7300-03-01",
+                  "value": "7300-03-01"
+                },
+                {
+                  "displayname": "7100-05-09",
+                  "value": "7100-05-09"
+                },
+                {
+                  "displayname": "7300-02-02",
+                  "value": "7300-02-02"
+                }
               ]
             },
             {
@@ -774,13 +828,13 @@
             },
             {
               "key": "cluster_domain",
-              "display_name" : "Cluster Domain Name",
+              "display_name": "Cluster Domain Name",
               "type": "string",
               "required": false
             },
             {
               "key": "squid_server_ip",
-              "display_name" : "Squid - Proxy Server IP Address",
+              "display_name": "Squid - Proxy Server IP Address",
               "default_value": "",
               "type": "string",
               "required": true,
@@ -793,7 +847,7 @@
             },
             {
               "key": "root_password",
-              "display_name" : "RAC Nodes Root User Password",
+              "display_name": "RAC Nodes Root User Password",
               "type": "password",
               "default_value": "",
               "required": true,
@@ -811,8 +865,8 @@
             },
             {
               "key": "cluster_name",
-              "display_name" : "RAC Cluster Name",
-              "default_value" : "orac-cluster",
+              "display_name": "RAC Cluster Name",
+              "default_value": "orac-cluster",
               "type": "string",
               "required": true
             },
@@ -823,21 +877,66 @@
               "type": "string",
               "required": true,
               "options": [
-                { "displayname": "RU 19.15", "value": "19.15" },
-                { "displayname": "RU 19.16", "value": "19.16" },
-                { "displayname": "RU 19.17", "value": "19.17" },
-                { "displayname": "RU 19.18", "value": "19.18" },
-                { "displayname": "RU 19.19", "value": "19.19" },
-                { "displayname": "RU 19.20", "value": "19.20" },
-                { "displayname": "RU 19.21", "value": "19.21" },
-                { "displayname": "RU 19.22", "value": "19.22" },
-                { "displayname": "RU 19.23", "value": "19.23" },
-                { "displayname": "RU 19.24", "value": "19.24" },
-                { "displayname": "RU 19.25", "value": "19.25" },
-                { "displayname": "RU 19.26", "value": "19.26" },
-                { "displayname": "RU 19.27", "value": "19.27" },
-                { "displayname": "RU 19.28", "value": "19.28" },
-                { "displayname": "RU 19.29", "value": "19.29" }
+                {
+                  "displayname": "RU 19.15",
+                  "value": "19.15"
+                },
+                {
+                  "displayname": "RU 19.16",
+                  "value": "19.16"
+                },
+                {
+                  "displayname": "RU 19.17",
+                  "value": "19.17"
+                },
+                {
+                  "displayname": "RU 19.18",
+                  "value": "19.18"
+                },
+                {
+                  "displayname": "RU 19.19",
+                  "value": "19.19"
+                },
+                {
+                  "displayname": "RU 19.20",
+                  "value": "19.20"
+                },
+                {
+                  "displayname": "RU 19.21",
+                  "value": "19.21"
+                },
+                {
+                  "displayname": "RU 19.22",
+                  "value": "19.22"
+                },
+                {
+                  "displayname": "RU 19.23",
+                  "value": "19.23"
+                },
+                {
+                  "displayname": "RU 19.24",
+                  "value": "19.24"
+                },
+                {
+                  "displayname": "RU 19.25",
+                  "value": "19.25"
+                },
+                {
+                  "displayname": "RU 19.26",
+                  "value": "19.26"
+                },
+                {
+                  "displayname": "RU 19.27",
+                  "value": "19.27"
+                },
+                {
+                  "displayname": "RU 19.28",
+                  "value": "19.28"
+                },
+                {
+                  "displayname": "RU 19.29",
+                  "value": "19.29"
+                }
               ]
             },
             {
@@ -889,7 +988,7 @@
             },
             {
               "key": "ibmcloud_cos_configuration",
-              "display_name" : "COS Oracle Software Storage Configuration",
+              "display_name": "COS Oracle Software Storage Configuration",
               "required": true,
               "custom_config": {
                 "grouping": "deployment",
@@ -908,7 +1007,7 @@
             },
             {
               "key": "pi_aix_instance",
-              "display_name" : "AIX Instance Configuration(CPU,Mem)",
+              "display_name": "AIX Instance Configuration(CPU,Mem)",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -926,7 +1025,7 @@
             },
             {
               "key": "pi_oravg_volume",
-              "display_name" : "Oracle Software Binary Disks",
+              "display_name": "Oracle Software Binary Disks",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -941,7 +1040,7 @@
             },
             {
               "key": "pi_data_volume",
-              "display_name" : "Database Data Disks",
+              "display_name": "Database Data Disks",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -956,7 +1055,7 @@
             },
             {
               "key": "pi_redo_volume",
-              "display_name" : "Redo Log Disks",
+              "display_name": "Redo Log Disks",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -971,14 +1070,14 @@
             },
             {
               "key": "redolog_size_in_mb",
-              "display_name" : "Redo log member size (MB)",
+              "display_name": "Redo log member size (MB)",
               "type": "string",
               "required": false,
               "default_value": "1024"
             },
             {
               "key": "pi_user_tags",
-              "display_name" : "Resource Tags",
+              "display_name": "Resource Tags",
               "required": false,
               "type": "string",
               "default_value": "[\"tag-001\", \"tag-002\"]"
@@ -987,23 +1086,33 @@
           "scripts": [],
           "iam_permissions": [
             {
-              "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ],
               "service_name": "appid"
             },
             {
-              "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ],
               "service_name": "cloud-object-storage"
             },
             {
-              "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ],
               "service_name": "hs-crypto"
             },
             {
-              "role_crns": ["crn:v1:bluemix:public:iam::::role:Administrator"],
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Administrator"
+              ],
               "service_name": "iam-identity"
             },
             {
-              "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ],
               "service_name": "kms"
             },
             {
@@ -1014,15 +1123,21 @@
               "service_name": "is.vpc"
             },
             {
-              "role_crns": ["crn:v1:bluemix:public:iam::::role:Editor"],
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Editor"
+              ],
               "service_name": "is.vpc"
             },
             {
-              "role_crns": ["crn:v1:bluemix:public:iam::::role:Editor"],
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Editor"
+              ],
               "service_name": "transit.gateway"
             },
             {
-              "role_crns": ["crn:v1:bluemix:public:iam::::serviceRole:Manager"],
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ],
               "service_name": "power-iaas"
             }
           ],
