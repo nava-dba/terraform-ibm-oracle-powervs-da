@@ -14,7 +14,7 @@
   "ora_sid": "orcl",
   "pi_aix_instance": {
     "memory_gb": 16,
-    "number_processors": 0.25,
+    "cores": 0.25,
     "core_type": "shared",
     "machine_type": "s1022",
     "pin_policy": "hard",
