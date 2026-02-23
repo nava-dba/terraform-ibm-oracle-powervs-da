@@ -105,10 +105,8 @@ jobs:
               inputs["root_password"]                  = os.environ.get("TF_VAR_ROOT_PASSWORD", "") # pragma: allowlist secret
 
           # IBM Projects API expects inputs as flat key/value
-          ibm_inputs = {k: {"value": v} for k, v in inputs.items()}
-
           with open("/tmp/ibm_inputs.json", "w") as f:
-              json.dump({"inputs": ibm_inputs}, f, indent=2)
+              json.dump({"inputs": inputs}, f, indent=2)
 
           print("Inputs built successfully")
           EOF
