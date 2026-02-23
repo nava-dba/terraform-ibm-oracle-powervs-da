@@ -1,67 +1,121 @@
-##############################################################################
-# Release Pipeline — Fully Standalone
-# Repo: nava-dba/terraform-ibm-oracle-powervs-da
-#
-# Triggers:
-#   - Push (merge) to main or prod branch
-#   - Manual dispatch from Actions tab
-#
-# What it does:
-#   - Runs semantic-release to:
-#       * Analyze commit messages (Conventional Commits)
-#       * Bump version (major/minor/patch)
-#       * Generate / update CHANGELOG.md
-#       * Create a GitHub Release with release notes
-#       * Push a git tag (e.g. v1.2.3)
-#
-# Required repository secret:
-#   GH_TOKEN   GitHub PAT with `repo` scope
-#              (default GITHUB_TOKEN cannot push tags back)
-##############################################################################
 name: Release-Pipeline
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 
 on:
   push:
     branches:
       - main
-      - prod
-  workflow_dispatch:
 
 jobs:
-  release:
-    name: Semantic Release
+
+  ##############################################################################
+  # JOB 1 — Semantic Release
+  ##############################################################################
+  semantic_release:
+    name: Semantic_Release
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
+    outputs:
+      version: ${{ steps.export_version.outputs.version }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # Full history needed for semantic-release
-          token: ${{ secrets.GH_TOKEN }}
-          submodules: recursive
+          fetch-depth: 0
+          submodules: true
 
-      - name: Set up Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: 20
 
-      - name: Install semantic-release and plugins
+      - name: Install semantic-release + plugins
         run: |
-          npm install -g \
-            semantic-release \
-            @semantic-release/changelog \
-            @semantic-release/git \
-            @semantic-release/github \
+          npm install semantic-release \
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
-            conventional-changelog-conventionalcommits
+            @semantic-release/github \
+            @semantic-release/git \
+            @semantic-release/exec
 
       - name: Run semantic-release
-        run: semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+      - name: Export Version
+        id: export_version
+        run: |
+          echo "version=$SEMVER_VERSION" >> $GITHUB_OUTPUT
+
+  ##############################################################################
+  # JOB 2 — Import GPG + Re-sign Tag (Matches IBM Flow)
+  ##############################################################################
+  sign_and_push_tag:
+    name: Sign_Tag
+    runs-on: ubuntu-latest
+    needs: semantic_release
+    if: needs.semantic_release.outputs.version != ''
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_tag_gpgsign: true
+
+      - name: Re-sign tag and push
+        run: |
+          VERSION=v${{ needs.semantic_release.outputs.version }}
+
+          if [ -z "${{ needs.semantic_release.outputs.version }}" ]; then
+            echo "No version released"
+            exit 0
+          fi
+
+          echo "Version: $VERSION"
+
+          git fetch --tags
+
+          git tag -f -s "$VERSION" -m "Release $VERSION"
+
+          git push --force origin "$VERSION"
+
+  ##############################################################################
+  # JOB 3 — Failure Notification
+  ##############################################################################
+  create-failure-notifications:
+    name: create-failure-notifications
+    runs-on: ubuntu-latest
+    needs: [semantic_release, sign_and_push_tag]
+    if: failure()
+
+    steps:
+      - name: Create GitHub Issue on Failure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: "Release Pipeline Failed",
+              body: `Release pipeline failed.
+
+              Commit: ${context.sha}
+              Workflow: ${context.workflow}
+
+              Please check Actions logs.`,
+            })
