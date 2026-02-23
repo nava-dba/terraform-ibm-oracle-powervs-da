@@ -117,9 +117,9 @@ main::install_packages() {
       while ! dnf -y install "${package}"; do
         count=$((count + 1))
         sleep 3
-        # shellcheck disable=SC2317
         if [[ ${count} -gt ${max_count} ]]; then
           main::log_error "Failed to install ${package}"
+          # shellcheck disable=SC2317
           break
         fi
       done
@@ -133,9 +133,9 @@ main::install_packages() {
       while ! ansible-galaxy collection install "${collection}" -f; do
         count=$((count + 1))
         sleep 3
-        # shellcheck disable=SC2317
         if [[ ${count} -gt ${max_count} ]]; then
           main::log_error "Failed to install ansible galaxy collection ${collection}"
+          # shellcheck disable=SC2317
           break
         fi
       done
@@ -162,6 +162,7 @@ main::install_pip_packages() {
       sleep 3
       if [[ ${count} -gt ${max_count} ]]; then
         main::log_error "Failed to install python package: netaddr"
+        # shellcheck disable=SC2317
         break
       fi
     done

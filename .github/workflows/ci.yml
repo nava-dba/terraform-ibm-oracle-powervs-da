@@ -1,43 +1,29 @@
-##############################################################################
-# CI Pipeline — Fully Standalone
-# Repo: nava-dba/terraform-ibm-oracle-powervs-da
-#
-# Triggers:
-#   - Push to any branch
-#   - Pull requests targeting main or prod
-#   - Manual dispatch from Actions tab
-#
-# Jobs:
-#   1. pre-commit       → fmt, validate, yaml checks, detect-secrets
-#   2. terraform        → terraform init + validate across all modules
-#   3. tfsec            → static security scanning
-##############################################################################
 name: CI-Pipeline
 
 on:
-  push:
-    branches:
-      - "**"
-  pull_request:
-    branches:
-      - main
-      - prod
+  issue_comment:
+    types: [created]
   workflow_dispatch:
 
 jobs:
 
-  ##############################################################################
-  # JOB 1 — Pre-commit checks
-  ##############################################################################
   pre-commit:
     name: Pre-Commit Checks
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.issue.pull_request != null &&
+        contains(github.event.comment.body, '/run pipeline')
+      )
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.pull_request.head.ref || github.event.issue.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.event.issue.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           submodules: recursive
 
       - name: Set up Python
@@ -70,17 +56,16 @@ jobs:
       - name: Install pre-commit
         run: pip install pre-commit
 
-      - name: Run pre-commit on all files
+      - name: Run pre-commit
         run: pre-commit run --all-files --show-diff-on-failure
 
       - name: Run TFLint
         run: tflint --recursive --minimum-failure-severity=error
 
-  ##############################################################################
-  # JOB 2 — Terraform Init + Validate
-  ##############################################################################
   terraform-validate:
     name: Terraform Validate
+    needs: pre-commit
+    if: needs.pre-commit.result == 'success'
     runs-on: ubuntu-latest
 
     strategy:
@@ -92,10 +77,12 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Checkout code
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.pull_request.head.ref || github.event.issue.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.event.issue.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           submodules: recursive
 
       - name: Set up Terraform
@@ -103,38 +90,39 @@ jobs:
         with:
           terraform_version: "1.9.0"
 
-      - name: Terraform Init — ${{ matrix.terraform_dir }}
+      - name: Terraform Init
         working-directory: ${{ matrix.terraform_dir }}
-        run: terraform init -backend=false
+        run: terraform init -backend=false -input=false
         env:
           TF_VAR_ibmcloud_api_key: ${{ secrets.TF_VAR_IBMCLOUD_API_KEY }}
 
-      - name: Terraform Format Check — ${{ matrix.terraform_dir }}
+      - name: Terraform Format Check
         working-directory: ${{ matrix.terraform_dir }}
         run: terraform fmt -check -recursive
 
-      - name: Terraform Validate — ${{ matrix.terraform_dir }}
+      - name: Terraform Validate
         working-directory: ${{ matrix.terraform_dir }}
         run: terraform validate
         env:
           TF_VAR_ibmcloud_api_key: ${{ secrets.TF_VAR_IBMCLOUD_API_KEY }}
 
-  ##############################################################################
-  # JOB 3 — Security Scan (tfsec)
-  ##############################################################################
   tfsec:
     name: TFSec Security Scan
+    needs: terraform-validate
+    if: needs.terraform-validate.result == 'success'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.pull_request.head.ref || github.event.issue.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.event.issue.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           submodules: recursive
 
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           soft_fail: true
-          github_token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -8,8 +8,16 @@
 #############################
 
 locals {
-  nfs_mount   = "/repos"
-  ora_version = "19c"
+  nfs_mount      = "/repos"
+  ora_version    = "19c"
+  no_proxy_list  = "localhost,127.0.0.1"
+  pi_memory_size = "4"
+  scan_name      = "orac-scan"
+  aix_network_interfaces = {
+    public   = "en1"
+    private1 = "en2"
+    private2 = "en3"
+  }
 
   pi_boot_volume = {
     "name" : "rootvg",
@@ -122,7 +130,7 @@ module "pi_instance_rhel" {
   pi_image_id             = var.pi_rhel_image_name
   pi_networks             = [var.pi_networks[0]]
   pi_instance_name        = "${var.prefix}-mgmt-rhel"
-  pi_memory_size          = var.pi_memory_size
+  pi_memory_size          = local.pi_memory_size
   pi_number_of_processors = local.pi_rhel_cpu_cores
   pi_server_type          = var.pi_rhel_management_server_type
   pi_cpu_proc_type        = "shared"
@@ -515,7 +523,7 @@ locals {
 
   playbook_aix_init_vars = {
     PROXY_IP_PORT          = "${local.squid_server_ip}:3128"
-    NO_PROXY               = var.no_proxy_list
+    NO_PROXY               = local.no_proxy_list
     ORA_NFS_HOST           = join(",", local.aix_primary_ips)
     ORA_NFS_DEVICE         = local.nfs_mount
     AIX_INIT_MODE          = "rac"
@@ -566,7 +574,7 @@ locals {
     dns_server_ip   = tostring(local.dns_server_ip)
     dns_domain_name = tostring(var.cluster_domain)
     dns_hostname    = tostring(local.dns_hostname)
-    scan_name       = tostring(var.scan_name)
+    scan_name       = tostring(local.scan_name)
     scan_ips        = jsonencode(local.scan_ips_list)
     rac_nodes_count = tostring(var.rac_nodes)
     rac_nodes       = jsonencode(local.rac_nodes_list)
@@ -722,9 +730,9 @@ locals {
       pub_ip   = local.get_ip_by_network[idx][local.pub_network_name]
       priv1_ip = local.get_ip_by_network[idx][local.priv1_network_name]
       priv2_ip = local.get_ip_by_network[idx][local.priv2_network_name]
-      pub_if   = var.aix_network_interfaces.public
-      priv1_if = var.aix_network_interfaces.private1
-      priv2_if = var.aix_network_interfaces.private2
+      pub_if   = local.aix_network_interfaces.public
+      priv1_if = local.aix_network_interfaces.private1
+      priv2_if = local.aix_network_interfaces.private2
     }
   ]
 
