@@ -56,6 +56,11 @@ jobs:
       - name: Install pre-commit
         run: pip install pre-commit
 
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+          trivy --version
+
       - name: Run pre-commit
         run: pre-commit run --all-files --show-diff-on-failure
 
