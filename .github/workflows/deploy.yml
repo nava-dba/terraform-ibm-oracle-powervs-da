@@ -1,0 +1,341 @@
+##############################################################################
+# CD Pipeline — IBM Cloud Projects Deployment
+# Repo: nava-dba/terraform-ibm-oracle-powervs-da
+#
+# Triggers:
+#   - Manual dispatch only (workflow_dispatch)
+#
+# Inputs:
+#   - variation:  si | rac
+#   - action:     validate-only | validate-and-deploy | destroy
+#
+# Required secrets:
+#   IC_API_KEY                           IBM Cloud API key
+#   IBM_PROJECT_ID                       IBM Cloud Projects ID
+#   IBM_SI_CONFIG_ID                     SI config ID in project
+#   IBM_RAC_CONFIG_ID                    RAC config ID in project
+#   TF_VAR_IBMCLOUD_API_KEY              IBM Cloud API key for Terraform
+#   TF_VAR_SSH_PRIVATE_KEY               SSH private key (PEM)
+#   TF_VAR_ORA_DB_PASSWORD               Oracle SYS password
+#   TF_VAR_ROOT_PASSWORD                 AIX root password (RAC only)
+#   TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS  COS JSON credentials
+#
+# Required GitHub Environment:
+#   production  → required reviewers set to approve before deploy/destroy
+##############################################################################
+name: CD-Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      variation:
+        description: "Deployment variation"
+        required: true
+        type: choice
+        options:
+          - si
+          - rac
+      action:
+        description: "Action to perform"
+        required: true
+        type: choice
+        options:
+          - validate-only
+          - validate-and-deploy
+          - destroy
+
+jobs:
+
+  ##############################################################################
+  # JOB 1 — Validate
+  ##############################################################################
+  validate:
+    name: Validate (${{ github.event.inputs.variation }})
+    runs-on: ubuntu-latest
+
+    outputs:
+      config_id: ${{ steps.set-ids.outputs.config_id }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install IBM Cloud CLI
+        run: |
+          curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+          ibmcloud plugin install project -f
+          ibmcloud --version
+
+      - name: Login to IBM Cloud
+        run: |
+          ibmcloud login --apikey "${{ secrets.IC_API_KEY }}" --no-region
+          ibmcloud target -r us-south
+
+      - name: Set Config ID
+        id: set-ids
+        run: |
+          if [[ "${{ github.event.inputs.variation }}" == "si" ]]; then
+            echo "config_id=${{ secrets.IBM_SI_CONFIG_ID }}" >> $GITHUB_OUTPUT
+            echo "inputs_file=deploy/si/inputs.json" >> $GITHUB_OUTPUT
+          else
+            echo "config_id=${{ secrets.IBM_RAC_CONFIG_ID }}" >> $GITHUB_OUTPUT
+            echo "inputs_file=deploy/rac/inputs.json" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Full Inputs (merge secrets + file)
+        id: build-inputs
+        run: |
+          VARIATION="${{ github.event.inputs.variation }}"
+          INPUTS_FILE="deploy/${VARIATION}/inputs.json"
+
+          # Merge non-secret inputs from file with secrets
+          python3 - <<EOF
+          import json, os
+
+          with open("${INPUTS_FILE}") as f:
+              inputs = json.load(f)
+
+          # Inject secrets
+          inputs["ibmcloud_api_key"]                   = os.environ["TF_VAR_IBMCLOUD_API_KEY"]
+          inputs["ssh_private_key"]                    = os.environ["TF_VAR_SSH_PRIVATE_KEY"] # pragma: allowlist secret
+          inputs["ora_db_password"]                    = os.environ["TF_VAR_ORA_DB_PASSWORD"] # pragma: allowlist secret
+          inputs["ibmcloud_cos_service_credentials"]   = os.environ["TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS"]
+
+          if "${VARIATION}" == "rac":
+              inputs["root_password"]                  = os.environ.get("TF_VAR_ROOT_PASSWORD", "") # pragma: allowlist secret
+
+          # IBM Projects API expects inputs as flat key/value
+          ibm_inputs = {k: {"value": v} for k, v in inputs.items()}
+
+          with open("/tmp/ibm_inputs.json", "w") as f:
+              json.dump({"inputs": ibm_inputs}, f, indent=2)
+
+          print("Inputs built successfully")
+          EOF
+        env:
+          TF_VAR_IBMCLOUD_API_KEY: ${{ secrets.TF_VAR_IBMCLOUD_API_KEY }}
+          TF_VAR_SSH_PRIVATE_KEY: ${{ secrets.TF_VAR_SSH_PRIVATE_KEY }}
+          TF_VAR_ORA_DB_PASSWORD: ${{ secrets.TF_VAR_ORA_DB_PASSWORD }}
+          TF_VAR_ROOT_PASSWORD: ${{ secrets.TF_VAR_ROOT_PASSWORD }}
+          TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS: ${{ secrets.TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS }}
+
+      - name: Update Config Inputs in IBM Projects
+        run: |
+          CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
+
+          ibmcloud project config-update \
+            --project-id "${{ secrets.IBM_PROJECT_ID }}" \
+            --id "${CONFIG_ID}" \
+            --definition @/tmp/ibm_inputs.json
+
+          echo "Config inputs updated"
+
+      - name: Trigger Validation
+        run: |
+          CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
+
+          ibmcloud project config-validate \
+            --project-id "${{ secrets.IBM_PROJECT_ID }}" \
+            --id "${CONFIG_ID}"
+
+          echo "Validation triggered"
+
+      - name: Poll Validation Status
+        run: |
+          CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
+          MAX_WAIT=1800   # 30 minutes
+          INTERVAL=30
+          ELAPSED=0
+
+          echo "Polling validation status..."
+
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            STATE=$(ibmcloud project config \
+              --project-id "${{ secrets.IBM_PROJECT_ID }}" \
+              --id "${CONFIG_ID}" \
+              --output json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('state','unknown'))")
+
+            echo "[$ELAPSED s] State: ${STATE}"
+
+            if [[ "${STATE}" == "validated" ]]; then
+              echo "Validation passed!"
+              exit 0
+            elif [[ "${STATE}" == "validating_failed" || "${STATE}" == "draft" ]]; then
+              echo "Validation failed! State: ${STATE}"
+              # Print last error
+              ibmcloud project config \
+                --project-id "${{ secrets.IBM_PROJECT_ID }}" \
+                --id "${CONFIG_ID}" \
+                --output json | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          for item in d.get('needs_attention_state', []):
+              print(item)
+          "
+              exit 1
+            fi
+
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "Validation timed out after ${MAX_WAIT}s"
+          exit 1
+
+  ##############################################################################
+  # JOB 2 — Deploy (requires approval gate + validate to pass)
+  ##############################################################################
+  deploy:
+    name: Deploy (${{ github.event.inputs.variation }})
+    runs-on: ubuntu-latest
+    needs: validate
+    environment: production   # ← GitHub Environment approval gate
+    if: github.event.inputs.action == 'validate-and-deploy'
+
+    steps:
+      - name: Install IBM Cloud CLI
+        run: |
+          curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+          ibmcloud plugin install project -f
+
+      - name: Login to IBM Cloud
+        run: |
+          ibmcloud login --apikey "${{ secrets.IC_API_KEY }}" --no-region
+          ibmcloud target -r us-south
+
+      - name: Approve Config
+        run: |
+          CONFIG_ID="${{ needs.validate.outputs.config_id }}"
+
+          ibmcloud project config-approve \
+            --project-id "${{ secrets.IBM_PROJECT_ID }}" \
+            --id "${CONFIG_ID}" \
+            --comment "Approved via CD pipeline by ${{ github.actor }}"
+
+          echo "Config approved"
+
+      - name: Trigger Deploy
+        run: |
+          CONFIG_ID="${{ needs.validate.outputs.config_id }}"
+
+          ibmcloud project config-deploy \
+            --project-id "${{ secrets.IBM_PROJECT_ID }}" \
+            --id "${CONFIG_ID}"
+
+          echo "Deploy triggered"
+
+      - name: Poll Deploy Status
+        run: |
+          CONFIG_ID="${{ needs.validate.outputs.config_id }}"
+          MAX_WAIT=10800  # 3 hours
+          INTERVAL=60
+          ELAPSED=0
+
+          echo "Polling deploy status... (max 3 hours)"
+
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            STATE=$(ibmcloud project config \
+              --project-id "${{ secrets.IBM_PROJECT_ID }}" \
+              --id "${CONFIG_ID}" \
+              --output json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('state','unknown'))")
+
+            echo "[$ELAPSED s] State: ${STATE}"
+
+            if [[ "${STATE}" == "deployed" ]]; then
+              echo "Deployment successful!"
+
+              # Print outputs
+              ibmcloud project config \
+                --project-id "${{ secrets.IBM_PROJECT_ID }}" \
+                --id "${CONFIG_ID}" \
+                --output json | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          outputs = d.get('outputs', [])
+          print('--- Outputs ---')
+          for o in outputs:
+              print(f\"{o.get('name')}: {o.get('value', 'N/A')}\")
+          "
+              exit 0
+            elif [[ "${STATE}" == "deploying_failed" ]]; then
+              echo "Deployment failed!"
+              exit 1
+            fi
+
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "Deploy timed out after ${MAX_WAIT}s"
+          exit 1
+
+  ##############################################################################
+  # JOB 3 — Destroy (requires approval gate)
+  ##############################################################################
+  destroy:
+    name: Destroy (${{ github.event.inputs.variation }})
+    runs-on: ubuntu-latest
+    environment: production   # ← approval gate before destroy
+    if: github.event.inputs.action == 'destroy'
+
+    steps:
+      - name: Install IBM Cloud CLI
+        run: |
+          curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+          ibmcloud plugin install project -f
+
+      - name: Login to IBM Cloud
+        run: |
+          ibmcloud login --apikey "${{ secrets.IC_API_KEY }}" --no-region
+          ibmcloud target -r us-south
+
+      - name: Set Config ID
+        id: set-ids
+        run: |
+          if [[ "${{ github.event.inputs.variation }}" == "si" ]]; then
+            echo "config_id=${{ secrets.IBM_SI_CONFIG_ID }}" >> $GITHUB_OUTPUT
+          else
+            echo "config_id=${{ secrets.IBM_RAC_CONFIG_ID }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger Undeploy
+        run: |
+          CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
+
+          ibmcloud project config-undeploy \
+            --project-id "${{ secrets.IBM_PROJECT_ID }}" \
+            --id "${CONFIG_ID}"
+
+          echo "Undeploy triggered"
+
+      - name: Poll Destroy Status
+        run: |
+          CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
+          MAX_WAIT=10800  # 3 hours
+          INTERVAL=60
+          ELAPSED=0
+
+          echo "Polling destroy status..."
+
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            STATE=$(ibmcloud project config \
+              --project-id "${{ secrets.IBM_PROJECT_ID }}" \
+              --id "${CONFIG_ID}" \
+              --output json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('state','unknown'))")
+
+            echo "[$ELAPSED s] State: ${STATE}"
+
+            if [[ "${STATE}" == "undeployed" || "${STATE}" == "validated" ]]; then
+              echo "Resources destroyed successfully!"
+              exit 0
+            elif [[ "${STATE}" == "undeploying_failed" ]]; then
+              echo "Destroy failed!"
+              exit 1
+            fi
+
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "Destroy timed out"
+          exit 1
