@@ -294,6 +294,11 @@
             - "'exists' not in arch_fs_result.stdout"
           when: not arch_jfs2_done.stat.exists
 
+        - name: Make noatime persistent for /oraarchlogs
+          ansible.builtin.shell: |
+            chfs -a options=noatime /oraarchlogs
+          when: not arch_jfs2_done.stat.exists
+
         - name: Set Oracle ownership on /oraarchlogs
           ansible.builtin.file:
             path: /oraarchlogs
@@ -319,6 +324,44 @@
       tags: oracle_createdb
 
   post_tasks:
+    ##############################################################
+    # Lock ASM disks (CRSDG + GIMR + DATA + REDO)
+    ##############################################################
+    - name: Lock Oracle ASM disks
+      block:
+        - name: Check if ASM disks already locked on this node
+          ansible.builtin.stat:
+            path: "{{ done_file_dir }}/asm_disks_locked.done"
+          register: lock_flag
+
+        - name: Lock ASM disks (CRSDG + GIMR + DATA + REDO only, NOT ARCH)
+          ansible.builtin.shell: |
+            if lkdev -L {{ item }} 2>/dev/null | grep -q "asmdisk"; then
+              echo "Disk {{ item }} already locked"
+            else
+              lkdev -l {{ item }} -a -c "asmdisk"
+              echo "Locked disk {{ item }}"
+            fi
+          loop: "{{ discovered_disks.CRSDG | default([]) + discovered_disks.GIMR | default([]) + discovered_disks.DATA | default([]) + discovered_disks.REDO | default([]) }}"
+          loop_control:
+            label: "{{ item }}"
+          register: lock_result
+          changed_when: "'already locked' not in lock_result.stdout"
+          failed_when: lock_result.rc not in [0]
+          when: not lock_flag.stat.exists
+
+        - name: Display lock command results
+          ansible.builtin.debug:
+            var: lock_result.results | map(attribute='stdout') | list
+          when: not lock_flag.stat.exists
+
+        - name: Mark ASM disks as locked on this node
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/asm_disks_locked.done"
+            state: touch
+            mode: '0644'
+          when: not lock_flag.stat.exists
+
     #################################################################
     # Revert SSH configuration changes for RAC
     #################################################################

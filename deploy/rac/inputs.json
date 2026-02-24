@@ -1,7 +1,7 @@
 {
   "region": "us-south",
   "zone": "dal10",
-  "prefix": "cdasm",
+  "prefix": "cdrac",
   "pi_existing_workspace_guid": "3dd85d97-1033-490e-98bb-f1445a889503",
   "pi_aix_image_name": "7300-04-00",
   "pi_rhel_image_name": "RHEL9-SP6",
@@ -11,7 +11,12 @@
   "squid_server_ip": "10.240.64.6",
   "deployment_type": "public",
   "redolog_size_in_mb": "1024",
+  "cluster_domain": "privda.com",
+  "cluster_name": "orac-cluster",
+  "ru_version": "19.27",
   "ora_sid": "orcl",
+  "pi_replication_policy": "affinity",
+  "rac_nodes": 2,
   "pi_aix_instance": {
     "memory_gb": 16,
     "cores": 0.25,
@@ -44,14 +49,26 @@
     "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
     "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
     "cos_oracle_ru_file_path": "p37957391_190000_AIX64-5L.zip",
-    "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
+    "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip",
+    "cos_oracle_cluvfy_file_path": "cvupack_aix_7_ppc64.zip"
   },
   "pi_networks": [
     {
       "name": "ora_net",
       "id": "c38d18ad-b39f-4ba0-94f0-ada107ab64df"
+    },
+    {
+      "name": "ora-rac-pub",
+      "id": "47e38742-5850-411a-95ba-80fea41c12ec"
+    },
+    {
+      "name": "ora-rac-priv1",
+      "id": "65167db2-715a-4cb9-b600-806c77d33cc4"
+    },
+    {
+      "name": "ora-rac-priv2",
+      "id": "856db87c-cb23-416d-898b-834bb2b8e0bc"
     }
   ],
-  "oracle_install_type": "ASM",
   "pi_user_tags": "[\"cd-pipeline\"]"
 }

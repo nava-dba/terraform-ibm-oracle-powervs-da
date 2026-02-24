@@ -67,14 +67,14 @@ jobs:
           import json, os
           with open(os.environ["INPUTS_FILE"]) as f:
               inputs = json.load(f)
-          inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY"]
-          inputs["ssh_private_key"] = os.environ["TF_VAR_SSH_PRIVATE_KEY"]
-          inputs["ora_db_password"] = os.environ["TF_VAR_ORA_DB_PASSWORD"]
-          inputs["ibmcloud_cos_service_credentials"] = os.environ["TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS"]
+          inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY"]  # pragma: allowlist secret
+          inputs["ssh_private_key"] = os.environ["TF_VAR_SSH_PRIVATE_KEY"]  # pragma: allowlist secret
+          inputs["ora_db_password"] = os.environ["TF_VAR_ORA_DB_PASSWORD"]  # pragma: allowlist secret
+          inputs["ibmcloud_cos_service_credentials"] = os.environ["TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS"]  # pragma: allowlist secret
           if os.environ["VARIATION"] == "rac":
-              inputs["root_password"] = os.environ.get("TF_VAR_ROOT_PASSWORD", "") # pragma: allowlist secret
+              inputs["root_password"] = os.environ.get("TF_VAR_ROOT_PASSWORD", "")  # pragma: allowlist secret
           with open("/tmp/ibm_inputs.json", "w") as out:
-              json.dump({"inputs": inputs}, out, indent=2)
+              json.dump({"definition": {"inputs": inputs}}, out, indent=2)
           print("Inputs built: " + str(len(inputs)) + " keys")
           '
         env:
@@ -107,24 +107,37 @@ jobs:
       - name: Trigger Validation
         run: |
           CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ env.IBM_API_URL }}/projects/${{ secrets.IBM_PROJECT_ID }}/configs/${CONFIG_ID}/validate" \
-            -H "Authorization: Bearer ${IAM_TOKEN}" \
-            -H "Content-Type: application/json")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | head -1)
-          echo "HTTP: ${HTTP_CODE}"
-          if [[ "$HTTP_CODE" != "200" && "$HTTP_CODE" != "202" ]]; then
-            echo "Trigger validation failed:"
-            echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
-            exit 1
-          fi
-          echo "Validation triggered"
+          MAX_RETRIES=5
+          RETRY_DELAY=30
+          for i in $(seq 1 $MAX_RETRIES); do
+            RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+              "${{ env.IBM_API_URL }}/projects/${{ secrets.IBM_PROJECT_ID }}/configs/${CONFIG_ID}/validate" \
+              -H "Authorization: Bearer ${IAM_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d '{}')
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | head -1)
+            echo "Attempt ${i}: HTTP ${HTTP_CODE}"
+            if [[ "$HTTP_CODE" == "200" || "$HTTP_CODE" == "202" ]]; then
+              echo "Validation triggered"
+              exit 0
+            elif [[ "$HTTP_CODE" == "500" || "$HTTP_CODE" == "429" ]]; then
+              echo "Rate limited or transient error — waiting ${RETRY_DELAY}s before retry..."
+              sleep $RETRY_DELAY
+              RETRY_DELAY=$((RETRY_DELAY * 2))
+            else
+              echo "Trigger validation failed:"
+              echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+              exit 1
+            fi
+          done
+          echo "Trigger validation failed after ${MAX_RETRIES} attempts"
+          exit 1
 
       - name: Poll Validation Status
         run: |
           CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
-          MAX_WAIT=1800
+          MAX_WAIT=900
           INTERVAL=30
           ELAPSED=0
           echo "Polling validation (max 30 min)..."
@@ -205,22 +218,40 @@ jobs:
       - name: Trigger Deploy
         run: |
           CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ env.IBM_API_URL }}/projects/${{ secrets.IBM_PROJECT_ID }}/configs/${CONFIG_ID}/deploy" \
-            -H "Authorization: Bearer ${IAM_TOKEN}" \
-            -H "Content-Type: application/json")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          if [[ "$HTTP_CODE" != "200" && "$HTTP_CODE" != "202" ]]; then
-            echo "Deploy trigger failed (HTTP ${HTTP_CODE}):"
-            echo "$RESPONSE" | head -1 | python3 -m json.tool 2>/dev/null
-            exit 1
-          fi
-          echo "Deploy triggered"
+          MAX_RETRIES=5
+          RETRY_DELAY=30
+          for i in $(seq 1 $MAX_RETRIES); do
+            RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+              "${{ env.IBM_API_URL }}/projects/${{ secrets.IBM_PROJECT_ID }}/configs/${CONFIG_ID}/deploy" \
+              -H "Authorization: Bearer ${IAM_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d '{}')
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | head -1)
+            echo "Attempt ${i}: HTTP ${HTTP_CODE}"
+            if [[ "$HTTP_CODE" == "200" || "$HTTP_CODE" == "202" ]]; then
+              echo "Deploy triggered"
+              exit 0
+            elif [[ "$HTTP_CODE" == "409" ]]; then
+              echo "Config is already deploying (auto-deploy may be enabled) — skipping trigger, polling instead"
+              exit 0
+            elif [[ "$HTTP_CODE" == "500" || "$HTTP_CODE" == "429" ]]; then
+              echo "Rate limited or transient error — waiting ${RETRY_DELAY}s before retry..."
+              sleep $RETRY_DELAY
+              RETRY_DELAY=$((RETRY_DELAY * 2))
+            else
+              echo "Deploy trigger failed:"
+              echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+              exit 1
+            fi
+          done
+          echo "Deploy trigger failed after ${MAX_RETRIES} attempts"
+          exit 1
 
       - name: Poll Deploy Status
         run: |
           CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
-          MAX_WAIT=10800
+          MAX_WAIT=$([ "${{ github.event.inputs.variation }}" == "si" ] && echo 7200 || echo 14400)
           INTERVAL=60
           ELAPSED=0
           echo "Polling deploy status (max 3 hours)..."
@@ -285,22 +316,37 @@ jobs:
       - name: Trigger Undeploy
         run: |
           CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ env.IBM_API_URL }}/projects/${{ secrets.IBM_PROJECT_ID }}/configs/${CONFIG_ID}/undeploy" \
-            -H "Authorization: Bearer ${IAM_TOKEN}" \
-            -H "Content-Type: application/json")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          if [[ "$HTTP_CODE" != "200" && "$HTTP_CODE" != "202" ]]; then
-            echo "Undeploy failed (HTTP ${HTTP_CODE}):"
-            echo "$RESPONSE" | head -1 | python3 -m json.tool 2>/dev/null
-            exit 1
-          fi
-          echo "Undeploy triggered"
+          MAX_RETRIES=5
+          RETRY_DELAY=30
+          for i in $(seq 1 $MAX_RETRIES); do
+            RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+              "${{ env.IBM_API_URL }}/projects/${{ secrets.IBM_PROJECT_ID }}/configs/${CONFIG_ID}/undeploy" \
+              -H "Authorization: Bearer ${IAM_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d '{}')
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | head -1)
+            echo "Attempt ${i}: HTTP ${HTTP_CODE}"
+            if [[ "$HTTP_CODE" == "200" || "$HTTP_CODE" == "202" ]]; then
+              echo "Undeploy triggered"
+              exit 0
+            elif [[ "$HTTP_CODE" == "500" || "$HTTP_CODE" == "429" ]]; then
+              echo "Rate limited or transient error — waiting ${RETRY_DELAY}s before retry..."
+              sleep $RETRY_DELAY
+              RETRY_DELAY=$((RETRY_DELAY * 2))
+            else
+              echo "Undeploy trigger failed:"
+              echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+              exit 1
+            fi
+          done
+          echo "Undeploy trigger failed after ${MAX_RETRIES} attempts"
+          exit 1
 
       - name: Poll Destroy Status
         run: |
           CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
-          MAX_WAIT=10800
+          MAX_WAIT=3600
           INTERVAL=60
           ELAPSED=0
           echo "Polling destroy status (max 3 hours)..."
