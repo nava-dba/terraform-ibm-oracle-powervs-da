@@ -53,5 +53,5 @@
     }
   ],
   "oracle_install_type": "ASM",
-  "pi_user_tags": ["cd-pipeline"]
+  "pi_user_tags": "[\"cd-pipeline\"]"
 }
