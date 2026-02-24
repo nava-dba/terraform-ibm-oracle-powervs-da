@@ -459,6 +459,13 @@
                 - fs_result.rc != 0
                 - "'exists' not in fs_result.stdout"
 
+            - name: Make noatime persistent for JFS2 filesystems (DATA + REDO)
+              ansible.builtin.shell: |
+                chfs -a options=noatime {{ item.fs_name }}
+              loop: "{{ jfs2_storage_config }}"
+              loop_control:
+                label: "{{ item.fs_name }}"
+
             #######################################################
             # Step 5: Ownership and Permissions
             #######################################################
@@ -565,6 +572,11 @@
           failed_when:
             - arch_fs_result.rc != 0
             - "'exists' not in arch_fs_result.stdout"
+          when: not arch_jfs2_done.stat.exists
+
+        - name: Make noatime persistent for ARCH JFS2 filesystem
+          ansible.builtin.shell: |
+            chfs -a options=noatime {{ arch_jfs2_config[0].fs_name }}
           when: not arch_jfs2_done.stat.exists
 
         - name: Set Oracle ownership on {{ arch_jfs2_config[0].fs_name }}
