@@ -110,7 +110,8 @@ jobs:
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             "${{ env.IBM_API_URL }}/projects/${{ secrets.IBM_PROJECT_ID }}/configs/${CONFIG_ID}/validate" \
             -H "Authorization: Bearer ${IAM_TOKEN}" \
-            -H "Content-Type: application/json")
+            -H "Content-Type: application/json" \
+            -d '{}')
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | head -1)
           echo "HTTP: ${HTTP_CODE}"
@@ -208,7 +209,8 @@ jobs:
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             "${{ env.IBM_API_URL }}/projects/${{ secrets.IBM_PROJECT_ID }}/configs/${CONFIG_ID}/deploy" \
             -H "Authorization: Bearer ${IAM_TOKEN}" \
-            -H "Content-Type: application/json")
+            -H "Content-Type: application/json" \
+            -d '{}')
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           if [[ "$HTTP_CODE" != "200" && "$HTTP_CODE" != "202" ]]; then
             echo "Deploy trigger failed (HTTP ${HTTP_CODE}):"
@@ -288,7 +290,8 @@ jobs:
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             "${{ env.IBM_API_URL }}/projects/${{ secrets.IBM_PROJECT_ID }}/configs/${CONFIG_ID}/undeploy" \
             -H "Authorization: Bearer ${IAM_TOKEN}" \
-            -H "Content-Type: application/json")
+            -H "Content-Type: application/json" \
+            -d '{}')
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           if [[ "$HTTP_CODE" != "200" && "$HTTP_CODE" != "202" ]]; then
             echo "Undeploy failed (HTTP ${HTTP_CODE}):"
