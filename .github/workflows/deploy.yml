@@ -67,14 +67,14 @@ jobs:
           import json, os
           with open(os.environ["INPUTS_FILE"]) as f:
               inputs = json.load(f)
-          inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY"]
-          inputs["ssh_private_key"] = os.environ["TF_VAR_SSH_PRIVATE_KEY"]
-          inputs["ora_db_password"] = os.environ["TF_VAR_ORA_DB_PASSWORD"]
-          inputs["ibmcloud_cos_service_credentials"] = os.environ["TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS"]
+          inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY"]  # pragma: allowlist secret
+          inputs["ssh_private_key"] = os.environ["TF_VAR_SSH_PRIVATE_KEY"]  # pragma: allowlist secret
+          inputs["ora_db_password"] = os.environ["TF_VAR_ORA_DB_PASSWORD"]  # pragma: allowlist secret
+          inputs["ibmcloud_cos_service_credentials"] = os.environ["TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS"]  # pragma: allowlist secret
           if os.environ["VARIATION"] == "rac":
-              inputs["root_password"] = os.environ.get("TF_VAR_ROOT_PASSWORD", "") # pragma: allowlist secret
+              inputs["root_password"] = os.environ.get("TF_VAR_ROOT_PASSWORD", "")  # pragma: allowlist secret
           with open("/tmp/ibm_inputs.json", "w") as out:
-              json.dump({"inputs": inputs}, out, indent=2)
+              json.dump({"definition": {"inputs": inputs}}, out, indent=2)
           print("Inputs built: " + str(len(inputs)) + " keys")
           '
         env:
