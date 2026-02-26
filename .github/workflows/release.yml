@@ -1,3 +1,29 @@
+##############################################################################
+# Release Pipeline
+# Repo: nava-dba/terraform-ibm-oracle-powervs-da
+#
+# Trigger: push to main
+#
+# Jobs:
+#   1. semantic_release     → creates tag + GitHub release
+#   2. sign_tag             → GPG sign the tag
+#   3. publish_catalog      → import SI + RAC versions to IBM private catalog
+#   4. update_project       → update IBM Project configs with new locators
+#   5. failure_notification → open GitHub issue on failure
+#
+# Required secrets (one-time setup, never touch again):
+#   GH_TOKEN                GitHub PAT (for git push back)
+#   GPG_PRIVATE_KEY         GPG key for signing
+#   GPG_PASSPHRASE          GPG passphrase
+#   IC_API_KEY              IBM Cloud API key
+#   IBM_PROJECT_ID          IBM Cloud Projects ID
+#   IBM_SI_PROJECT_ID       IBM Cloud Projects ID for SI (if separate)
+#   IBM_RAC_PROJECT_ID      IBM Cloud Projects ID for RAC (if separate)
+#   IBM_CATALOG_ID          ora-pub catalog ID
+#   IBM_OFFERING_ID         Oracle offering ID
+#
+# deploy/config.json auto-updated each release — no manual secret updates
+##############################################################################
 name: Release-Pipeline
 
 permissions:
@@ -10,17 +36,25 @@ on:
     branches:
       - main
 
+env:
+  IBM_API_URL:        "https://projects.api.cloud.ibm.com/v1"
+  SI_VARIATION_LABEL: "Oracle Database – Single Instance (SI)"
+  RAC_VARIATION_LABEL: "Oracle Database – Real Application Clusters (RAC)"
+  SI_WORKING_DIR:     "solutions/oracle/si"
+  RAC_WORKING_DIR:    "solutions/oracle/rac"
+
 jobs:
 
   ##############################################################################
   # JOB 1 — Semantic Release
   ##############################################################################
   semantic_release:
-    name: Semantic_Release
+    name: Semantic Release
     runs-on: ubuntu-latest
 
     outputs:
-      version: ${{ steps.export_version.outputs.version }}
+      version:  ${{ steps.export_version.outputs.version }}
+      released: ${{ steps.export_version.outputs.released }}
 
     steps:
       - name: Checkout
@@ -28,6 +62,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -36,71 +71,348 @@ jobs:
 
       - name: Install semantic-release + plugins
         run: |
-          npm install semantic-release \
+          npm install \
+            semantic-release \
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
+            @semantic-release/changelog \
             @semantic-release/github \
             @semantic-release/git \
             @semantic-release/exec
 
       - name: Run semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: npx semantic-release
 
       - name: Export Version
         id: export_version
         run: |
-          echo "version=$SEMVER_VERSION" >> $GITHUB_OUTPUT
+          if [ -f .version ]; then
+            VERSION=$(cat .version)
+            echo "version=${VERSION}"   >> $GITHUB_OUTPUT
+            echo "released=true"        >> $GITHUB_OUTPUT
+            echo " New version: ${VERSION}"
+          else
+            echo "released=false"       >> $GITHUB_OUTPUT
+            echo "ℹ️ No new version released (no releasable commits)"
+          fi
 
   ##############################################################################
-  # JOB 2 — Import GPG + Re-sign Tag (Matches IBM Flow)
+  # JOB 2 — GPG Sign Tag
   ##############################################################################
-  sign_and_push_tag:
-    name: Sign_Tag
+  sign_tag:
+    name: Sign Tag
     runs-on: ubuntu-latest
     needs: semantic_release
-    if: needs.semantic_release.outputs.version != ''
+    if: needs.semantic_release.outputs.released == 'true'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          passphrase:      ${{ secrets.GPG_PASSPHRASE }}
           git_user_signingkey: true
           git_commit_gpgsign: true
-          git_tag_gpgsign: true
+          git_tag_gpgsign:    true
 
       - name: Re-sign tag and push
         run: |
-          VERSION=v${{ needs.semantic_release.outputs.version }}
+          VERSION="v${{ needs.semantic_release.outputs.version }}"
+          echo "Signing tag: ${VERSION}"
+          git fetch --tags
+          git tag -f -s "${VERSION}" -m "Release ${VERSION}"
+          git push --force origin "${VERSION}"
+          echo " Tag ${VERSION} signed and pushed"
 
-          if [ -z "${{ needs.semantic_release.outputs.version }}" ]; then
-            echo "No version released"
+  ##############################################################################
+  # JOB 3 — Publish SI + RAC to IBM Private Catalog
+  ##############################################################################
+  publish_catalog:
+    name: Publish to Catalog
+    runs-on: ubuntu-latest
+    needs: semantic_release
+    if: needs.semantic_release.outputs.released == 'true'
+
+    outputs:
+      si_version_locator:  ${{ steps.import_si.outputs.si_version_locator }}
+      rac_version_locator: ${{ steps.import_rac.outputs.rac_version_locator }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install IBM Cloud CLI
+        run: |
+          curl -fsSL https://clis.cloud.ibm.com/install/linux | sh -s -- -q
+          ibmcloud plugin install catalogs-management -f -q
+          ibmcloud login --apikey "${{ secrets.IC_API_KEY }}" --no-region -q
+          ibmcloud target -r us-south -q
+          echo " IBM Cloud CLI ready"
+
+      # -----------------------------------------------------------------------
+      # Helper function — get version locator after import
+      # -----------------------------------------------------------------------
+      - name: Import SI Version to Catalog
+        id: import_si
+        run: |
+          VERSION="${{ needs.semantic_release.outputs.version }}"
+          REPO="${{ github.repository }}"
+          ZIPURL="https://github.com/${REPO}/archive/refs/tags/v${VERSION}.tar.gz"
+
+          echo "--- Importing SI v${VERSION} ---"
+          echo "ZIP: ${ZIPURL}"
+
+          ibmcloud catalog offering import-version \
+            --catalog  "${{ secrets.IBM_CATALOG_ID }}" \
+            --offering "${{ secrets.IBM_OFFERING_ID }}" \
+            --zipurl   "${ZIPURL}" \
+            --target-version  "${VERSION}" \
+            --variation-label "${SI_VARIATION_LABEL}" \
+            --working-directory "${SI_WORKING_DIR}" \
+            --install-type "fullstack" \
+            --include-config
+
+          # Each version+variation is on its own line:
+          # |__4.5.0   Oracle Database – Single Instance (SI)   ...   7d14....locator
+          # grep version + "Single Instance" → last field = locator
+          SI_LOCATOR=$(ibmcloud catalog offering list \
+            --catalog "${{ secrets.IBM_CATALOG_ID }}" 2>/dev/null | \
+            grep "${VERSION}" | grep "Single Instance" | \
+            awk '{print $NF}' | tr -d '[:space:]')
+
+          echo "SI Version Locator: ${SI_LOCATOR}"
+
+          if [ -z "${SI_LOCATOR}" ]; then
+            echo " Could not extract SI version locator"
+            exit 1
+          fi
+
+          echo "si_version_locator=${SI_LOCATOR}" >> $GITHUB_OUTPUT
+          echo " SI v${VERSION} imported — locator: ${SI_LOCATOR}"
+
+      - name: Import RAC Version to Catalog
+        id: import_rac
+        run: |
+          VERSION="${{ needs.semantic_release.outputs.version }}"
+          REPO="${{ github.repository }}"
+          ZIPURL="https://github.com/${REPO}/archive/refs/tags/v${VERSION}.tar.gz"
+
+          echo "--- Importing RAC v${VERSION} ---"
+          echo "ZIP: ${ZIPURL}"
+
+          ibmcloud catalog offering import-version \
+            --catalog  "${{ secrets.IBM_CATALOG_ID }}" \
+            --offering "${{ secrets.IBM_OFFERING_ID }}" \
+            --zipurl   "${ZIPURL}" \
+            --target-version  "${VERSION}" \
+            --variation-label "${RAC_VARIATION_LABEL}" \
+            --working-directory "${RAC_WORKING_DIR}" \
+            --install-type "fullstack" \
+            --include-config
+
+          # grep version + "Real Application" → last field = locator
+          RAC_LOCATOR=$(ibmcloud catalog offering list \
+            --catalog "${{ secrets.IBM_CATALOG_ID }}" 2>/dev/null | \
+            grep "${VERSION}" | grep "Real Application" | \
+            awk '{print $NF}' | tr -d '[:space:]')
+
+          echo "RAC Version Locator: ${RAC_LOCATOR}"
+
+          if [ -z "${RAC_LOCATOR}" ]; then
+            echo " Could not extract RAC version locator"
+            exit 1
+          fi
+
+          echo "rac_version_locator=${RAC_LOCATOR}" >> $GITHUB_OUTPUT
+          echo " RAC v${VERSION} imported — locator: ${RAC_LOCATOR}"
+
+      - name: Show Catalog State
+        run: |
+          echo "--- Catalog versions after import ---"
+          ibmcloud catalog offering list --catalog "${{ secrets.IBM_CATALOG_ID }}"
+
+  ##############################################################################
+  # JOB 4 — Update IBM Project Configs + commit deploy/config.json
+  ##############################################################################
+  update_project:
+    name: Update Project Configs
+    runs-on: ubuntu-latest
+    needs: [semantic_release, publish_catalog]
+    if: needs.semantic_release.outputs.released == 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Install IBM Cloud CLI + Get IAM Token
+        run: |
+          curl -fsSL https://clis.cloud.ibm.com/install/linux | sh -s -- -q
+          ibmcloud login --apikey "${{ secrets.IC_API_KEY }}" --no-region -q
+          ibmcloud target -r us-south -q
+          TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
+          echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
+          echo " IAM token obtained"
+
+      - name: Read Config IDs from deploy/config.json
+        id: read_config
+        run: |
+          python3 - <<'EOF'
+          import json, os
+
+          with open("deploy/config.json") as f:
+              config = json.load(f)
+
+          si_config_id  = config["si"]["config_id"]
+          si_project_id = config["si"]["project_id"]
+          rac_config_id  = config["rac"]["config_id"]
+          rac_project_id = config["rac"]["project_id"]
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"si_config_id={si_config_id}\n")
+              f.write(f"si_project_id={si_project_id}\n")
+              f.write(f"rac_config_id={rac_config_id}\n")
+              f.write(f"rac_project_id={rac_project_id}\n")
+
+          print(f"SI  config_id:  {si_config_id}")
+          print(f"SI  project_id: {si_project_id}")
+          print(f"RAC config_id:  {rac_config_id}")
+          print(f"RAC project_id: {rac_project_id}")
+          EOF
+
+      # -----------------------------------------------------------------------
+      # Update SI project config
+      # -----------------------------------------------------------------------
+      - name: Update SI Project Config
+        run: |
+          CONFIG_ID="${{ steps.read_config.outputs.si_config_id }}"
+          PROJECT_ID="${{ steps.read_config.outputs.si_project_id }}"
+          SI_LOCATOR="${{ needs.publish_catalog.outputs.si_version_locator }}"
+
+          if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
+            echo " SI config_id or project_id is empty — skipping"
             exit 0
           fi
 
-          echo "Version: $VERSION"
+          echo "Updating SI config ${CONFIG_ID} → locator ${SI_LOCATOR}"
 
-          git fetch --tags
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
+            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+            -H "Authorization: Bearer ${IAM_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"definition\": {\"locator_id\": \"${SI_LOCATOR}\"}}")
 
-          git tag -f -s "$VERSION" -m "Release $VERSION"
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "HTTP: ${HTTP_CODE}"
 
-          git push --force origin "$VERSION"
+          if [[ "${HTTP_CODE}" != "200" ]]; then
+            echo " SI config update failed:"
+            echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
+            exit 1
+          fi
+          echo " SI project config updated"
+
+      # -----------------------------------------------------------------------
+      # Update RAC project config (skip if not configured yet)
+      # -----------------------------------------------------------------------
+      - name: Update RAC Project Config
+        run: |
+          CONFIG_ID="${{ steps.read_config.outputs.rac_config_id }}"
+          PROJECT_ID="${{ steps.read_config.outputs.rac_project_id }}"
+          RAC_LOCATOR="${{ needs.publish_catalog.outputs.rac_version_locator }}"
+
+          if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
+            echo " RAC config_id or project_id is empty — skipping (add to deploy/config.json when ready)"
+            exit 0
+          fi
+
+          echo "Updating RAC config ${CONFIG_ID} → locator ${RAC_LOCATOR}"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
+            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+            -H "Authorization: Bearer ${IAM_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"definition\": {\"locator_id\": \"${RAC_LOCATOR}\"}}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "HTTP: ${HTTP_CODE}"
+
+          if [[ "${HTTP_CODE}" != "200" ]]; then
+            echo " RAC config update failed:"
+            echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
+            exit 1
+          fi
+          echo " RAC project config updated"
+
+      # -----------------------------------------------------------------------
+      # Update deploy/config.json with new locators + commit back to main
+      # -----------------------------------------------------------------------
+      - name: Update deploy/config.json
+        run: |
+          VERSION="${{ needs.semantic_release.outputs.version }}"
+          SI_LOCATOR="${{ needs.publish_catalog.outputs.si_version_locator }}"
+          RAC_LOCATOR="${{ needs.publish_catalog.outputs.rac_version_locator }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          python3 - <<EOF
+          import json
+
+          with open("deploy/config.json") as f:
+              config = json.load(f)
+
+          # Update SI
+          config["si"]["version_locator"] = "${SI_LOCATOR}"
+          config["si"]["version"]         = "v${VERSION}"
+          config["si"]["last_updated"]    = "${TIMESTAMP}"
+
+          # Update RAC
+          config["rac"]["version_locator"] = "${RAC_LOCATOR}"
+          config["rac"]["version"]          = "v${VERSION}"
+          config["rac"]["last_updated"]     = "${TIMESTAMP}"
+
+          with open("deploy/config.json", "w") as f:
+              json.dump(config, f, indent=2)
+              f.write("\n")
+
+          print(" deploy/config.json updated")
+          print(f"   SI  locator: ${SI_LOCATOR}")
+          print(f"   RAC locator: ${RAC_LOCATOR}")
+          print(f"   version:     v${VERSION}")
+          EOF
+
+      - name: Commit deploy/config.json to main
+        run: |
+          VERSION="${{ needs.semantic_release.outputs.version }}"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add deploy/config.json
+          git diff --staged --quiet && echo "ℹ️ No changes to commit" && exit 0
+
+          git commit -m "chore: update deploy/config.json for v${VERSION} [skip ci]"
+          git push origin main
+
+          echo " deploy/config.json committed to main"
 
   ##############################################################################
-  # JOB 3 — Failure Notification
+  # JOB 5 — Failure Notification
   ##############################################################################
-  create-failure-notifications:
-    name: create-failure-notifications
+  failure_notification:
+    name: Failure Notification
     runs-on: ubuntu-latest
-    needs: [semantic_release, sign_and_push_tag]
+    needs: [semantic_release, sign_tag, publish_catalog, update_project]
     if: failure()
 
     steps:
@@ -108,14 +420,32 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const jobs = [
+              { name: 'semantic_release', result: '${{ needs.semantic_release.result }}' },
+              { name: 'sign_tag',         result: '${{ needs.sign_tag.result }}'         },
+              { name: 'publish_catalog',  result: '${{ needs.publish_catalog.result }}'  },
+              { name: 'update_project',   result: '${{ needs.update_project.result }}'   },
+            ]
+
+            const failedJobs = jobs
+              .filter(j => j.result === 'failure')
+              .map(j => `- **${j.name}**`)
+              .join('\n')
+
             await github.rest.issues.create({
               owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: "Release Pipeline Failed",
-              body: `Release pipeline failed.
+              repo:  context.repo.repo,
+              title: `🚨 Release Pipeline Failed — ${context.sha.substring(0, 7)}`,
+              labels: ['bug', 'pipeline'],
+              body: `## Release Pipeline Failed
 
-              Commit: ${context.sha}
-              Workflow: ${context.workflow}
+            **Commit:** ${context.sha}
+            **Branch:** ${context.ref}
+            **Triggered by:** ${context.actor}
+            **Workflow:** [View Logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
 
-              Please check Actions logs.`,
+            ### Failed Jobs
+            ${failedJobs}
+
+            Please check the Actions logs and fix before next release.`
             })

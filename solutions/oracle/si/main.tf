@@ -111,6 +111,28 @@ module "pi_instance_aix" {
 }
 
 ###########################################################
+# START SQUID PROXY ON BASTION HOST
+###########################################################
+
+resource "null_resource" "squid_start" {
+  depends_on = [module.pi_instance_rhel]
+
+  provisioner "remote-exec" {
+    inline = [
+      "if systemctl is-active squid; then echo 'Squid already running'; else systemctl start squid; fi",
+      "systemctl enable squid"
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "root"
+      host        = var.bastion_host_ip
+      private_key = var.ssh_private_key
+    }
+  }
+}
+
+###########################################################
 # Ansible Host setup and configure as Proxy, NTP and DNS
 ###########################################################
 
@@ -125,7 +147,7 @@ locals {
 
 module "pi_instance_rhel_init" {
   source     = "../../../modules/ansible"
-  depends_on = [module.pi_instance_rhel]
+  depends_on = [module.pi_instance_rhel, null_resource.squid_start]
 
   deployment_type        = var.deployment_type
   bastion_host_ip        = var.bastion_host_ip
@@ -348,4 +370,26 @@ module "oracle_install" {
   src_inventory_template_name = "inventory.tftpl"
   dst_inventory_file_name     = "oracle-grid-install-inventory"
   inventory_template_vars     = { "host_or_ip" : module.pi_instance_aix.pi_instance_primary_ip }
+}
+
+###########################################################
+# STOP SQUID PROXY ON BASTION HOST - AFTER ORACLE INSTALL
+###########################################################
+
+resource "null_resource" "squid_stop" {
+  depends_on = [module.oracle_install]
+
+  provisioner "remote-exec" {
+    inline = [
+      "if systemctl is-active squid; then systemctl stop squid; fi",
+      "systemctl disable squid"
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "root"
+      host        = var.bastion_host_ip
+      private_key = var.ssh_private_key
+    }
+  }
 }

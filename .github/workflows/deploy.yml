@@ -307,11 +307,13 @@ jobs:
       - name: Set Config ID
         id: set-ids
         run: |
-          if [[ "${{ github.event.inputs.variation }}" == "si" ]]; then
-            echo "config_id=${{ secrets.IBM_SI_CONFIG_ID }}" >> $GITHUB_OUTPUT
-          else
-            echo "config_id=${{ secrets.IBM_RAC_CONFIG_ID }}" >> $GITHUB_OUTPUT
-          fi
+          CONFIG_ID=$(python3 -c "
+          import json
+          with open('deploy/config.json') as f:
+              c = json.load(f)
+          print(c['${{ github.event.inputs.variation }}']['config_id'])
+          ")
+              echo "config_id=${CONFIG_ID}" >> $GITHUB_OUTPUT
 
       - name: Trigger Undeploy
         run: |
