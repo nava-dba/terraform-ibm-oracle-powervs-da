@@ -15,7 +15,7 @@
   "cluster_name": "orac-cluster",
   "ru_version": "19.27",
   "ora_sid": "orcl",
-  "pi_replication_policy": "affinity",
+  "pi_replication_policy": "anti-affinity",
   "rac_nodes": 2,
   "pi_aix_instance": {
     "memory_gb": 16,

@@ -50,7 +50,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo "✅ IAM token obtained"
+          echo "IAM token obtained"
 
       - name: Set Config ID
         id: set-ids
@@ -251,10 +251,10 @@ jobs:
       - name: Poll Deploy Status
         run: |
           CONFIG_ID="${{ steps.set-ids.outputs.config_id }}"
-          MAX_WAIT=$([ "${{ github.event.inputs.variation }}" == "si" ] && echo 7200 || echo 14400)
-          INTERVAL=60
+          MAX_WAIT=$([ "${{ github.event.inputs.variation }}" == "si" ] && echo 10800 || echo 21600)
+          INTERVAL=900
           ELAPSED=0
-          echo "Polling deploy status (max 3 hours)..."
+          echo "Polling deploy status (max 6 hours for rac and 3 hrs for si)..."
 
           while [ $ELAPSED -lt $MAX_WAIT ]; do
             RESPONSE=$(curl -s \
