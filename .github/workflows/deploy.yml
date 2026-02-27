@@ -88,7 +88,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo " IAM token obtained"
+          echo "IAM token obtained"
 
       # -----------------------------------------------------------------------
       # Read config_id + project_id from deploy/config.json
@@ -135,17 +135,21 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Load deploy/{variation}/inputs.json — one file per variation
-      # Only secrets injected at runtime — everything else already in file
+      # Inject deployment_type, oracle_install_type (si only), and secrets
       # -----------------------------------------------------------------------
       - name: Build Full Inputs
         run: |
           VARIATION="${{ github.event.inputs.variation }}"
+          DEPLOYMENT_TYPE="${{ github.event.inputs.deployment_type }}"
+          INSTALL_TYPE="${{ github.event.inputs.install_type }}"
 
           python3 - <<PYEOF
           import json, os, sys
 
-          variation = "${VARIATION}"
-          inputs_file = f"deploy/{variation}/inputs.json"
+          variation     = "${VARIATION}"
+          dtype         = "${DEPLOYMENT_TYPE}"
+          install_type  = "${INSTALL_TYPE}"
+          inputs_file   = f"deploy/{variation}/inputs.json"
 
           try:
               with open(inputs_file) as f:
@@ -154,7 +158,12 @@ jobs:
               print(f"inputs file not found: {inputs_file}")
               sys.exit(1)
 
-          # Inject secrets only — all other values already in inputs.json
+          # Inject dynamic workflow inputs
+          inputs["deployment_type"] = dtype
+          if variation == "si":
+              inputs["oracle_install_type"] = install_type
+
+          # Inject secrets
           inputs["ibmcloud_api_key"]                 = os.environ["TF_VAR_IBMCLOUD_API_KEY"]  # pragma: allowlist secret
           inputs["ssh_private_key"]                  = os.environ["TF_VAR_SSH_PRIVATE_KEY"]  # pragma: allowlist secret
           inputs["ora_db_password"]                  = os.environ["TF_VAR_ORA_DB_PASSWORD"]  # pragma: allowlist secret
@@ -166,6 +175,8 @@ jobs:
               json.dump({"definition": {"inputs": inputs}}, out, indent=2)
 
           print(f"OK: {len(inputs)} keys loaded from {inputs_file}")
+          print(f"   deployment_type:      {dtype}")
+          print(f"   oracle_install_type:  {install_type if variation == 'si' else 'N/A'}")
           PYEOF
         env:
           TF_VAR_IBMCLOUD_API_KEY:                 ${{ secrets.TF_VAR_IBMCLOUD_API_KEY }}
@@ -197,7 +208,7 @@ jobs:
             echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
             exit 1
           fi
-          echo " Config inputs updated"
+          echo "Config inputs updated"
 
       # -----------------------------------------------------------------------
       # Trigger validation with retry + exponential backoff
@@ -220,7 +231,7 @@ jobs:
             echo "Attempt ${i}: HTTP ${HTTP_CODE}"
 
             if [[ "${HTTP_CODE}" == "200" || "${HTTP_CODE}" == "202" ]]; then
-              echo " Validation triggered"
+              echo "Validation triggered"
               exit 0
             elif [[ "${HTTP_CODE}" == "500" || "${HTTP_CODE}" == "429" ]]; then
               echo " Transient error — retrying in ${RETRY_DELAY}s..."
@@ -258,7 +269,7 @@ jobs:
             echo "[${ELAPSED}s] State: ${STATE}"
 
             if [[ "${STATE}" == "validated" ]]; then
-              echo " Validation passed!"
+              echo "Validation passed!"
               exit 0
             elif [[ "${STATE}" == "validating_failed" ]]; then
               echo " Validation failed:"
@@ -296,7 +307,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo " IAM token obtained"
+          echo "IAM token obtained"
 
       - name: Approve Config
         run: |
@@ -315,7 +326,7 @@ jobs:
             echo "$RESPONSE" | head -1 | python3 -m json.tool 2>/dev/null
             exit 1
           fi
-          echo " Config approved by ${{ github.actor }}"
+          echo "Config approved by ${{ github.actor }}"
 
       - name: Trigger Deploy
         run: |
@@ -335,7 +346,7 @@ jobs:
             echo "Attempt ${i}: HTTP ${HTTP_CODE}"
 
             if [[ "${HTTP_CODE}" == "200" || "${HTTP_CODE}" == "202" ]]; then
-              echo " Deploy triggered"
+              echo "Deploy triggered"
               exit 0
             elif [[ "${HTTP_CODE}" == "409" ]]; then
               echo " Already deploying — skipping trigger, polling status"
@@ -374,7 +385,7 @@ jobs:
             echo "[${ELAPSED}s] State: ${STATE}"
 
             if [[ "${STATE}" == "deployed" ]]; then
-              echo " Deployment successful!"
+              echo "Deployment successful!"
               echo "$RESPONSE" | python3 -c '
           import json, sys
           d = json.load(sys.stdin)
@@ -415,7 +426,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo " IAM token obtained"
+          echo "IAM token obtained"
 
       - name: Set Config ID
         id: set-ids
@@ -473,7 +484,7 @@ jobs:
             echo "Attempt ${i}: HTTP ${HTTP_CODE}"
 
             if [[ "${HTTP_CODE}" == "200" || "${HTTP_CODE}" == "202" ]]; then
-              echo " Undeploy triggered"
+              echo "Undeploy triggered"
               exit 0
             elif [[ "${HTTP_CODE}" == "500" || "${HTTP_CODE}" == "429" ]]; then
               echo " Transient error — retrying in ${RETRY_DELAY}s..."
@@ -508,7 +519,7 @@ jobs:
             echo "[${ELAPSED}s] State: ${STATE}"
 
             if [[ "${STATE}" == "undeployed" || "${STATE}" == "validated" ]]; then
-              echo " Resources destroyed successfully!"
+              echo "Resources destroyed successfully!"
               exit 0
             elif [[ "${STATE}" == "undeploying_failed" ]]; then
               echo " Destroy failed!"
