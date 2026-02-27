@@ -126,7 +126,7 @@ jobs:
           git fetch --tags
           git tag -f -s "${VERSION}" -m "Release ${VERSION}"
           git push --force origin "${VERSION}"
-          echo "Tag ${VERSION} signed and pushed"
+          echo "Tag ${VERSION} signed and pushed."
 
   ##############################################################################
   # JOB 3 - Publish SI + RAC to IBM Private Catalog
