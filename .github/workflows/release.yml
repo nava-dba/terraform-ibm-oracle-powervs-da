@@ -88,15 +88,13 @@ jobs:
       - name: Export Version
         id: export_version
         run: |
-          echo "SEMVER_VERSION=${SEMVER_VERSION}"
-
-          if [ -z "${SEMVER_VERSION}" ]; then
-            echo "released=false" >> $GITHUB_OUTPUT
-            echo "ℹNo new version released (no releasable commits)"
-          else
+          if [ -n "${SEMVER_VERSION}" ]; then
             echo "version=${SEMVER_VERSION}"  >> $GITHUB_OUTPUT
             echo "released=true"              >> $GITHUB_OUTPUT
-            echo "New version: ${SEMVER_VERSION}"
+            echo " New version: ${SEMVER_VERSION}"
+          else
+            echo "released=false"             >> $GITHUB_OUTPUT
+            echo " No new version released (no releasable commits)"
           fi
 
   ##############################################################################
@@ -267,16 +265,18 @@ jobs:
       - name: Read Config IDs from deploy/config.json
         id: read_config
         run: |
-          python3 - <<'EOF'
+          python3 - <<PYEOF
           import json, os
 
           with open("deploy/config.json") as f:
               config = json.load(f)
 
-          si_config_id  = config["si"]["config_id"]
-          si_project_id = config["si"]["project_id"]
-          rac_config_id  = config["rac"]["config_id"]
-          rac_project_id = config["rac"]["project_id"]
+          # SI uses nested public/asm structure
+          # RAC uses flat public structure
+          si_config_id   = config["si"]["public"]["asm"]["config_id"]
+          si_project_id  = config["si"]["public"]["asm"]["project_id"]
+          rac_config_id  = config["rac"]["public"]["config_id"]
+          rac_project_id = config["rac"]["public"]["project_id"]
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"si_config_id={si_config_id}\n")
@@ -288,7 +288,7 @@ jobs:
           print(f"SI  project_id: {si_project_id}")
           print(f"RAC config_id:  {rac_config_id}")
           print(f"RAC project_id: {rac_project_id}")
-          EOF
+          PYEOF
 
       # -----------------------------------------------------------------------
       # Update SI project config
@@ -300,7 +300,7 @@ jobs:
           SI_LOCATOR="${{ needs.publish_catalog.outputs.si_version_locator }}"
 
           if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
-            echo " SI config_id or project_id is empty — skipping"
+            echo "⚠️ SI config_id or project_id is empty — skipping"
             exit 0
           fi
 
@@ -333,7 +333,7 @@ jobs:
           RAC_LOCATOR="${{ needs.publish_catalog.outputs.rac_version_locator }}"
 
           if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
-            echo " RAC config_id or project_id is empty — skipping (add to deploy/config.json when ready)"
+            echo "⚠️ RAC config_id or project_id is empty — skipping (add to deploy/config.json when ready)"
             exit 0
           fi
 
@@ -366,31 +366,31 @@ jobs:
           RAC_LOCATOR="${{ needs.publish_catalog.outputs.rac_version_locator }}"
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-          python3 - <<EOF
+          python3 - <<PYEOF
           import json
 
           with open("deploy/config.json") as f:
               config = json.load(f)
 
-          # Update SI
-          config["si"]["version_locator"] = "${SI_LOCATOR}"
-          config["si"]["version"]         = "v${VERSION}"
-          config["si"]["last_updated"]    = "${TIMESTAMP}"
+          # Update SI — nested public/asm structure
+          config["si"]["public"]["asm"]["version_locator"] = "${SI_LOCATOR}"
+          config["si"]["public"]["asm"]["version"]         = "v${VERSION}"
+          config["si"]["public"]["asm"]["last_updated"]    = "${TIMESTAMP}"
 
-          # Update RAC
-          config["rac"]["version_locator"] = "${RAC_LOCATOR}"
-          config["rac"]["version"]          = "v${VERSION}"
-          config["rac"]["last_updated"]     = "${TIMESTAMP}"
+          # Update RAC — flat public structure
+          config["rac"]["public"]["version_locator"] = "${RAC_LOCATOR}"
+          config["rac"]["public"]["version"]         = "v${VERSION}"
+          config["rac"]["public"]["last_updated"]    = "${TIMESTAMP}"
 
           with open("deploy/config.json", "w") as f:
               json.dump(config, f, indent=2)
               f.write("\n")
 
-          print(" deploy/config.json updated")
+          print("OK: deploy/config.json updated")
           print(f"   SI  locator: ${SI_LOCATOR}")
           print(f"   RAC locator: ${RAC_LOCATOR}")
           print(f"   version:     v${VERSION}")
-          EOF
+          PYEOF
 
       - name: Commit deploy/config.json to main
         run: |
@@ -400,7 +400,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add deploy/config.json
-          git diff --staged --quiet && echo "ℹ️ No changes to commit" && exit 0
+          git diff --staged --quiet && echo " No changes to commit" && exit 0
 
           git commit -m "chore: update deploy/config.json for v${VERSION} [skip ci]"
           git push origin main
@@ -436,7 +436,7 @@ jobs:
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo:  context.repo.repo,
-              title: `🚨 Release Pipeline Failed — ${context.sha.substring(0, 7)}`,
+              title: ` Release Pipeline Failed — ${context.sha.substring(0, 7)}`,
               labels: ['bug', 'pipeline'],
               body: `## Release Pipeline Failed
 
