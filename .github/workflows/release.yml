@@ -35,8 +35,8 @@ on:
 
 env:
   IBM_API_URL:         "https://projects.api.cloud.ibm.com/v1"
-  SI_VARIATION_LABEL:  "Oracle Database – Single Instance (SI)"
-  RAC_VARIATION_LABEL: "Oracle Database – Real Application Clusters (RAC)"
+  SI_VARIATION_LABEL:  "Oracle Database - Single Instance (SI)"
+  RAC_VARIATION_LABEL: "Oracle Database - Real Application Clusters (RAC)"
   SI_WORKING_DIR:      "solutions/oracle/si"
   RAC_WORKING_DIR:     "solutions/oracle/rac"
 
@@ -181,13 +181,12 @@ jobs:
           data = json.load(sys.stdin)
           target_version = "'"${VERSION}"'"
           for kind in data.get("kinds", []):
-              flavor = kind.get("format_label", "") + " " + kind.get("target_kind", "")
-              if "single" not in flavor.lower() and "si" not in flavor.lower():
-                  continue
               for v in kind.get("versions", []):
                   if v.get("version") == target_version:
-                      print(v.get("version_locator", ""))
-                      sys.exit(0)
+                      flavor_label = v.get("flavor", {}).get("label", "")
+                      if "single instance" in flavor_label.lower():
+                          print(v.get("version_locator", ""))
+                          sys.exit(0)
           ')
 
           echo "SI Version Locator: ${SI_LOCATOR}"
@@ -227,13 +226,12 @@ jobs:
           data = json.load(sys.stdin)
           target_version = "'"${VERSION}"'"
           for kind in data.get("kinds", []):
-              flavor = kind.get("format_label", "") + " " + kind.get("target_kind", "")
-              if "rac" not in flavor.lower() and "cluster" not in flavor.lower():
-                  continue
               for v in kind.get("versions", []):
                   if v.get("version") == target_version:
-                      print(v.get("version_locator", ""))
-                      sys.exit(0)
+                      flavor_label = v.get("flavor", {}).get("label", "")
+                      if "real application" in flavor_label.lower():
+                          print(v.get("version_locator", ""))
+                          sys.exit(0)
           ')
 
           echo "RAC Version Locator: ${RAC_LOCATOR}"
