@@ -1,7 +1,6 @@
 {
   "region": "us-south",
   "zone": "dal10",
-  "prefix": "cdasm",
   "pi_existing_workspace_guid": "3dd85d97-1033-490e-98bb-f1445a889503",
   "pi_aix_image_name": "7300-04-00",
   "pi_rhel_image_name": "RHEL9-SP6",

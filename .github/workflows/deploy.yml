@@ -43,6 +43,11 @@ on:
           - ASM
           - JFS2
 
+      prefix:
+        description: "Resource prefix (SI only, e.g. cdasm or cdjfs)"
+        required: false
+        type: string
+
       deployment_type:
         description: "Deployment type"
         required: true
@@ -88,7 +93,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo "IAM token obtained"
+          echo " IAM token obtained"
 
       # -----------------------------------------------------------------------
       # Read config_id + project_id from deploy/config.json
@@ -142,6 +147,7 @@ jobs:
           VARIATION="${{ github.event.inputs.variation }}"
           DEPLOYMENT_TYPE="${{ github.event.inputs.deployment_type }}"
           INSTALL_TYPE="${{ github.event.inputs.install_type }}"
+          PREFIX="${{ github.event.inputs.prefix }}"
 
           python3 - <<PYEOF
           import json, os, sys
@@ -149,6 +155,7 @@ jobs:
           variation     = "${VARIATION}"
           dtype         = "${DEPLOYMENT_TYPE}"
           install_type  = "${INSTALL_TYPE}"
+          prefix        = "${PREFIX}"
           inputs_file   = f"deploy/{variation}/inputs.json"
 
           try:
@@ -161,7 +168,9 @@ jobs:
           # Inject dynamic workflow inputs
           inputs["deployment_type"] = dtype
           if variation == "si":
-              inputs["oracle_install_type"] = install_type
+          inputs["oracle_install_type"] = install_type
+          if prefix:
+              inputs["prefix"] = prefix
 
           # Inject secrets
           inputs["ibmcloud_api_key"]                 = os.environ["TF_VAR_IBMCLOUD_API_KEY"]  # pragma: allowlist secret
@@ -177,6 +186,7 @@ jobs:
           print(f"OK: {len(inputs)} keys loaded from {inputs_file}")
           print(f"   deployment_type:      {dtype}")
           print(f"   oracle_install_type:  {install_type if variation == 'si' else 'N/A'}")
+          print(f"   prefix:               {prefix if variation == 'si' and prefix else 'N/A (from inputs.json)'}")
           PYEOF
         env:
           TF_VAR_IBMCLOUD_API_KEY:                 ${{ secrets.TF_VAR_IBMCLOUD_API_KEY }}
@@ -208,7 +218,7 @@ jobs:
             echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
             exit 1
           fi
-          echo "Config inputs updated"
+          echo " Config inputs updated"
 
       # -----------------------------------------------------------------------
       # Trigger validation with retry + exponential backoff
@@ -231,7 +241,7 @@ jobs:
             echo "Attempt ${i}: HTTP ${HTTP_CODE}"
 
             if [[ "${HTTP_CODE}" == "200" || "${HTTP_CODE}" == "202" ]]; then
-              echo "Validation triggered"
+              echo " Validation triggered"
               exit 0
             elif [[ "${HTTP_CODE}" == "500" || "${HTTP_CODE}" == "429" ]]; then
               echo " Transient error — retrying in ${RETRY_DELAY}s..."
@@ -269,7 +279,18 @@ jobs:
             echo "[${ELAPSED}s] State: ${STATE}"
 
             if [[ "${STATE}" == "validated" ]]; then
-              echo "Validation passed!"
+              echo " Validation passed!"
+              {
+                echo "## Validation Complete"
+                echo ""
+                echo "| Field | Value |"
+                echo "|-------|-------|"
+                echo "| Variation | ${{ github.event.inputs.variation }} |"
+                echo "| Deployment Type | ${{ github.event.inputs.deployment_type }} |"
+                echo "| Install Type | ${{ github.event.inputs.install_type }} |"
+                echo "| Triggered by | ${{ github.actor }} |"
+                echo "| Status | Validated |"
+              } >> "$GITHUB_STEP_SUMMARY"
               exit 0
             elif [[ "${STATE}" == "validating_failed" ]]; then
               echo " Validation failed:"
@@ -279,6 +300,7 @@ jobs:
           for item in d.get("needs_attention_state", []):
               print(item)
           '
+              echo "## Validation Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
 
@@ -307,7 +329,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo "IAM token obtained"
+          echo " IAM token obtained"
 
       - name: Approve Config
         run: |
@@ -326,7 +348,7 @@ jobs:
             echo "$RESPONSE" | head -1 | python3 -m json.tool 2>/dev/null
             exit 1
           fi
-          echo "Config approved by ${{ github.actor }}"
+          echo " Config approved by ${{ github.actor }}"
 
       - name: Trigger Deploy
         run: |
@@ -346,7 +368,7 @@ jobs:
             echo "Attempt ${i}: HTTP ${HTTP_CODE}"
 
             if [[ "${HTTP_CODE}" == "200" || "${HTTP_CODE}" == "202" ]]; then
-              echo "Deploy triggered"
+              echo " Deploy triggered"
               exit 0
             elif [[ "${HTTP_CODE}" == "409" ]]; then
               echo " Already deploying — skipping trigger, polling status"
@@ -385,17 +407,38 @@ jobs:
             echo "[${ELAPSED}s] State: ${STATE}"
 
             if [[ "${STATE}" == "deployed" ]]; then
-              echo "Deployment successful!"
-              echo "$RESPONSE" | python3 -c '
-          import json, sys
-          d = json.load(sys.stdin)
-          print("--- Outputs ---")
-          for o in d.get("outputs", []):
-              print(o.get("name"), ":", o.get("value", "N/A"))
-          '
+              echo " Deployment successful!"
+              OUTPUTS=$(echo "$RESPONSE" | python3 -c '
+              import json, sys
+              d = json.load(sys.stdin)
+              rows = ""
+              for o in d.get("outputs", []):
+                  rows += f"| {o.get(\"name\",\"\")} | {o.get(\"value\",\"N/A\")} |\n"
+              print(rows)
+              ')
+              {
+                echo "## Deployment Complete"
+                echo ""
+                echo "| Field | Value |"
+                echo "|-------|-------|"
+                echo "| Variation | ${{ github.event.inputs.variation }} |"
+                echo "| Deployment Type | ${{ github.event.inputs.deployment_type }} |"
+                echo "| Install Type | ${{ github.event.inputs.install_type }} |"
+                echo "| Triggered by | ${{ github.actor }} |"
+                echo "| Status | Deployed |"
+                echo ""
+                if [[ -n "$OUTPUTS" ]]; then
+                  echo "## Outputs"
+                  echo ""
+                  echo "| Name | Value |"
+                  echo "|------|-------|"
+                  echo "$OUTPUTS"
+                fi
+              } >> "$GITHUB_STEP_SUMMARY"
               exit 0
             elif [[ "${STATE}" == "deploying_failed" ]]; then
               echo " Deployment failed!"
+              echo "## Deployment Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
 
@@ -426,7 +469,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo "IAM token obtained"
+          echo " IAM token obtained"
 
       - name: Set Config ID
         id: set-ids
@@ -484,7 +527,7 @@ jobs:
             echo "Attempt ${i}: HTTP ${HTTP_CODE}"
 
             if [[ "${HTTP_CODE}" == "200" || "${HTTP_CODE}" == "202" ]]; then
-              echo "Undeploy triggered"
+              echo " Undeploy triggered"
               exit 0
             elif [[ "${HTTP_CODE}" == "500" || "${HTTP_CODE}" == "429" ]]; then
               echo " Transient error — retrying in ${RETRY_DELAY}s..."
@@ -519,10 +562,22 @@ jobs:
             echo "[${ELAPSED}s] State: ${STATE}"
 
             if [[ "${STATE}" == "undeployed" || "${STATE}" == "validated" ]]; then
-              echo "Resources destroyed successfully!"
+              echo " Resources destroyed successfully!"
+              {
+                echo "## Destroy Complete"
+                echo ""
+                echo "| Field | Value |"
+                echo "|-------|-------|"
+                echo "| Variation | ${{ github.event.inputs.variation }} |"
+                echo "| Deployment Type | ${{ github.event.inputs.deployment_type }} |"
+                echo "| Install Type | ${{ github.event.inputs.install_type }} |"
+                echo "| Triggered by | ${{ github.actor }} |"
+                echo "| Status | Destroyed |"
+              } >> "$GITHUB_STEP_SUMMARY"
               exit 0
             elif [[ "${STATE}" == "undeploying_failed" ]]; then
               echo " Destroy failed!"
+              echo "## Destroy Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
 
