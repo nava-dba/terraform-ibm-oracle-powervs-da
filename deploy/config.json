@@ -1,20 +1,54 @@
 {
   "si": {
-    "project_id": "f73696ee-e728-4af3-874f-88b5bac2c086",
-    "config_id": "7f5fb534-f383-4397-8638-51925cdd9e42",
-    "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.601bb50d-b44e-4574-a22c-c9ed13bed010",
-    "version": "4.4.0",
-    "last_updated": "2026-02-26T00:00:00Z",
-    "catalog_id": "7d140544-621d-4a3f-9009-c8d3ac9bea86",
-    "offering_id": "4440a898-5e2f-464a-a10c-daab235315db"
+    "public": {
+      "asm": {
+        "project_id": "f73696ee-e728-4af3-874f-88b5bac2c086",
+        "config_id": "7f5fb534-f383-4397-8638-51925cdd9e42",
+        "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.601bb50d-b44e-4574-a22c-c9ed13bed010",
+        "version": "4.4.0",
+        "last_updated": "2026-02-26T00:00:00Z"
+      },
+      "jfs2": {
+        "project_id": "",
+        "config_id": "",
+        "version_locator": "",
+        "version": "",
+        "last_updated": ""
+      }
+    },
+    "private": {
+      "asm": {
+        "project_id": "",
+        "config_id": "",
+        "version_locator": "",
+        "version": "",
+        "last_updated": ""
+      },
+      "jfs2": {
+        "project_id": "",
+        "config_id": "",
+        "version_locator": "",
+        "version": "",
+        "last_updated": ""
+      }
+    }
   },
   "rac": {
-    "project_id": "68f30c7b-2688-4aa4-86ad-25b54a98b8a3",
-    "config_id": "f8e43cca-37b2-4223-9e4d-1561d25159fb",
-    "version_locator": "",
-    "version": "",
-    "last_updated": "",
-    "catalog_id": "7d140544-621d-4a3f-9009-c8d3ac9bea86",
-    "offering_id": "4440a898-5e2f-464a-a10c-daab235315db"
-  }
+    "public": {
+      "project_id": "68f30c7b-2688-4aa4-86ad-25b54a98b8a3",
+      "config_id": "f8e43cca-37b2-4223-9e4d-1561d25159fb",
+      "version_locator": "",
+      "version": "",
+      "last_updated": ""
+    },
+    "private": {
+      "project_id": "",
+      "config_id": "",
+      "version_locator": "",
+      "version": "",
+      "last_updated": ""
+    }
+  },
+  "catalog_id": "7d140544-621d-4a3f-9009-c8d3ac9bea86",
+  "offering_id": "4440a898-5e2f-464a-a10c-daab235315db"
 }
