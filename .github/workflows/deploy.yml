@@ -41,7 +41,7 @@ on:
         type: choice
         options:
           - ASM
-          - JFS
+          - JFS2
 
       prefix:
         description: "Resource prefix (SI only, e.g. cdasm or cdjfs)"
@@ -168,7 +168,7 @@ jobs:
           # Inject dynamic workflow inputs
           inputs["deployment_type"] = dtype
           if variation == "si":
-              inputs["oracle_install_type"] = install_type
+              inputs["oracle_install_type"] = "JFS" if install_type == "JFS2" else install_type
               if prefix:
                   inputs["prefix"] = prefix
 
