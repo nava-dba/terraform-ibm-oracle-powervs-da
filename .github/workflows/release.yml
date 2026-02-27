@@ -5,24 +5,21 @@
 # Trigger: push to main
 #
 # Jobs:
-#   1. semantic_release     → creates tag + GitHub release
-#   2. sign_tag             → GPG sign the tag
-#   3. publish_catalog      → import SI + RAC versions to IBM private catalog
-#   4. update_project       → update IBM Project configs with new locators
-#   5. failure_notification → open GitHub issue on failure
+#   1. semantic_release     -> creates tag + GitHub release
+#   2. sign_tag             -> GPG sign the tag
+#   3. publish_catalog      -> import SI + RAC versions to IBM private catalog
+#   4. update_project       -> update IBM Project configs with new locators
+#   5. failure_notification -> open GitHub issue on failure
 #
 # Required secrets (one-time setup, never touch again):
 #   GH_TOKEN                GitHub PAT (for git push back)
 #   GPG_PRIVATE_KEY         GPG key for signing
 #   GPG_PASSPHRASE          GPG passphrase
 #   IC_API_KEY              IBM Cloud API key
-#   IBM_PROJECT_ID          IBM Cloud Projects ID
-#   IBM_SI_PROJECT_ID       IBM Cloud Projects ID for SI (if separate)
-#   IBM_RAC_PROJECT_ID      IBM Cloud Projects ID for RAC (if separate)
 #   IBM_CATALOG_ID          ora-pub catalog ID
 #   IBM_OFFERING_ID         Oracle offering ID
 #
-# deploy/config.json auto-updated each release — no manual secret updates
+# deploy/config.json auto-updated each release - no manual secret updates
 ##############################################################################
 name: Release-Pipeline
 
@@ -37,16 +34,16 @@ on:
       - main
 
 env:
-  IBM_API_URL:        "https://projects.api.cloud.ibm.com/v1"
-  SI_VARIATION_LABEL: "Oracle Database – Single Instance (SI)"
-  RAC_VARIATION_LABEL: "Oracle Database – Real Application Clusters (RAC)"
-  SI_WORKING_DIR:     "solutions/oracle/si"
-  RAC_WORKING_DIR:    "solutions/oracle/rac"
+  IBM_API_URL:         "https://projects.api.cloud.ibm.com/v1"
+  SI_VARIATION_LABEL:  "Oracle Database - Single Instance (SI)"
+  RAC_VARIATION_LABEL: "Oracle Database - Real Application Clusters (RAC)"
+  SI_WORKING_DIR:      "solutions/oracle/si"
+  RAC_WORKING_DIR:     "solutions/oracle/rac"
 
 jobs:
 
   ##############################################################################
-  # JOB 1 — Semantic Release
+  # JOB 1 - Semantic Release
   ##############################################################################
   semantic_release:
     name: Semantic Release
@@ -89,16 +86,16 @@ jobs:
         id: export_version
         run: |
           if [ -n "${SEMVER_VERSION}" ]; then
-            echo "version=${SEMVER_VERSION}"  >> $GITHUB_OUTPUT
-            echo "released=true"              >> $GITHUB_OUTPUT
-            echo " New version: ${SEMVER_VERSION}"
+            echo "version=${SEMVER_VERSION}" >> $GITHUB_OUTPUT
+            echo "released=true"             >> $GITHUB_OUTPUT
+            echo "New version: ${SEMVER_VERSION}"
           else
-            echo "released=false"             >> $GITHUB_OUTPUT
-            echo " No new version released (no releasable commits)"
+            echo "released=false"            >> $GITHUB_OUTPUT
+            echo "No new version released (no releasable commits)"
           fi
 
   ##############################################################################
-  # JOB 2 — GPG Sign Tag
+  # JOB 2 - GPG Sign Tag
   ##############################################################################
   sign_tag:
     name: Sign Tag
@@ -129,10 +126,10 @@ jobs:
           git fetch --tags
           git tag -f -s "${VERSION}" -m "Release ${VERSION}"
           git push --force origin "${VERSION}"
-          echo " Tag ${VERSION} signed and pushed"
+          echo "Tag ${VERSION} signed and pushed"
 
   ##############################################################################
-  # JOB 3 — Publish SI + RAC to IBM Private Catalog
+  # JOB 3 - Publish SI + RAC to IBM Private Catalog
   ##############################################################################
   publish_catalog:
     name: Publish to Catalog
@@ -154,11 +151,8 @@ jobs:
           ibmcloud plugin install catalogs-management -f -q
           ibmcloud login --apikey "${{ secrets.IC_API_KEY }}" --no-region -q
           ibmcloud target -r us-south -q
-          echo " IBM Cloud CLI ready"
+          echo "IBM Cloud CLI ready"
 
-      # -----------------------------------------------------------------------
-      # Helper function — get version locator after import
-      # -----------------------------------------------------------------------
       - name: Import SI Version to Catalog
         id: import_si
         run: |
@@ -166,36 +160,45 @@ jobs:
           REPO="${{ github.repository }}"
           ZIPURL="https://github.com/${REPO}/archive/refs/tags/v${VERSION}.tar.gz"
 
-          echo "--- Importing SI v${VERSION} ---"
-          echo "ZIP: ${ZIPURL}"
+          echo "Importing SI v${VERSION}"
 
           ibmcloud catalog offering import-version \
-            --catalog  "${{ secrets.IBM_CATALOG_ID }}" \
-            --offering "${{ secrets.IBM_OFFERING_ID }}" \
-            --zipurl   "${ZIPURL}" \
-            --target-version  "${VERSION}" \
-            --variation-label "${SI_VARIATION_LABEL}" \
+            --catalog           "${{ secrets.IBM_CATALOG_ID }}" \
+            --offering          "${{ secrets.IBM_OFFERING_ID }}" \
+            --zipurl            "${ZIPURL}" \
+            --target-version    "${VERSION}" \
+            --variation-label   "${SI_VARIATION_LABEL}" \
             --working-directory "${SI_WORKING_DIR}" \
-            --install-type "fullstack" \
+            --install-type      "fullstack" \
             --include-config
 
-          # Each version+variation is on its own line:
-          # |__4.5.0   Oracle Database – Single Instance (SI)   ...   7d14....locator
-          # grep version + "Single Instance" → last field = locator
-          SI_LOCATOR=$(ibmcloud catalog offering list \
-            --catalog "${{ secrets.IBM_CATALOG_ID }}" 2>/dev/null | \
-            grep "${VERSION}" | grep "Single Instance" | \
-            awk '{print $NF}' | tr -d '[:space:]')
+          # Use catalog offering get JSON output for reliable locator extraction
+          SI_LOCATOR=$(ibmcloud catalog offering get \
+            --catalog  "${{ secrets.IBM_CATALOG_ID }}" \
+            --offering "${{ secrets.IBM_OFFERING_ID }}" \
+            --output json 2>/dev/null | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          target_version = "'"${VERSION}"'"
+          for kind in data.get("kinds", []):
+              flavor = kind.get("format_label", "") + " " + kind.get("target_kind", "")
+              if "single" not in flavor.lower() and "si" not in flavor.lower():
+                  continue
+              for v in kind.get("versions", []):
+                  if v.get("version") == target_version:
+                      print(v.get("version_locator", ""))
+                      sys.exit(0)
+          ')
 
           echo "SI Version Locator: ${SI_LOCATOR}"
 
           if [ -z "${SI_LOCATOR}" ]; then
-            echo " Could not extract SI version locator"
+            echo "Could not extract SI version locator"
             exit 1
           fi
 
           echo "si_version_locator=${SI_LOCATOR}" >> $GITHUB_OUTPUT
-          echo " SI v${VERSION} imported — locator: ${SI_LOCATOR}"
+          echo "SI v${VERSION} imported - locator: ${SI_LOCATOR}"
 
       - name: Import RAC Version to Catalog
         id: import_rac
@@ -204,42 +207,52 @@ jobs:
           REPO="${{ github.repository }}"
           ZIPURL="https://github.com/${REPO}/archive/refs/tags/v${VERSION}.tar.gz"
 
-          echo "--- Importing RAC v${VERSION} ---"
-          echo "ZIP: ${ZIPURL}"
+          echo "Importing RAC v${VERSION}"
 
           ibmcloud catalog offering import-version \
-            --catalog  "${{ secrets.IBM_CATALOG_ID }}" \
-            --offering "${{ secrets.IBM_OFFERING_ID }}" \
-            --zipurl   "${ZIPURL}" \
-            --target-version  "${VERSION}" \
-            --variation-label "${RAC_VARIATION_LABEL}" \
+            --catalog           "${{ secrets.IBM_CATALOG_ID }}" \
+            --offering          "${{ secrets.IBM_OFFERING_ID }}" \
+            --zipurl            "${ZIPURL}" \
+            --target-version    "${VERSION}" \
+            --variation-label   "${RAC_VARIATION_LABEL}" \
             --working-directory "${RAC_WORKING_DIR}" \
-            --install-type "fullstack" \
+            --install-type      "fullstack" \
             --include-config
 
-          # grep version + "Real Application" → last field = locator
-          RAC_LOCATOR=$(ibmcloud catalog offering list \
-            --catalog "${{ secrets.IBM_CATALOG_ID }}" 2>/dev/null | \
-            grep "${VERSION}" | grep "Real Application" | \
-            awk '{print $NF}' | tr -d '[:space:]')
+          RAC_LOCATOR=$(ibmcloud catalog offering get \
+            --catalog  "${{ secrets.IBM_CATALOG_ID }}" \
+            --offering "${{ secrets.IBM_OFFERING_ID }}" \
+            --output json 2>/dev/null | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          target_version = "'"${VERSION}"'"
+          for kind in data.get("kinds", []):
+              flavor = kind.get("format_label", "") + " " + kind.get("target_kind", "")
+              if "rac" not in flavor.lower() and "cluster" not in flavor.lower():
+                  continue
+              for v in kind.get("versions", []):
+                  if v.get("version") == target_version:
+                      print(v.get("version_locator", ""))
+                      sys.exit(0)
+          ')
 
           echo "RAC Version Locator: ${RAC_LOCATOR}"
 
           if [ -z "${RAC_LOCATOR}" ]; then
-            echo " Could not extract RAC version locator"
+            echo "Could not extract RAC version locator"
             exit 1
           fi
 
           echo "rac_version_locator=${RAC_LOCATOR}" >> $GITHUB_OUTPUT
-          echo " RAC v${VERSION} imported — locator: ${RAC_LOCATOR}"
+          echo "RAC v${VERSION} imported - locator: ${RAC_LOCATOR}"
 
       - name: Show Catalog State
         run: |
-          echo "--- Catalog versions after import ---"
+          echo "Catalog versions after import:"
           ibmcloud catalog offering list --catalog "${{ secrets.IBM_CATALOG_ID }}"
 
   ##############################################################################
-  # JOB 4 — Update IBM Project Configs + commit deploy/config.json
+  # JOB 4 - Update IBM Project Configs + commit deploy/config.json
   ##############################################################################
   update_project:
     name: Update Project Configs
@@ -260,8 +273,12 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo " IAM token obtained"
+          echo "IAM token obtained"
 
+      # -----------------------------------------------------------------------
+      # Read all config IDs - SI ASM, SI JFS2, RAC
+      # Any with empty config_id will be skipped in patch steps
+      # -----------------------------------------------------------------------
       - name: Read Config IDs from deploy/config.json
         id: read_config
         run: |
@@ -271,40 +288,38 @@ jobs:
           with open("deploy/config.json") as f:
               config = json.load(f)
 
-          # SI uses nested public/asm structure
-          # RAC uses flat public structure
-          si_config_id   = config["si"]["public"]["asm"]["config_id"]
-          si_project_id  = config["si"]["public"]["asm"]["project_id"]
-          rac_config_id  = config["rac"]["public"]["config_id"]
-          rac_project_id = config["rac"]["public"]["project_id"]
+          si_asm_config_id   = config["si"]["public"]["asm"]["config_id"]
+          si_asm_project_id  = config["si"]["public"]["asm"]["project_id"]
+          si_jfs2_config_id  = config["si"]["public"]["jfs2"]["config_id"]
+          si_jfs2_project_id = config["si"]["public"]["jfs2"]["project_id"]
+          rac_config_id      = config["rac"]["public"]["config_id"]
+          rac_project_id     = config["rac"]["public"]["project_id"]
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-              f.write(f"si_config_id={si_config_id}\n")
-              f.write(f"si_project_id={si_project_id}\n")
+              f.write(f"si_asm_config_id={si_asm_config_id}\n")
+              f.write(f"si_asm_project_id={si_asm_project_id}\n")
+              f.write(f"si_jfs2_config_id={si_jfs2_config_id}\n")
+              f.write(f"si_jfs2_project_id={si_jfs2_project_id}\n")
               f.write(f"rac_config_id={rac_config_id}\n")
               f.write(f"rac_project_id={rac_project_id}\n")
 
-          print(f"SI  config_id:  {si_config_id}")
-          print(f"SI  project_id: {si_project_id}")
-          print(f"RAC config_id:  {rac_config_id}")
-          print(f"RAC project_id: {rac_project_id}")
+          print(f"SI ASM  config_id: {si_asm_config_id}")
+          print(f"SI JFS2 config_id: {si_jfs2_config_id}")
+          print(f"RAC     config_id: {rac_config_id}")
           PYEOF
 
-      # -----------------------------------------------------------------------
-      # Update SI project config
-      # -----------------------------------------------------------------------
-      - name: Update SI Project Config
+      - name: Update SI ASM Project Config
         run: |
-          CONFIG_ID="${{ steps.read_config.outputs.si_config_id }}"
-          PROJECT_ID="${{ steps.read_config.outputs.si_project_id }}"
+          CONFIG_ID="${{ steps.read_config.outputs.si_asm_config_id }}"
+          PROJECT_ID="${{ steps.read_config.outputs.si_asm_project_id }}"
           SI_LOCATOR="${{ needs.publish_catalog.outputs.si_version_locator }}"
 
           if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
-            echo "⚠️ SI config_id or project_id is empty — skipping"
+            echo "SI ASM config_id or project_id empty - skipping"
             exit 0
           fi
 
-          echo "Updating SI config ${CONFIG_ID} → locator ${SI_LOCATOR}"
+          echo "Updating SI ASM config ${CONFIG_ID} -> locator ${SI_LOCATOR}"
 
           RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
             "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
@@ -317,15 +332,43 @@ jobs:
           echo "HTTP: ${HTTP_CODE}"
 
           if [[ "${HTTP_CODE}" != "200" ]]; then
-            echo " SI config update failed:"
+            echo "SI ASM config update failed:"
             echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
             exit 1
           fi
-          echo " SI project config updated"
+          echo "SI ASM project config updated"
 
-      # -----------------------------------------------------------------------
-      # Update RAC project config (skip if not configured yet)
-      # -----------------------------------------------------------------------
+      # SI JFS2 uses same SI locator - same catalog variation, separate IBM Projects config
+      - name: Update SI JFS2 Project Config
+        run: |
+          CONFIG_ID="${{ steps.read_config.outputs.si_jfs2_config_id }}"
+          PROJECT_ID="${{ steps.read_config.outputs.si_jfs2_project_id }}"
+          SI_LOCATOR="${{ needs.publish_catalog.outputs.si_version_locator }}"
+
+          if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
+            echo "SI JFS2 config_id or project_id empty - skipping"
+            exit 0
+          fi
+
+          echo "Updating SI JFS2 config ${CONFIG_ID} -> locator ${SI_LOCATOR}"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
+            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+            -H "Authorization: Bearer ${IAM_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"definition\": {\"locator_id\": \"${SI_LOCATOR}\"}}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "HTTP: ${HTTP_CODE}"
+
+          if [[ "${HTTP_CODE}" != "200" ]]; then
+            echo "SI JFS2 config update failed:"
+            echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
+            exit 1
+          fi
+          echo "SI JFS2 project config updated"
+
       - name: Update RAC Project Config
         run: |
           CONFIG_ID="${{ steps.read_config.outputs.rac_config_id }}"
@@ -333,11 +376,11 @@ jobs:
           RAC_LOCATOR="${{ needs.publish_catalog.outputs.rac_version_locator }}"
 
           if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
-            echo "⚠️ RAC config_id or project_id is empty — skipping (add to deploy/config.json when ready)"
+            echo "RAC config_id or project_id empty - skipping"
             exit 0
           fi
 
-          echo "Updating RAC config ${CONFIG_ID} → locator ${RAC_LOCATOR}"
+          echo "Updating RAC config ${CONFIG_ID} -> locator ${RAC_LOCATOR}"
 
           RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
             "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
@@ -350,14 +393,14 @@ jobs:
           echo "HTTP: ${HTTP_CODE}"
 
           if [[ "${HTTP_CODE}" != "200" ]]; then
-            echo " RAC config update failed:"
+            echo "RAC config update failed:"
             echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
             exit 1
           fi
-          echo " RAC project config updated"
+          echo "RAC project config updated"
 
       # -----------------------------------------------------------------------
-      # Update deploy/config.json with new locators + commit back to main
+      # Write new locators + version back to deploy/config.json and commit
       # -----------------------------------------------------------------------
       - name: Update deploy/config.json
         run: |
@@ -372,12 +415,17 @@ jobs:
           with open("deploy/config.json") as f:
               config = json.load(f)
 
-          # Update SI — nested public/asm structure
+          # SI ASM
           config["si"]["public"]["asm"]["version_locator"] = "${SI_LOCATOR}"
           config["si"]["public"]["asm"]["version"]         = "v${VERSION}"
           config["si"]["public"]["asm"]["last_updated"]    = "${TIMESTAMP}"
 
-          # Update RAC — flat public structure
+          # SI JFS2 - same SI locator, separate IBM Projects config
+          config["si"]["public"]["jfs2"]["version_locator"] = "${SI_LOCATOR}"
+          config["si"]["public"]["jfs2"]["version"]         = "v${VERSION}"
+          config["si"]["public"]["jfs2"]["last_updated"]    = "${TIMESTAMP}"
+
+          # RAC
           config["rac"]["public"]["version_locator"] = "${RAC_LOCATOR}"
           config["rac"]["public"]["version"]         = "v${VERSION}"
           config["rac"]["public"]["last_updated"]    = "${TIMESTAMP}"
@@ -386,10 +434,10 @@ jobs:
               json.dump(config, f, indent=2)
               f.write("\n")
 
-          print("OK: deploy/config.json updated")
-          print(f"   SI  locator: ${SI_LOCATOR}")
-          print(f"   RAC locator: ${RAC_LOCATOR}")
-          print(f"   version:     v${VERSION}")
+          print("deploy/config.json updated")
+          print(f"  SI  locator: ${SI_LOCATOR}")
+          print(f"  RAC locator: ${RAC_LOCATOR}")
+          print(f"  version:     v${VERSION}")
           PYEOF
 
       - name: Commit deploy/config.json to main
@@ -400,15 +448,15 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git add deploy/config.json
-          git diff --staged --quiet && echo " No changes to commit" && exit 0
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
 
           git commit -m "chore: update deploy/config.json for v${VERSION} [skip ci]"
           git push origin main
 
-          echo " deploy/config.json committed to main"
+          echo "deploy/config.json committed to main"
 
   ##############################################################################
-  # JOB 5 — Failure Notification
+  # JOB 5 - Failure Notification
   ##############################################################################
   failure_notification:
     name: Failure Notification
@@ -436,7 +484,7 @@ jobs:
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo:  context.repo.repo,
-              title: ` Release Pipeline Failed — ${context.sha.substring(0, 7)}`,
+              title: `Release Pipeline Failed - ${context.sha.substring(0, 7)}`,
               labels: ['bug', 'pipeline'],
               body: `## Release Pipeline Failed
 
