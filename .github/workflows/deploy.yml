@@ -295,11 +295,11 @@ jobs:
             elif [[ "${STATE}" == "validating_failed" ]]; then
               echo "Validation failed:"
               echo "$RESPONSE" | python3 -c '
-              import json, sys
-              d = json.load(sys.stdin)
-              for item in d.get("needs_attention_state", []):
-                  print(item)
-              '
+          import json, sys
+          d = json.load(sys.stdin)
+          for item in d.get("needs_attention_state", []):
+              print(item)
+          '
               echo "## Validation Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
@@ -409,13 +409,13 @@ jobs:
             if [[ "${STATE}" == "deployed" ]]; then
               echo "Deployment successful"
               OUTPUTS=$(echo "$RESPONSE" | python3 -c '
-              import json, sys
-              d = json.load(sys.stdin)
-              rows = ""
-              for o in d.get("outputs", []):
-                  rows += f"| {o.get(\"name\",\"\")} | {o.get(\"value\",\"N/A\")} |\n"
-              print(rows)
-              ')
+          import json, sys
+          d = json.load(sys.stdin)
+          rows = ""
+          for o in d.get("outputs", []):
+              rows += f"| {o.get(\"name\",\"\")} | {o.get(\"value\",\"N/A\")} |\n"
+          print(rows)
+          ')
               {
                 echo "## Deployment Complete"
                 echo ""
