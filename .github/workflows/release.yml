@@ -35,8 +35,8 @@ on:
 
 env:
   IBM_API_URL:         "https://projects.api.cloud.ibm.com/v1"
-  SI_VARIATION_LABEL:  "Oracle Database - Single Instance (SI)"
-  RAC_VARIATION_LABEL: "Oracle Database - Real Application Clusters (RAC)"
+  SI_VARIATION_LABEL:  "Oracle Database – Single Instance (SI)"
+  RAC_VARIATION_LABEL: "Oracle Database – Real Application Clusters (RAC)"
   SI_WORKING_DIR:      "solutions/oracle/si"
   RAC_WORKING_DIR:     "solutions/oracle/rac"
 
