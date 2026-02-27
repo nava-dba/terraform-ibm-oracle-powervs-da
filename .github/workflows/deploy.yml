@@ -1,5 +1,5 @@
 ##############################################################################
-# CD Pipeline — IBM Cloud Projects Deployment
+# CD Pipeline - IBM Cloud Projects Deployment
 # Repo: nava-dba/terraform-ibm-oracle-powervs-da
 #
 # Triggers:
@@ -71,7 +71,7 @@ env:
 jobs:
 
   ##############################################################################
-  # JOB 1 — Validate
+  # JOB 1 - Validate
   ##############################################################################
   validate:
     name: Validate (${{ github.event.inputs.variation }}-${{ github.event.inputs.deployment_type }})
@@ -93,12 +93,12 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo " IAM token obtained"
+          echo "IAM token obtained"
 
       # -----------------------------------------------------------------------
       # Read config_id + project_id from deploy/config.json
-      # SI:  config["si"]["public"]["asm"]  → config_id + project_id
-      # RAC: config["rac"]["public"]        → config_id + project_id
+      # SI:  config["si"]["public"]["asm"]  -> config_id + project_id
+      # RAC: config["rac"]["public"]        -> config_id + project_id
       # -----------------------------------------------------------------------
       - name: Set Config ID
         id: set-ids
@@ -139,7 +139,7 @@ jobs:
           PYEOF
 
       # -----------------------------------------------------------------------
-      # Load deploy/{variation}/inputs.json — one file per variation
+      # Load deploy/{variation}/inputs.json - one file per variation
       # Inject deployment_type, oracle_install_type (si only), and secrets
       # -----------------------------------------------------------------------
       - name: Build Full Inputs
@@ -152,11 +152,11 @@ jobs:
           python3 - <<PYEOF
           import json, os, sys
 
-          variation     = "${VARIATION}"
-          dtype         = "${DEPLOYMENT_TYPE}"
-          install_type  = "${INSTALL_TYPE}"
-          prefix        = "${PREFIX}"
-          inputs_file   = f"deploy/{variation}/inputs.json"
+          variation    = "${VARIATION}"
+          dtype        = "${DEPLOYMENT_TYPE}"
+          install_type = "${INSTALL_TYPE}"
+          prefix       = "${PREFIX}"
+          inputs_file  = f"deploy/{variation}/inputs.json"
 
           try:
               with open(inputs_file) as f:
@@ -168,9 +168,9 @@ jobs:
           # Inject dynamic workflow inputs
           inputs["deployment_type"] = dtype
           if variation == "si":
-          inputs["oracle_install_type"] = install_type
-          if prefix:
-              inputs["prefix"] = prefix
+              inputs["oracle_install_type"] = install_type
+              if prefix:
+                  inputs["prefix"] = prefix
 
           # Inject secrets
           inputs["ibmcloud_api_key"]                 = os.environ["TF_VAR_IBMCLOUD_API_KEY"]  # pragma: allowlist secret
@@ -214,11 +214,11 @@ jobs:
           echo "HTTP: ${HTTP_CODE}"
 
           if [[ "${HTTP_CODE}" != "200" ]]; then
-            echo " Update failed:"
+            echo "Update failed:"
             echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
             exit 1
           fi
-          echo " Config inputs updated"
+          echo "Config inputs updated"
 
       # -----------------------------------------------------------------------
       # Trigger validation with retry + exponential backoff
@@ -241,24 +241,24 @@ jobs:
             echo "Attempt ${i}: HTTP ${HTTP_CODE}"
 
             if [[ "${HTTP_CODE}" == "200" || "${HTTP_CODE}" == "202" ]]; then
-              echo " Validation triggered"
+              echo "Validation triggered"
               exit 0
             elif [[ "${HTTP_CODE}" == "500" || "${HTTP_CODE}" == "429" ]]; then
-              echo " Transient error — retrying in ${RETRY_DELAY}s..."
+              echo "Transient error - retrying in ${RETRY_DELAY}s..."
               sleep $RETRY_DELAY
               RETRY_DELAY=$((RETRY_DELAY * 2))
             else
-              echo " Trigger validation failed:"
+              echo "Trigger validation failed:"
               echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
               exit 1
             fi
           done
 
-          echo " Validation trigger failed after ${MAX_RETRIES} attempts"
+          echo "Validation trigger failed after ${MAX_RETRIES} attempts"
           exit 1
 
       # -----------------------------------------------------------------------
-      # Poll validation every 30s — max 15 min
+      # Poll validation every 30s - max 15 min
       # -----------------------------------------------------------------------
       - name: Poll Validation Status
         run: |
@@ -279,7 +279,7 @@ jobs:
             echo "[${ELAPSED}s] State: ${STATE}"
 
             if [[ "${STATE}" == "validated" ]]; then
-              echo " Validation passed!"
+              echo "Validation passed"
               {
                 echo "## Validation Complete"
                 echo ""
@@ -293,13 +293,13 @@ jobs:
               } >> "$GITHUB_STEP_SUMMARY"
               exit 0
             elif [[ "${STATE}" == "validating_failed" ]]; then
-              echo " Validation failed:"
+              echo "Validation failed:"
               echo "$RESPONSE" | python3 -c '
-          import json, sys
-          d = json.load(sys.stdin)
-          for item in d.get("needs_attention_state", []):
-              print(item)
-          '
+              import json, sys
+              d = json.load(sys.stdin)
+              for item in d.get("needs_attention_state", []):
+                  print(item)
+              '
               echo "## Validation Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
@@ -308,11 +308,11 @@ jobs:
             ELAPSED=$((ELAPSED + INTERVAL))
           done
 
-          echo " Validation timed out after ${MAX_WAIT}s"
+          echo "Validation timed out after ${MAX_WAIT}s"
           exit 1
 
   ##############################################################################
-  # JOB 2 — Deploy (approval gate + validate must pass)
+  # JOB 2 - Deploy (approval gate + validate must pass)
   ##############################################################################
   deploy:
     name: Deploy (${{ github.event.inputs.variation }}-${{ github.event.inputs.deployment_type }})
@@ -329,7 +329,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo " IAM token obtained"
+          echo "IAM token obtained"
 
       - name: Approve Config
         run: |
@@ -344,11 +344,11 @@ jobs:
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           if [[ "${HTTP_CODE}" != "200" && "${HTTP_CODE}" != "202" ]]; then
-            echo " Approval failed (HTTP ${HTTP_CODE}):"
+            echo "Approval failed (HTTP ${HTTP_CODE}):"
             echo "$RESPONSE" | head -1 | python3 -m json.tool 2>/dev/null
             exit 1
           fi
-          echo " Config approved by ${{ github.actor }}"
+          echo "Config approved by ${{ github.actor }}"
 
       - name: Trigger Deploy
         run: |
@@ -368,23 +368,23 @@ jobs:
             echo "Attempt ${i}: HTTP ${HTTP_CODE}"
 
             if [[ "${HTTP_CODE}" == "200" || "${HTTP_CODE}" == "202" ]]; then
-              echo " Deploy triggered"
+              echo "Deploy triggered"
               exit 0
             elif [[ "${HTTP_CODE}" == "409" ]]; then
-              echo " Already deploying — skipping trigger, polling status"
+              echo "Already deploying - skipping trigger, polling status"
               exit 0
             elif [[ "${HTTP_CODE}" == "500" || "${HTTP_CODE}" == "429" ]]; then
-              echo " Transient error — retrying in ${RETRY_DELAY}s..."
+              echo "Transient error - retrying in ${RETRY_DELAY}s..."
               sleep $RETRY_DELAY
               RETRY_DELAY=$((RETRY_DELAY * 2))
             else
-              echo " Deploy trigger failed:"
+              echo "Deploy trigger failed:"
               echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
               exit 1
             fi
           done
 
-          echo " Deploy trigger failed after ${MAX_RETRIES} attempts"
+          echo "Deploy trigger failed after ${MAX_RETRIES} attempts"
           exit 1
 
       - name: Poll Deploy Status
@@ -407,7 +407,7 @@ jobs:
             echo "[${ELAPSED}s] State: ${STATE}"
 
             if [[ "${STATE}" == "deployed" ]]; then
-              echo " Deployment successful!"
+              echo "Deployment successful"
               OUTPUTS=$(echo "$RESPONSE" | python3 -c '
               import json, sys
               d = json.load(sys.stdin)
@@ -437,7 +437,7 @@ jobs:
               } >> "$GITHUB_STEP_SUMMARY"
               exit 0
             elif [[ "${STATE}" == "deploying_failed" ]]; then
-              echo " Deployment failed!"
+              echo "Deployment failed"
               echo "## Deployment Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
@@ -446,11 +446,11 @@ jobs:
             ELAPSED=$((ELAPSED + INTERVAL))
           done
 
-          echo " Deploy timed out after ${MAX_WAIT}s"
+          echo "Deploy timed out after ${MAX_WAIT}s"
           exit 1
 
   ##############################################################################
-  # JOB 3 — Destroy (approval gate, independent of validate/deploy)
+  # JOB 3 - Destroy (approval gate, independent of validate/deploy)
   ##############################################################################
   destroy:
     name: Destroy (${{ github.event.inputs.variation }}-${{ github.event.inputs.deployment_type }})
@@ -469,7 +469,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
-          echo " IAM token obtained"
+          echo "IAM token obtained"
 
       - name: Set Config ID
         id: set-ids
@@ -527,20 +527,20 @@ jobs:
             echo "Attempt ${i}: HTTP ${HTTP_CODE}"
 
             if [[ "${HTTP_CODE}" == "200" || "${HTTP_CODE}" == "202" ]]; then
-              echo " Undeploy triggered"
+              echo "Undeploy triggered"
               exit 0
             elif [[ "${HTTP_CODE}" == "500" || "${HTTP_CODE}" == "429" ]]; then
-              echo " Transient error — retrying in ${RETRY_DELAY}s..."
+              echo "Transient error - retrying in ${RETRY_DELAY}s..."
               sleep $RETRY_DELAY
               RETRY_DELAY=$((RETRY_DELAY * 2))
             else
-              echo " Undeploy trigger failed:"
+              echo "Undeploy trigger failed:"
               echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
               exit 1
             fi
           done
 
-          echo " Undeploy trigger failed after ${MAX_RETRIES} attempts"
+          echo "Undeploy trigger failed after ${MAX_RETRIES} attempts"
           exit 1
 
       - name: Poll Destroy Status
@@ -562,7 +562,7 @@ jobs:
             echo "[${ELAPSED}s] State: ${STATE}"
 
             if [[ "${STATE}" == "undeployed" || "${STATE}" == "validated" ]]; then
-              echo " Resources destroyed successfully!"
+              echo "Resources destroyed successfully"
               {
                 echo "## Destroy Complete"
                 echo ""
@@ -576,7 +576,7 @@ jobs:
               } >> "$GITHUB_STEP_SUMMARY"
               exit 0
             elif [[ "${STATE}" == "undeploying_failed" ]]; then
-              echo " Destroy failed!"
+              echo "Destroy failed"
               echo "## Destroy Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
@@ -585,5 +585,5 @@ jobs:
             ELAPSED=$((ELAPSED + INTERVAL))
           done
 
-          echo " Destroy timed out after ${MAX_WAIT}s"
+          echo "Destroy timed out after ${MAX_WAIT}s"
           exit 1
