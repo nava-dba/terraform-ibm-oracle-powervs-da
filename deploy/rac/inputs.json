@@ -9,7 +9,6 @@
   "pi_ssh_public_key_name": "id_rsa_dal-vpc-vm-1",
   "bastion_host_ip": "52.118.254.241",
   "squid_server_ip": "10.240.64.6",
-  "deployment_type": "public",
   "redolog_size_in_mb": "1024",
   "cluster_domain": "privda.com",
   "cluster_name": "orac-cluster",
