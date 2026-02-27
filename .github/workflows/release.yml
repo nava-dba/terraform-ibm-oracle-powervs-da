@@ -88,14 +88,15 @@ jobs:
       - name: Export Version
         id: export_version
         run: |
-          if [ -f .version ]; then
-            VERSION=$(cat .version)
-            echo "version=${VERSION}"   >> $GITHUB_OUTPUT
-            echo "released=true"        >> $GITHUB_OUTPUT
-            echo " New version: ${VERSION}"
+          echo "SEMVER_VERSION=${SEMVER_VERSION}"
+
+          if [ -z "${SEMVER_VERSION}" ]; then
+            echo "released=false" >> $GITHUB_OUTPUT
+            echo "ℹNo new version released (no releasable commits)"
           else
-            echo "released=false"       >> $GITHUB_OUTPUT
-            echo "ℹ️ No new version released (no releasable commits)"
+            echo "version=${SEMVER_VERSION}"  >> $GITHUB_OUTPUT
+            echo "released=true"              >> $GITHUB_OUTPUT
+            echo "New version: ${SEMVER_VERSION}"
           fi
 
   ##############################################################################
