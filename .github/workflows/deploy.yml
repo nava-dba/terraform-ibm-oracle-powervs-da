@@ -41,7 +41,7 @@ on:
         type: choice
         options:
           - ASM
-          - JFS2
+          - JFS
 
       prefix:
         description: "Resource prefix (SI only, e.g. cdasm or cdjfs)"
