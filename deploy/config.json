@@ -5,15 +5,15 @@
         "project_id": "f73696ee-e728-4af3-874f-88b5bac2c086",
         "config_id": "7f5fb534-f383-4397-8638-51925cdd9e42",
         "version_locator": "",
-        "version": "v4.7.2",
-        "last_updated": "2026-02-27T18:01:59Z"
+        "version": "v4.8.0",
+        "last_updated": "2026-02-27T19:52:38Z"
       },
       "jfs2": {
         "project_id": "f73696ee-e728-4af3-874f-88b5bac2c086",
         "config_id": "6354b65d-c15a-4836-a7c9-e6e7da4ca1d2",
         "version_locator": "",
-        "version": "",
-        "last_updated": ""
+        "version": "v4.8.0",
+        "last_updated": "2026-02-27T19:52:38Z"
       }
     },
     "private": {
@@ -38,8 +38,8 @@
       "project_id": "68f30c7b-2688-4aa4-86ad-25b54a98b8a3",
       "config_id": "f8e43cca-37b2-4223-9e4d-1561d25159fb",
       "version_locator": "",
-      "version": "v4.7.2",
-      "last_updated": "2026-02-27T18:01:59Z"
+      "version": "v4.8.0",
+      "last_updated": "2026-02-27T19:52:38Z"
     },
     "private": {
       "project_id": "",
