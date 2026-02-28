@@ -278,7 +278,7 @@ jobs:
           echo "IAM token obtained"
 
       # -----------------------------------------------------------------------
-      # Read all config IDs - SI ASM, SI JFS2, RAC
+      # Read all config IDs - public and private SI ASM, SI JFS2, RAC
       # Any with empty config_id will be skipped in patch steps
       # -----------------------------------------------------------------------
       - name: Read Config IDs from deploy/config.json
@@ -290,12 +290,18 @@ jobs:
           with open("deploy/config.json") as f:
               config = json.load(f)
 
-          si_asm_config_id   = config["si"]["public"]["asm"]["config_id"]
-          si_asm_project_id  = config["si"]["public"]["asm"]["project_id"]
-          si_jfs2_config_id  = config["si"]["public"]["jfs2"]["config_id"]
-          si_jfs2_project_id = config["si"]["public"]["jfs2"]["project_id"]
-          rac_config_id      = config["rac"]["public"]["config_id"]
-          rac_project_id     = config["rac"]["public"]["project_id"]
+          si_asm_config_id        = config["si"]["public"]["asm"]["config_id"]
+          si_asm_project_id       = config["si"]["public"]["asm"]["project_id"]
+          si_jfs2_config_id       = config["si"]["public"]["jfs2"]["config_id"]
+          si_jfs2_project_id      = config["si"]["public"]["jfs2"]["project_id"]
+          rac_config_id           = config["rac"]["public"]["config_id"]
+          rac_project_id          = config["rac"]["public"]["project_id"]
+          priv_si_asm_config_id   = config["si"]["private"]["asm"]["config_id"]
+          priv_si_asm_project_id  = config["si"]["private"]["asm"]["project_id"]
+          priv_si_jfs2_config_id  = config["si"]["private"]["jfs2"]["config_id"]
+          priv_si_jfs2_project_id = config["si"]["private"]["jfs2"]["project_id"]
+          priv_rac_config_id      = config["rac"]["private"]["config_id"]
+          priv_rac_project_id     = config["rac"]["private"]["project_id"]
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"si_asm_config_id={si_asm_config_id}\n")
@@ -304,10 +310,19 @@ jobs:
               f.write(f"si_jfs2_project_id={si_jfs2_project_id}\n")
               f.write(f"rac_config_id={rac_config_id}\n")
               f.write(f"rac_project_id={rac_project_id}\n")
+              f.write(f"priv_si_asm_config_id={priv_si_asm_config_id}\n")
+              f.write(f"priv_si_asm_project_id={priv_si_asm_project_id}\n")
+              f.write(f"priv_si_jfs2_config_id={priv_si_jfs2_config_id}\n")
+              f.write(f"priv_si_jfs2_project_id={priv_si_jfs2_project_id}\n")
+              f.write(f"priv_rac_config_id={priv_rac_config_id}\n")
+              f.write(f"priv_rac_project_id={priv_rac_project_id}\n")
 
-          print(f"SI ASM  config_id: {si_asm_config_id}")
-          print(f"SI JFS2 config_id: {si_jfs2_config_id}")
-          print(f"RAC     config_id: {rac_config_id}")
+          print(f"PUB SI ASM   config_id: {si_asm_config_id}")
+          print(f"PUB SI JFS2  config_id: {si_jfs2_config_id}")
+          print(f"PUB RAC      config_id: {rac_config_id}")
+          print(f"PRIV SI ASM  config_id: {priv_si_asm_config_id}")
+          print(f"PRIV SI JFS2 config_id: {priv_si_jfs2_config_id}")
+          print(f"PRIV RAC     config_id: {priv_rac_config_id}")
           PYEOF
 
       - name: Update SI ASM Project Config
@@ -401,6 +416,96 @@ jobs:
           fi
           echo "RAC project config updated"
 
+      - name: Update Private SI ASM Project Config
+        run: |
+          CONFIG_ID="${{ steps.read_config.outputs.priv_si_asm_config_id }}"
+          PROJECT_ID="${{ steps.read_config.outputs.priv_si_asm_project_id }}"
+          SI_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.si_version_id }}"
+
+          if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
+            echo "Private SI ASM config_id or project_id empty - skipping"
+            exit 0
+          fi
+
+          echo "Updating Private SI ASM config ${CONFIG_ID} -> locator ${SI_LOCATOR}"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
+            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+            -H "Authorization: Bearer ${IAM_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"definition\": {\"locator_id\": \"${SI_LOCATOR}\"}}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "HTTP: ${HTTP_CODE}"
+
+          if [[ "${HTTP_CODE}" != "200" ]]; then
+            echo "Private SI ASM config update failed:"
+            echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
+            exit 1
+          fi
+          echo "Private SI ASM project config updated"
+
+      - name: Update Private SI JFS2 Project Config
+        run: |
+          CONFIG_ID="${{ steps.read_config.outputs.priv_si_jfs2_config_id }}"
+          PROJECT_ID="${{ steps.read_config.outputs.priv_si_jfs2_project_id }}"
+          SI_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.si_version_id }}"
+
+          if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
+            echo "Private SI JFS2 config_id or project_id empty - skipping"
+            exit 0
+          fi
+
+          echo "Updating Private SI JFS2 config ${CONFIG_ID} -> locator ${SI_LOCATOR}"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
+            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+            -H "Authorization: Bearer ${IAM_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"definition\": {\"locator_id\": \"${SI_LOCATOR}\"}}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "HTTP: ${HTTP_CODE}"
+
+          if [[ "${HTTP_CODE}" != "200" ]]; then
+            echo "Private SI JFS2 config update failed:"
+            echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
+            exit 1
+          fi
+          echo "Private SI JFS2 project config updated"
+
+      - name: Update Private RAC Project Config
+        run: |
+          CONFIG_ID="${{ steps.read_config.outputs.priv_rac_config_id }}"
+          PROJECT_ID="${{ steps.read_config.outputs.priv_rac_project_id }}"
+          RAC_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.rac_version_id }}"
+
+          if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
+            echo "Private RAC config_id or project_id empty - skipping"
+            exit 0
+          fi
+
+          echo "Updating Private RAC config ${CONFIG_ID} -> locator ${RAC_LOCATOR}"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
+            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+            -H "Authorization: Bearer ${IAM_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"definition\": {\"locator_id\": \"${RAC_LOCATOR}\"}}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "HTTP: ${HTTP_CODE}"
+
+          if [[ "${HTTP_CODE}" != "200" ]]; then
+            echo "Private RAC config update failed:"
+            echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
+            exit 1
+          fi
+          echo "Private RAC project config updated"
+
       # -----------------------------------------------------------------------
       # Write new locators + version back to deploy/config.json and commit
       # -----------------------------------------------------------------------
@@ -417,20 +522,31 @@ jobs:
           with open("deploy/config.json") as f:
               config = json.load(f)
 
-          # SI ASM
-          config["si"]["public"]["asm"]["version_locator"] = "${SI_LOCATOR}"
-          config["si"]["public"]["asm"]["version"]         = "v${VERSION}"
-          config["si"]["public"]["asm"]["last_updated"]    = "${TIMESTAMP}"
-
-          # SI JFS2 - same SI locator, separate IBM Projects config
+          # SI public
+          config["si"]["public"]["asm"]["version_locator"]  = "${SI_LOCATOR}"
+          config["si"]["public"]["asm"]["version"]          = "v${VERSION}"
+          config["si"]["public"]["asm"]["last_updated"]     = "${TIMESTAMP}"
           config["si"]["public"]["jfs2"]["version_locator"] = "${SI_LOCATOR}"
           config["si"]["public"]["jfs2"]["version"]         = "v${VERSION}"
           config["si"]["public"]["jfs2"]["last_updated"]    = "${TIMESTAMP}"
 
-          # RAC
+          # RAC public
           config["rac"]["public"]["version_locator"] = "${RAC_LOCATOR}"
           config["rac"]["public"]["version"]         = "v${VERSION}"
           config["rac"]["public"]["last_updated"]    = "${TIMESTAMP}"
+
+          # SI private - same locators as public
+          config["si"]["private"]["asm"]["version_locator"]  = "${SI_LOCATOR}"
+          config["si"]["private"]["asm"]["version"]          = "v${VERSION}"
+          config["si"]["private"]["asm"]["last_updated"]     = "${TIMESTAMP}"
+          config["si"]["private"]["jfs2"]["version_locator"] = "${SI_LOCATOR}"
+          config["si"]["private"]["jfs2"]["version"]         = "v${VERSION}"
+          config["si"]["private"]["jfs2"]["last_updated"]    = "${TIMESTAMP}"
+
+          # RAC private
+          config["rac"]["private"]["version_locator"] = "${RAC_LOCATOR}"
+          config["rac"]["private"]["version"]         = "v${VERSION}"
+          config["rac"]["private"]["last_updated"]    = "${TIMESTAMP}"
 
           with open("deploy/config.json", "w") as f:
               json.dump(config, f, indent=2)
