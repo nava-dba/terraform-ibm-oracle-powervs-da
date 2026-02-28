@@ -4,32 +4,32 @@
       "asm": {
         "project_id": "f73696ee-e728-4af3-874f-88b5bac2c086",
         "config_id": "0a559aeb-81ba-487c-bdbc-e280ca9baaff",
-        "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.60e67534-55ca-47a3-85ff-3fabfb311939",
-        "version": "v4.10.0",
-        "last_updated": "2026-02-28T10:43:05Z"
+        "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.b447deb8-f79f-4239-b47f-2f69a58b482f",
+        "version": "v4.11.0",
+        "last_updated": "2026-02-28T13:54:00Z"
       },
       "jfs2": {
         "project_id": "f73696ee-e728-4af3-874f-88b5bac2c086",
         "config_id": "763336b8-8b8a-4655-ae74-935e5356d00f",
-        "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.60e67534-55ca-47a3-85ff-3fabfb311939",
-        "version": "v4.10.0",
-        "last_updated": "2026-02-28T10:43:05Z"
+        "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.b447deb8-f79f-4239-b47f-2f69a58b482f",
+        "version": "v4.11.0",
+        "last_updated": "2026-02-28T13:54:00Z"
       }
     },
     "private": {
       "asm": {
         "project_id": "c1db8f3f-1584-4944-8895-b0d6788ffaab",
         "config_id": "97c69aa7-cb27-4bde-a55b-6bdf04d0b554",
-        "version_locator": "",
-        "version": "",
-        "last_updated": ""
+        "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.b447deb8-f79f-4239-b47f-2f69a58b482f",
+        "version": "v4.11.0",
+        "last_updated": "2026-02-28T13:54:00Z"
       },
       "jfs2": {
         "project_id": "c1db8f3f-1584-4944-8895-b0d6788ffaab",
         "config_id": "11a78582-5a7b-432b-8c2b-7dff97b9668e",
-        "version_locator": "",
-        "version": "",
-        "last_updated": ""
+        "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.b447deb8-f79f-4239-b47f-2f69a58b482f",
+        "version": "v4.11.0",
+        "last_updated": "2026-02-28T13:54:00Z"
       }
     }
   },
@@ -37,16 +37,16 @@
     "public": {
       "project_id": "68f30c7b-2688-4aa4-86ad-25b54a98b8a3",
       "config_id": "f8e43cca-37b2-4223-9e4d-1561d25159fb",
-      "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.c27af68b-d462-4576-b023-2fac60938861",
-      "version": "v4.10.0",
-      "last_updated": "2026-02-28T10:43:05Z"
+      "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.674806ef-a243-4fc1-a958-65083bba3f63",
+      "version": "v4.11.0",
+      "last_updated": "2026-02-28T13:54:00Z"
     },
     "private": {
       "project_id": "9e241f6f-6d50-4866-ba29-ed877eaa8142",
       "config_id": "b8724c3c-ea60-45d8-b951-c6ab9ffe59ce",
-      "version_locator": "",
-      "version": "",
-      "last_updated": ""
+      "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.674806ef-a243-4fc1-a958-65083bba3f63",
+      "version": "v4.11.0",
+      "last_updated": "2026-02-28T13:54:00Z"
     }
   },
   "catalog_id": "7d140544-621d-4a3f-9009-c8d3ac9bea86",
