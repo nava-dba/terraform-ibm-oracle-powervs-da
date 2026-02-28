@@ -295,11 +295,11 @@ jobs:
             elif [[ "${STATE}" == "validating_failed" ]]; then
               echo "Validation failed:"
               echo "$RESPONSE" | python3 -c '
-          import json, sys
-          d = json.load(sys.stdin)
-          for item in d.get("needs_attention_state", []):
-              print(item)
-          '
+              import json, sys
+              d = json.load(sys.stdin)
+              for item in d.get("needs_attention_state", []):
+                  print(item)
+              '
               echo "## Validation Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
@@ -393,29 +393,51 @@ jobs:
           PROJECT_ID="${{ needs.validate.outputs.project_id }}"
           VARIATION="${{ github.event.inputs.variation }}"
           MAX_WAIT=$([ "${VARIATION}" == "si" ] && echo 10800 || echo 21600)
-          INTERVAL=900
+          INTERVAL=60
           ELAPSED=0
 
           echo "Polling deploy (SI max 3hrs / RAC max 6hrs)..."
 
-          while [ $ELAPSED -lt $MAX_WAIT ]; do
-            RESPONSE=$(curl -s \
-              "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
-              -H "Authorization: Bearer ${IAM_TOKEN}")
-            STATE=$(echo "$RESPONSE" | python3 -c \
-              'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
-            echo "[${ELAPSED}s] State: ${STATE}"
+          # Get Schematics workspace ID once upfront
+          WORKSPACE_ID=$(curl -s \
+            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+            -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c \
+            'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
+          echo "Schematics workspace: ${WORKSPACE_ID}"
 
-            if [[ "${STATE}" == "deployed" ]]; then
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            # Check IBM Projects state
+            IBM_STATE=$(curl -s \
+              "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+              -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c \
+              'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
+
+            # Check Schematics last action as source of truth
+            WS_RESULT=$(curl -s \
+              "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=1" \
+              -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c '
+              import json, sys
+              d = json.load(sys.stdin)
+              actions = d.get("actions", [])
+              if not actions:
+                  print("pending")
+                  sys.exit(0)
+              a = actions[0]
+              template = a.get("templates", [{}])[0]
+              status = template.get("status", "")
+              added = template.get("log_summary", {}).get("resources_added", 0)
+              if status == "COMPLETED" and added > 0:
+                  print("succeeded")
+              elif status in ["FAILED", "CANCELLED"]:
+                  print("failed")
+              else:
+                  print("pending")
+              ')
+
+            echo "[${ELAPSED}s] IBM Projects: ${IBM_STATE} | Schematics: ${WS_RESULT}"
+
+            if [[ "${WS_RESULT}" == "succeeded" ]]; then
               echo "Deployment successful"
-              OUTPUTS=$(echo "$RESPONSE" | python3 -c '
-          import json, sys
-          d = json.load(sys.stdin)
-          rows = ""
-          for o in d.get("outputs", []):
-              rows += f"| {o.get(\"name\",\"\")} | {o.get(\"value\",\"N/A\")} |\n"
-          print(rows)
-          ')
               {
                 echo "## Deployment Complete"
                 echo ""
@@ -426,17 +448,9 @@ jobs:
                 echo "| Install Type | ${{ github.event.inputs.install_type }} |"
                 echo "| Triggered by | ${{ github.actor }} |"
                 echo "| Status | Deployed |"
-                echo ""
-                if [[ -n "$OUTPUTS" ]]; then
-                  echo "## Outputs"
-                  echo ""
-                  echo "| Name | Value |"
-                  echo "|------|-------|"
-                  echo "$OUTPUTS"
-                fi
               } >> "$GITHUB_STEP_SUMMARY"
               exit 0
-            elif [[ "${STATE}" == "deploying_failed" ]]; then
+            elif [[ "${WS_RESULT}" == "failed" ]]; then
               echo "Deployment failed"
               echo "## Deployment Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
@@ -553,15 +567,46 @@ jobs:
 
           echo "Polling destroy status (max 3 hours)..."
 
-          while [ $ELAPSED -lt $MAX_WAIT ]; do
-            RESPONSE=$(curl -s \
-              "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
-              -H "Authorization: Bearer ${IAM_TOKEN}")
-            STATE=$(echo "$RESPONSE" | python3 -c \
-              'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
-            echo "[${ELAPSED}s] State: ${STATE}"
+          # Get Schematics workspace ID once upfront
+          WORKSPACE_ID=$(curl -s \
+            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+            -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c \
+            'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
+          echo "Schematics workspace: ${WORKSPACE_ID}"
 
-            if [[ "${STATE}" == "undeployed" || "${STATE}" == "validated" ]]; then
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            # Check IBM Projects state
+            IBM_STATE=$(curl -s \
+              "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+              -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c \
+              'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
+
+            # Check Schematics last action as source of truth
+            WS_RESULT=$(curl -s \
+              "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=1" \
+              -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c '
+            import json, sys
+            d = json.load(sys.stdin)
+            actions = d.get("actions", [])
+            if not actions:
+                print("pending")
+                sys.exit(0)
+            a = actions[0]
+            name = a.get("name", "")
+            template = a.get("templates", [{}])[0]
+            status = template.get("status", "")
+            destroyed = template.get("log_summary", {}).get("resources_destroyed", 0)
+            if name == "DESTROY" and status == "COMPLETED" and destroyed > 0:
+                print("succeeded")
+            elif name == "DESTROY" and status in ["FAILED", "CANCELLED"]:
+                print("failed")
+            else:
+                print("pending")
+            ')
+
+            echo "[${ELAPSED}s] IBM Projects: ${IBM_STATE} | Schematics: ${WS_RESULT}"
+
+            if [[ "${WS_RESULT}" == "succeeded" ]]; then
               echo "Resources destroyed successfully"
               {
                 echo "## Destroy Complete"
@@ -575,7 +620,7 @@ jobs:
                 echo "| Status | Destroyed |"
               } >> "$GITHUB_STEP_SUMMARY"
               exit 0
-            elif [[ "${STATE}" == "undeploying_failed" ]]; then
+            elif [[ "${WS_RESULT}" == "failed" ]]; then
               echo "Destroy failed"
               echo "## Destroy Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
