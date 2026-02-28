@@ -16,7 +16,7 @@
 #   GPG_PRIVATE_KEY         GPG key for signing
 #   GPG_PASSPHRASE          GPG passphrase
 #   IC_API_KEY              IBM Cloud API key
-#   IBM_CATALOG_ID          ora-pub catalog ID
+#   IBM_CATALOG_ID          ORACLE-DA catalog ID - oracle DA SI(JFS2/ASM) & RAC(2 NODE) for public and private
 #   IBM_OFFERING_ID         Oracle offering ID
 #
 # deploy/config.json auto-updated each release - no manual secret updates

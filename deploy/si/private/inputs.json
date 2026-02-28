@@ -1,0 +1,54 @@
+{
+  "region": "us-south",
+  "zone": "satloc_dal_d1us4a6d0uuse9blr4f0",
+  "pi_existing_workspace_guid": "c91bb8e4-39e9-4e77-9928-66839628cec0",
+  "pi_aix_image_name": "7300-04-00",
+  "pi_rhel_image_name": "RHEL9-SP6",
+  "pi_rhel_management_server_type": "s1022",
+  "pi_ssh_public_key_name": "ibm003-dataplane-01-vpn",
+  "bastion_host_ip": "52.118.210.134",
+  "squid_server_ip": "",
+  "redolog_size_in_mb": "1024",
+  "ora_sid": "orcl",
+  "pi_aix_instance": {
+    "memory_gb": 16,
+    "cores": 0.05,
+    "core_type": "shared",
+    "machine_type": "s1022",
+    "pin_policy": "hard",
+    "health_status": "OK"
+  },
+  "pi_oravg_volume": {
+    "name": "oravg",
+    "size": "100",
+    "count": "2",
+    "tier": "tier1"
+  },
+  "pi_data_volume": {
+    "name": "DATA",
+    "size": "5",
+    "count": "8",
+    "tier": "tier1"
+  },
+  "pi_redo_volume": {
+    "name": "REDO",
+    "size": "2",
+    "count": "4",
+    "tier": "tier5k"
+  },
+  "ibmcloud_cos_configuration": {
+    "cos_region": "us-south",
+    "cos_bucket_name": "oracle-sw-123",
+    "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
+    "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
+    "cos_oracle_ru_file_path": "p38629535_190000_AIX64-5L.zip",
+    "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
+  },
+  "pi_networks": [
+    {
+      "name": "ora_net",
+      "id": "c38d18ad-b39f-4ba0-94f0-ada107ab64df"
+    }
+  ],
+  "pi_user_tags": "[\"cd-pipeline\"]"
+}
