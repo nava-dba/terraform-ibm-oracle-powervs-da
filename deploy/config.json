@@ -18,15 +18,15 @@
     },
     "private": {
       "asm": {
-        "project_id": "",
-        "config_id": "",
+        "project_id": "c1db8f3f-1584-4944-8895-b0d6788ffaab",
+        "config_id": "97c69aa7-cb27-4bde-a55b-6bdf04d0b554",
         "version_locator": "",
         "version": "",
         "last_updated": ""
       },
       "jfs2": {
-        "project_id": "",
-        "config_id": "",
+        "project_id": "c1db8f3f-1584-4944-8895-b0d6788ffaab",
+        "config_id": "11a78582-5a7b-432b-8c2b-7dff97b9668e",
         "version_locator": "",
         "version": "",
         "last_updated": ""
@@ -42,8 +42,8 @@
       "last_updated": "2026-02-28T10:43:05Z"
     },
     "private": {
-      "project_id": "",
-      "config_id": "",
+      "project_id": "9e241f6f-6d50-4866-ba29-ed877eaa8142",
+      "config_id": "b8724c3c-ea60-45d8-b951-c6ab9ffe59ce",
       "version_locator": "",
       "version": "",
       "last_updated": ""
