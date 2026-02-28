@@ -416,8 +416,8 @@ jobs:
             WS_RESULT=$(curl -s \
               "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=1" \
               -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c '
-              import json, sys
-              d = json.load(sys.stdin)
+          import json, sys
+          d = json.load(sys.stdin)
               actions = d.get("actions", [])
               if not actions:
                   print("pending")
@@ -585,8 +585,8 @@ jobs:
             WS_RESULT=$(curl -s \
               "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=1" \
               -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c '
-            import json, sys
-            d = json.load(sys.stdin)
+          import json, sys
+          d = json.load(sys.stdin)
             actions = d.get("actions", [])
             if not actions:
                 print("pending")
