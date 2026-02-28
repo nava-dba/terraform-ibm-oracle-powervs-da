@@ -126,7 +126,7 @@ jobs:
           git fetch --tags
           git tag -f -s "${VERSION}" -m "Release ${VERSION}"
           git push --force origin "${VERSION}"
-          echo "Tag ${VERSION} signed and pushed."
+          echo "Tag ${VERSION} signed and pushed"
 
   ##############################################################################
   # JOB 3 - Publish SI + RAC to IBM Private Catalog
@@ -138,8 +138,8 @@ jobs:
     if: needs.semantic_release.outputs.released == 'true'
 
     outputs:
-      si_version_locator:  ${{ steps.import_si.outputs.si_version_locator }}
-      rac_version_locator: ${{ steps.import_rac.outputs.rac_version_locator }}
+      si_version_id:  ${{ steps.import_si.outputs.si_version_id }}
+      rac_version_id: ${{ steps.import_rac.outputs.rac_version_id }}
 
     steps:
       - name: Checkout
@@ -196,8 +196,10 @@ jobs:
             exit 1
           fi
 
-          echo "si_version_locator=${SI_LOCATOR}" >> $GITHUB_OUTPUT
-          echo "SI v${VERSION} imported - locator: ${SI_LOCATOR}"
+          # Store only the version-specific UUID (after the dot) to avoid secret masking
+          SI_VERSION_ID=$(echo "${SI_LOCATOR}" | cut -d'.' -f2)
+          echo "si_version_id=${SI_VERSION_ID}" >> $GITHUB_OUTPUT
+          echo "SI v${VERSION} imported - version_id: ${SI_VERSION_ID}"
 
       - name: Import RAC Version to Catalog
         id: import_rac
@@ -241,8 +243,10 @@ jobs:
             exit 1
           fi
 
-          echo "rac_version_locator=${RAC_LOCATOR}" >> $GITHUB_OUTPUT
-          echo "RAC v${VERSION} imported - locator: ${RAC_LOCATOR}"
+          # Store only the version-specific UUID (after the dot) to avoid secret masking
+          RAC_VERSION_ID=$(echo "${RAC_LOCATOR}" | cut -d'.' -f2)
+          echo "rac_version_id=${RAC_VERSION_ID}" >> $GITHUB_OUTPUT
+          echo "RAC v${VERSION} imported - version_id: ${RAC_VERSION_ID}"
 
       - name: Show Catalog State
         run: |
@@ -310,7 +314,7 @@ jobs:
         run: |
           CONFIG_ID="${{ steps.read_config.outputs.si_asm_config_id }}"
           PROJECT_ID="${{ steps.read_config.outputs.si_asm_project_id }}"
-          SI_LOCATOR="${{ needs.publish_catalog.outputs.si_version_locator }}"
+          SI_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.si_version_id }}"
 
           if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
             echo "SI ASM config_id or project_id empty - skipping"
@@ -341,7 +345,7 @@ jobs:
         run: |
           CONFIG_ID="${{ steps.read_config.outputs.si_jfs2_config_id }}"
           PROJECT_ID="${{ steps.read_config.outputs.si_jfs2_project_id }}"
-          SI_LOCATOR="${{ needs.publish_catalog.outputs.si_version_locator }}"
+          SI_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.si_version_id }}"
 
           if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
             echo "SI JFS2 config_id or project_id empty - skipping"
@@ -371,7 +375,7 @@ jobs:
         run: |
           CONFIG_ID="${{ steps.read_config.outputs.rac_config_id }}"
           PROJECT_ID="${{ steps.read_config.outputs.rac_project_id }}"
-          RAC_LOCATOR="${{ needs.publish_catalog.outputs.rac_version_locator }}"
+          RAC_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.rac_version_id }}"
 
           if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
             echo "RAC config_id or project_id empty - skipping"
@@ -403,8 +407,8 @@ jobs:
       - name: Update deploy/config.json
         run: |
           VERSION="${{ needs.semantic_release.outputs.version }}"
-          SI_LOCATOR="${{ needs.publish_catalog.outputs.si_version_locator }}"
-          RAC_LOCATOR="${{ needs.publish_catalog.outputs.rac_version_locator }}"
+          SI_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.si_version_id }}"
+          RAC_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.rac_version_id }}"
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           python3 - <<PYEOF
