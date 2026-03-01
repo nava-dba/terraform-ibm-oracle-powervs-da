@@ -334,21 +334,27 @@
             path: "{{ done_file_dir }}/asm_disks_locked.done"
           register: lock_flag
 
-        - name: Lock ASM disks (CRSDG + GIMR + DATA + REDO only, NOT ARCH)
+        - name: Build renamed ASM disk list for locking
           ansible.builtin.shell: |
-            if lkdev -L {{ item }} 2>/dev/null | grep -q "asmdisk"; then
-              echo "Disk {{ item }} already locked"
-            else
-              lkdev -l {{ item }} -a -c "asmdisk"
-              echo "Locked disk {{ item }}"
-            fi
-          loop: "{{ discovered_disks.CRSDG | default([]) + discovered_disks.GIMR | default([]) + discovered_disks.DATA | default([]) + discovered_disks.REDO | default([]) }}"
-          loop_control:
-            label: "{{ item }}"
-          register: lock_result
-          changed_when: "'already locked' not in lock_result.stdout"
-          failed_when: lock_result.rc not in [0]
+            lspv | grep -E 'hdiskACR|hdiskAGM|hdiskADT|hdiskARD' | awk '{print $1}'
+          register: renamed_asm_disks
+          changed_when: false
           when: not lock_flag.stat.exists
+
+        - name: Lock ASM disks (renamed devices)
+          ansible.builtin.shell: |
+            STATUS=$(lspv {{ item }} | grep "VG IDENTIFIER" | wc -l)
+            if lkdev -L {{ item }} 2>/dev/null | grep -qi "lock"; then
+              echo "SKIP: {{ item }} already locked"
+            else
+              lkdev -l {{ item }} -a -c "asmdisk" && echo "LOCKED: {{ item }}" || echo "FAILED: {{ item }}"
+            fi
+          loop: "{{ renamed_asm_disks.stdout_lines }}"
+          register: lock_result
+          changed_when: "'LOCKED' in lock_result.stdout"
+          failed_when: "'FAILED' in lock_result.stdout"
+          when: not lock_flag.stat.exists
+
 
         - name: Display lock command results
           ansible.builtin.debug:
