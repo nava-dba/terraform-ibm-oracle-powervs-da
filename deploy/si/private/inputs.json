@@ -3,7 +3,7 @@
   "zone": "satloc_dal_d1us4a6d0uuse9blr4f0",
   "pi_existing_workspace_guid": "c91bb8e4-39e9-4e77-9928-66839628cec0",
   "pi_aix_image_name": "7300-04-00",
-  "pi_rhel_image_name": "RHEL9-SP6",
+  "pi_rhel_image_name": "RHEL10",
   "pi_rhel_management_server_type": "s1022",
   "pi_ssh_public_key_name": "ibm003-dataplane-01-vpn",
   "bastion_host_ip": "52.118.210.134",

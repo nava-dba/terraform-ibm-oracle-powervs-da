@@ -132,7 +132,7 @@
     asm_diskdiscoverystring: "{{asm_disk_loc_prefix}}hdisk*"
     asm_asmsnmp_password: "${ORA_DB_PASSWORD}"
 
-    # JFS2 Configuration for data and redo — used only by the JFS install path.
+    # JFS2 Configuration for data and redo — used only by the JFS2 install path.
     jfs2_storage_config:
       - vg_name: datavg
         lv_name: datalv
@@ -307,7 +307,7 @@
         - DATA
         - REDO
         - ARCH
-      when: oracle_install_type == "JFS"
+      when: oracle_install_type == "JFS2"
 
     - name: Build disk sizes dictionary
       ansible.builtin.set_fact:
@@ -320,18 +320,18 @@
       loop: "{{ disk_size_discovery.results }}"
       loop_control:
         label: "{{ item.item }}"
-      when: oracle_install_type == "JFS"
+      when: oracle_install_type == "JFS2"
 
     - name: Debug disk sizes
       ansible.builtin.debug:
         var: disk_sizes
-      when: oracle_install_type == "JFS"
+      when: oracle_install_type == "JFS2"
 
     #######################################################
-    # JFS2 VG/LV/FS Creation for data and redo (only for JFS install type)
+    # JFS2 VG/LV/FS Creation for data and redo (only for JFS2 install type)
     #######################################################
     - name: JFS2 Storage Setup
-      when: oracle_install_type == "JFS"
+      when: oracle_install_type == "JFS2"
       block:
         - name: Check if JFS2 storage setup is already done
           ansible.builtin.stat:
@@ -488,7 +488,7 @@
                 mode: '0644'
 
     #######################################################
-    # ARCH JFS2 VG/LV/FS Creation for BOTH ASM and JFS install types.
+    # ARCH JFS2 VG/LV/FS Creation for BOTH ASM and JFS2 install types.
     #######################################################
     - name: Create ARCH JFS2 filesystem for archive logs
       block:

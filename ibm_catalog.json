@@ -260,13 +260,7 @@
               "display_name": "RHEL OS Image Name",
               "type": "string",
               "default_value": "RHEL9-SP6",
-              "required": true,
-              "options": [
-                {
-                  "displayname": "RHEL9-SP6",
-                  "value": "RHEL9-SP6"
-                }
-              ]
+              "required": true
             },
             {
               "key": "pi_aix_image_name",
@@ -356,7 +350,7 @@
                 },
                 {
                   "displayname": "JFS2",
-                  "value": "JFS"
+                  "value": "JFS2"
                 }
               ],
               "custom_config": {}
@@ -736,13 +730,7 @@
               "display_name": "RHEL OS Image Name",
               "type": "string",
               "default_value": "RHEL9-SP6",
-              "required": true,
-              "options": [
-                {
-                  "displayname": "RHEL9-SP6",
-                  "value": "RHEL9-SP6"
-                }
-              ]
+              "required": true
             },
             {
               "key": "pi_aix_image_name",

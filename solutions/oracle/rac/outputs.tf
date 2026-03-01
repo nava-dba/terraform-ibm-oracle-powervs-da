@@ -1,21 +1,14 @@
-output "rac_node_ids" {
-  description = "List of RAC node instance IDs"
-  value       = ibm_pi_instance.rac_nodes.instance_id
-}
+output "rac_node_details" {
+  description = "Per RAC node details including instance ID and IP addresses"
 
-output "rac_node_names" {
-  description = "List of RAC node names"
-  value       = [for idx in range(var.rac_nodes) : "${var.prefix}-aix-${idx}"]
-}
-
-output "rac_node_networks" {
-  description = "Network details for all RAC nodes"
   value = {
-    for idx in range(var.rac_nodes) : "${var.prefix}-aix-${idx}" => {
-      mgmt_ip  = length(ibm_pi_instance.rac_nodes.pi_network) > 0 ? ibm_pi_instance.rac_nodes.pi_network[0].ip_address : null
-      pub_ip   = length(ibm_pi_instance.rac_nodes.pi_network) > 1 ? ibm_pi_instance.rac_nodes.pi_network[1].ip_address : null
-      priv1_ip = length(ibm_pi_instance.rac_nodes.pi_network) > 2 ? ibm_pi_instance.rac_nodes.pi_network[2].ip_address : null
-      priv2_ip = length(ibm_pi_instance.rac_nodes.pi_network) > 3 ? ibm_pi_instance.rac_nodes.pi_network[3].ip_address : null
+    for inst in ibm_pi_instance.rac_nodes :
+    inst.pi_instance_name => {
+      id       = inst.instance_id
+      mgmt_ip  = inst.pi_network[0].ip_address
+      pub_ip   = inst.pi_network[1].ip_address
+      priv1_ip = inst.pi_network[2].ip_address
+      priv2_ip = inst.pi_network[3].ip_address
     }
   }
 }
