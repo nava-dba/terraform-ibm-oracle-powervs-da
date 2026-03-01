@@ -170,7 +170,7 @@ jobs:
           # Inject dynamic workflow inputs
           inputs["deployment_type"] = dtype
           if variation == "si":
-              inputs["oracle_install_type"] = "JFS" if install_type == "JFS2" else install_type
+              inputs["oracle_install_type"] = install_type
               if prefix:
                   inputs["prefix"] = prefix
 
@@ -415,8 +415,8 @@ jobs:
               'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
             WORKSPACE_ID=$(echo "$IBM_RESPONSE" | python3 -c \
               'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
-
-            # IBM Projects state fallback - deployed is definitive success
+               echo "workspace: ${WORKSPACE_ID}"
+            # IBM Projects state  - deployed is definitive success
             if [[ "${IBM_STATE}" == "deployed" ]]; then
               echo "[${ELAPSED}s] IBM Projects: ${IBM_STATE} | Schematics: skipped (IBM Projects confirmed deployed)"
               echo "Deployment successful"
@@ -440,29 +440,26 @@ jobs:
               exit 1
             fi
 
-            # Check Schematics last action as source of truth (only if workspace_id available)
+            # Check Schematics - loop through last 10 actions to find real deploy
             WS_RESULT="pending"
             if [ -n "${WORKSPACE_ID}" ]; then
               WS_RESULT=$(curl -s \
-                "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=1" \
+                "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=10" \
                 -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c '
           import json, sys
           d = json.load(sys.stdin)
-          actions = d.get("actions", [])
-          if not actions:
-              print("pending")
-              sys.exit(0)
-          a = actions[0]
-          name = a.get("name", "")
-          template = a.get("templates", [{}])[0]
-          status = template.get("status", "")
-          added = template.get("log_summary", {}).get("resources_added", 0)
-          if name == "TERRAFORM_COMMANDS" and status == "COMPLETED" and added > 0:
-              print("succeeded")
-          elif name == "TERRAFORM_COMMANDS" and status in ["FAILED", "CANCELLED"]:
-              print("failed")
-          else:
-              print("pending")
+          for a in d.get("actions", []):
+              name = a.get("name", "")
+              template = a.get("templates", [{}])[0]
+              status = template.get("status", "")
+              added = template.get("log_summary", {}).get("resources_added", 0)
+              if name == "TERRAFORM_COMMANDS" and status == "COMPLETED" and added > 0:
+                  print("succeeded")
+                  sys.exit(0)
+              if name == "TERRAFORM_COMMANDS" and status in ["FAILED", "CANCELLED"]:
+                  print("failed")
+                  sys.exit(0)
+          print("pending")
           ')
             fi
 
@@ -608,6 +605,7 @@ jobs:
               'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
             WORKSPACE_ID=$(echo "$IBM_RESPONSE" | python3 -c \
               'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
+               echo "workspace: ${WORKSPACE_ID}"
             if [[ "${IBM_STATE}" == "undeploying_failed" ]]; then
               echo "Destroy failed"
               echo "## Destroy Failed" >> "$GITHUB_STEP_SUMMARY"

@@ -84,7 +84,7 @@ variable "pi_networks" {
 }
 
 variable "ibmcloud_cos_configuration" {
-  description = "IBM Cloud Object Storage (COS) bucket details containing Oracle installation binaries. 'cos_region': COS bucket region. 'cos_bucket_name': name of the COS bucket. 'cos_oracle_database_sw_path': folder path containing only the Oracle RDBMS binary (V982583-01_193000_db.zip). 'cos_oracle_grid_sw_path': folder path containing only the Oracle Grid binary (V982588-01_193000_grid.zip) — required for ASM only, leave empty for JFS. 'cos_oracle_ru_file_path': folder path containing only the RU patch zip. 'cos_oracle_opatch_file_path': folder path containing only the OPatch zip. Do not add a leading '/' to any path. Download Oracle binaries from [Oracle Software Delivery Cloud](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery) and RU patches from [Oracle MOS (note 2521164.1)](https://support.oracle.com/epmos/faces/DocumentDisplay?id=2521164.1). To set up COS, see [Getting started with Cloud Object Storage](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-getting-started-cloud-object-storage) and [Uploading data to a COS bucket](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-upload)."
+  description = "IBM Cloud Object Storage (COS) bucket details containing Oracle installation binaries. 'cos_region': COS bucket region. 'cos_bucket_name': name of the COS bucket. 'cos_oracle_database_sw_path': folder path containing only the Oracle RDBMS binary (V982583-01_193000_db.zip). 'cos_oracle_grid_sw_path': folder path containing only the Oracle Grid binary (V982588-01_193000_grid.zip) — required for ASM only, leave empty for JFS2. 'cos_oracle_ru_file_path': folder path containing only the RU patch zip. 'cos_oracle_opatch_file_path': folder path containing only the OPatch zip. Do not add a leading '/' to any path. Download Oracle binaries from [Oracle Software Delivery Cloud](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery) and RU patches from [Oracle MOS (note 2521164.1)](https://support.oracle.com/epmos/faces/DocumentDisplay?id=2521164.1). To set up COS, see [Getting started with Cloud Object Storage](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-getting-started-cloud-object-storage) and [Uploading data to a COS bucket](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-upload)."
   type = object({
     cos_region                  = string
     cos_bucket_name             = string
@@ -179,6 +179,6 @@ variable "ora_db_password" {
 }
 
 variable "oracle_install_type" {
-  description = "Oracle storage installation type. Use 'ASM' for Automatic Storage Management (requires Grid Infrastructure binaries in COS and 'cos_oracle_grid_sw_path' set) or 'JFS' for Journal File System (JFS2). ASM is recommended for production environments. "
+  description = "Oracle storage installation type. Use 'ASM' for Automatic Storage Management (requires Grid Infrastructure binaries in COS and 'cos_oracle_grid_sw_path' set) or 'JFS2' for Journal File System (JFS2). ASM is recommended for production environments. "
   type        = string
 }
