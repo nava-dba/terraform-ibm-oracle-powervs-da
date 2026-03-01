@@ -406,24 +406,46 @@ jobs:
 
           echo "Polling deploy (SI max 3hrs / RAC max 6hrs)..."
 
-          # Get Schematics workspace ID once upfront
-          WORKSPACE_ID=$(curl -s \
-            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
-            -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c \
-            'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
-          echo "Schematics workspace: ${WORKSPACE_ID}"
-
           while [ $ELAPSED -lt $MAX_WAIT ]; do
-            # Check IBM Projects state
-            IBM_STATE=$(curl -s \
+            # Fetch IBM Projects state and workspace ID each iteration
+            IBM_RESPONSE=$(curl -s \
               "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
-              -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c \
+              -H "Authorization: Bearer ${IAM_TOKEN}")
+            IBM_STATE=$(echo "$IBM_RESPONSE" | python3 -c \
               'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
+            WORKSPACE_ID=$(echo "$IBM_RESPONSE" | python3 -c \
+              'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
 
-            # Check Schematics last action as source of truth
-            WS_RESULT=$(curl -s \
-              "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=1" \
-              -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c '
+            # IBM Projects state fallback - deployed is definitive success
+            if [[ "${IBM_STATE}" == "deployed" ]]; then
+              echo "[${ELAPSED}s] IBM Projects: ${IBM_STATE} | Schematics: skipped (IBM Projects confirmed deployed)"
+              echo "Deployment successful"
+              {
+                echo "## Deployment Complete"
+                echo ""
+                echo "| Field | Value |"
+                echo "|-------|-------|"
+                echo "| Variation | ${{ github.event.inputs.variation }} |"
+                echo "| Deployment Type | ${{ github.event.inputs.deployment_type }} |"
+                echo "| Install Type | ${{ github.event.inputs.install_type }} |"
+                echo "| Triggered by | ${{ github.actor }} |"
+                echo "| Status | Deployed |"
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+
+            if [[ "${IBM_STATE}" == "deploying_failed" ]]; then
+              echo "Deployment failed"
+              echo "## Deployment Failed" >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+
+            # Check Schematics last action as source of truth (only if workspace_id available)
+            WS_RESULT="pending"
+            if [ -n "${WORKSPACE_ID}" ]; then
+              WS_RESULT=$(curl -s \
+                "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=1" \
+                -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c '
           import json, sys
           d = json.load(sys.stdin)
           actions = d.get("actions", [])
@@ -431,16 +453,18 @@ jobs:
               print("pending")
               sys.exit(0)
           a = actions[0]
+          name = a.get("name", "")
           template = a.get("templates", [{}])[0]
           status = template.get("status", "")
           added = template.get("log_summary", {}).get("resources_added", 0)
-          if status == "COMPLETED" and added > 0:
+          if name == "TERRAFORM_COMMANDS" and status == "COMPLETED" and added > 0:
               print("succeeded")
-          elif status in ["FAILED", "CANCELLED"]:
+          elif name == "TERRAFORM_COMMANDS" and status in ["FAILED", "CANCELLED"]:
               print("failed")
           else:
               print("pending")
           ')
+            fi
 
             echo "[${ELAPSED}s] IBM Projects: ${IBM_STATE} | Schematics: ${WS_RESULT}"
 
@@ -575,20 +599,20 @@ jobs:
 
           echo "Polling destroy status (max 3 hours)..."
 
-          # Get Schematics workspace ID once upfront
-          WORKSPACE_ID=$(curl -s \
-            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
-            -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c \
-            'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
-          echo "Schematics workspace: ${WORKSPACE_ID}"
-
           while [ $ELAPSED -lt $MAX_WAIT ]; do
-            # Check IBM Projects state
-            IBM_STATE=$(curl -s \
+            # Fetch IBM Projects state and workspace ID each iteration
+            IBM_RESPONSE=$(curl -s \
               "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
-              -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c \
+              -H "Authorization: Bearer ${IAM_TOKEN}")
+            IBM_STATE=$(echo "$IBM_RESPONSE" | python3 -c \
               'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
-
+            WORKSPACE_ID=$(echo "$IBM_RESPONSE" | python3 -c \
+              'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
+            if [[ "${IBM_STATE}" == "undeploying_failed" ]]; then
+              echo "Destroy failed"
+              echo "## Destroy Failed" >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
             # Check Schematics last action as source of truth
             WS_RESULT=$(curl -s \
               "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=1" \
