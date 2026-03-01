@@ -415,7 +415,7 @@ jobs:
               'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
             WORKSPACE_ID=$(echo "$IBM_RESPONSE" | python3 -c \
               'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
-
+               echo "workspace: ${WORKSPACE_ID}"
             # IBM Projects state fallback - deployed is definitive success
             if [[ "${IBM_STATE}" == "deployed" ]]; then
               echo "[${ELAPSED}s] IBM Projects: ${IBM_STATE} | Schematics: skipped (IBM Projects confirmed deployed)"
@@ -608,6 +608,7 @@ jobs:
               'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
             WORKSPACE_ID=$(echo "$IBM_RESPONSE" | python3 -c \
               'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
+               echo "workspace: ${WORKSPACE_ID}"
             if [[ "${IBM_STATE}" == "undeploying_failed" ]]; then
               echo "Destroy failed"
               echo "## Destroy Failed" >> "$GITHUB_STEP_SUMMARY"
