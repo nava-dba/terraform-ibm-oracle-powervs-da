@@ -403,8 +403,10 @@ jobs:
           MAX_WAIT=$([ "${VARIATION}" == "si" ] && echo 10800 || echo 21600)
           INTERVAL=60
           ELAPSED=0
+          DEPLOY_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           echo "Polling deploy (SI max 3hrs / RAC max 6hrs)..."
+          echo "Deploy start time: ${DEPLOY_START}"
 
           while [ $ELAPSED -lt $MAX_WAIT ]; do
             # Fetch IBM Projects state and workspace ID each iteration
@@ -440,19 +442,28 @@ jobs:
               exit 1
             fi
 
-            # Check Schematics - loop through last 10 actions to find real deploy
+            # Check Schematics - only actions started after this pipeline run
             WS_RESULT="pending"
             if [ -n "${WORKSPACE_ID}" ]; then
               WS_RESULT=$(curl -s \
                 "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=10" \
                 -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c '
           import json, sys
+          from datetime import datetime, timezone
+
+          deploy_start = datetime.fromisoformat("'"${DEPLOY_START}"'".replace("Z", "+00:00"))
           d = json.load(sys.stdin)
           for a in d.get("actions", []):
               name = a.get("name", "")
               template = a.get("templates", [{}])[0]
               status = template.get("status", "")
               added = template.get("log_summary", {}).get("resources_added", 0)
+              start_time = template.get("start_time", "")
+              if not start_time:
+                  continue
+              action_time = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
+              if action_time < deploy_start:
+                  continue
               if name == "TERRAFORM_COMMANDS" and status == "COMPLETED" and added > 0:
                   print("succeeded")
                   sys.exit(0)
