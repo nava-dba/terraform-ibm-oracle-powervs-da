@@ -413,8 +413,8 @@ jobs:
             IBM_RESPONSE=$(curl -s \
               "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
               -H "Authorization: Bearer ${IAM_TOKEN}")
-            IBM_STATE=$(echo "$IBM_RESPONSE" | python3 -c '
-              import json, sys
+            IBM_STATE=$(echo "$IBM_RESPONSE" | python3 -c \
+             'import json, sys
               d = json.load(sys.stdin)
               state = d.get("state", "unknown")
               if state == "unknown":
