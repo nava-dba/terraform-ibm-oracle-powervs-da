@@ -413,17 +413,17 @@ jobs:
             IBM_RESPONSE=$(curl -s \
               "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
               -H "Authorization: Bearer ${IAM_TOKEN}")
-            IBM_STATE=$(echo "$IBM_RESPONSE" | python3 -c \
-             'import json, sys
-              d = json.load(sys.stdin)
-              state = d.get("state", "unknown")
-              if state == "unknown":
-                  result = d.get("last_deployed", {}).get("result", "")
-                  if result == "succeeded":
-                      print("deployed")
-                      sys.exit(0)
-              print(state)
-              ')
+            IBM_STATE=$(echo "$IBM_RESPONSE" | python3 -c '
+          import json, sys
+          d = json.load(sys.stdin)
+          state = d.get("state", "unknown")
+          if state == "unknown":
+              result = d.get("last_deployed", {}).get("result", "")
+              if result == "succeeded":
+                  print("deployed")
+                  sys.exit(0)
+          print(state)
+          ')
             WORKSPACE_ID=$(echo "$IBM_RESPONSE" | python3 -c \
               'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
                echo "workspace: ${WORKSPACE_ID}"
