@@ -63,7 +63,7 @@ For example: This is the CRN:
 **Step D**: Create Private Subnet in PowerVS Workspace
 1. Go to the workspace that was created in Step C
 2. Click Subnets in the left navigation menu, then Add subnet.
-3. Enter a name for the subnet, CIDR value (for example: 192.168.100.14/24), gateway number (for example: 192.168.100.15), and the IP range values for the subnet.
+3. Enter a name for the subnet, CIDR value (for example: 192.168.100.14/24), gateway number (for example: 192.168.100.15), the IP range values for the subnet and [DNS server](https://cloud.ibm.com/docs/dns?topic=dns-dns-faq&locale=en) as 161.26.0.10, 161.26.0.11.
 4. Click Create Subnet.
 5. After creation of the subnet, click on the created subnet and note down the "Name" & "ID"
 
@@ -71,8 +71,8 @@ For more information, please refer to [IBM PowerVS Documentation](https://cloud.
 
 **Step E**: Create VM with external connectivity
 1. For PowerVS Public: Goto dashboard Infrastructure->Compute->Virtual server instances; click on "Create",Next assign floating IP to VPC, please refer to [IBM PowerVS Documentation](https://cloud.ibm.com/docs/vpc?topic=vpc-about-advanced-virtual-servers)
-   a. To enable the routing between VPC and PowerVS, Create a [transit gateway](https://cloud.ibm.com/docs/transit-gateway?topic=transit-gateway-getting-started) and add PowerVS workspace and VPC to it.
-   b. Add the [Security Group](https://cloud.ibm.com/docs/vpc?topic=vpc-using-security-groups)(SG) rule for squid server IP and port. Allow only the traffic from powervs subnet
+   - To enable the routing between VPC and PowerVS, Create a [transit gateway](https://cloud.ibm.com/docs/transit-gateway?topic=transit-gateway-getting-started) and add PowerVS workspace and VPC to it.
+   - Add the [Security Group](https://cloud.ibm.com/docs/vpc?topic=vpc-using-security-groups)(SG) rule for squid server IP and port. Allow only the traffic from powervs subnet
 3. For PowerVS Private: Contact IBM Support, IBM SRE will help in creating a VPN gateway for external connectivity. This will act as bastion host.
 For more information, please refer to [IBM PowerVS Documentation](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-private-cloud-architecture#network-spec-private-cloud)
 
@@ -94,7 +94,7 @@ Note: If you are using pre-existing keys then make sure private and public ssh k
 For more information, please refer to [IBM PowerVS Documentation](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-ssh-key)
 
 **Step H**: Download Oracle Binaries and upload to COS bucket
-1.Download Oracle Binaries from [Oracle Site](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery) and Release Update(RU) system patches 19.X from [Oracle MOS](https://support.oracle.com).
+1. Download Oracle Binaries from [Oracle Site](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery) and Release Update(RU) system patches 19.X from [Oracle MOS](https://support.oracle.com).
    - RDBMS Base software: V982583-01_193000_db.zip
    - Grid Infrastructure software: V982588-01_193000_grid.zip
    - Download the latest Release Update(RU) system patch 19.X containing both grid and rdbms RU patches for AIX from MOS. Refer to MOS note [2521164.1](https://support.oracle.com/epmos/faces/DocumentDisplay?parent=DOCUMENT&sourceId=2521164.1&id=2521164.1) and also Refer to this [Oracle documentation](https://docs.oracle.com/en/database/oracle/oracle-database/19/ntdbi/downloading-and-installing-patch-updates.html).
@@ -108,12 +108,13 @@ Please refer to the following links related to Cloud Object Storage
    - [Upload data to COS Bucket](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-upload)
 
 **Step I**: Full Linux Subscription Implementation
-- DA need FLS setup which is required for RHEL Subscription. This release of DA we will be using only IBM provided subscription images, refer to [FLS Documentation](https://www.ibm.com/docs/en/power-virtual-server?topic=linux-full-subscription-power-virtual-server-private-cloud)
+- In PowerVS Private DA need FLS setup which is required for RHEL Subscription. This release of DA we will be using only IBM provided subscription images, refer to [FLS Documentation](https://www.ibm.com/docs/en/power-virtual-server?topic=linux-full-subscription-power-virtual-server-private-cloud)
+- In PowerVS Public the RHEL Subscription is done at the time of VM creation automatically, and in DA we are not using any separate script for RHEL Subscription.
 
 **Step J**: Whitelist schematic CIDR/IP
 - At VPN Gateway level, whitelist the schematic CIDRs/IPs of region where schematic workspace gets created, refer to [Firewall Access – allowed IP addresses](https://cloud.ibm.com/docs/schematics?topic=schematics-allowed-ipaddresses)
 
-## Deploying
+## Deployment Steps
 ### Deploy using projects
 1. Go to the catalog and search for oracle. Under catalog community registry, select tile "Power Virtual Server - Private for Oracle".
 2. Click "Configure and deploy"
@@ -155,31 +156,31 @@ DV              Oracle Database Vault                              VALID
 ## Oracle Single Instance Deployable Architecture Inputs
 
 
-|  Deployment Inputs   | Terraform Input |     Description              | Accepted Values |
+|  Deployment Inputs   | Terraform Input Variable |     Description              | Values |
 |------------------|----------------|-----------------------------------|----------------|
 |     API Key      | ibmcloud_api_key |  IBM Cloud API key used to authenticate and provision resources. To generate an API key, see [Creating your IBM Cloud API key](https://www.ibm.com/docs/en/masv-and-l/cd?topic=cli-creating-your-cloud-api-key)|                |
-| Deployment Type    | deployment_type| Deployment type for the architecture. | Public or Private |
-| Resource Name Prefix| prefix | Unique identifier prepended to all resources created by this template. |Use only lowercase letters with maximum 5 characters and allows only alpha-numeric and hyphen characters. Example:dbsi |
-| Deployment Region| region | IBM Cloud region where resources will be deployed. See all available regions at [IBM Cloud locations](https://cloud.ibm.com/docs/overview?topic=overview-locations).| Example: Dallas, Frankfurt |
-| PowerVS Zone | zone | IBM Cloud data center zone within the region where IBM PowerVS infrastructure will be created (e.g., dal14, eu-de-1). See all available zones at [IBM PowerVS locations](https://www.ibm.com/docs/en/power-virtual-server?topic=locations-cloud-regions).| Example: dal10 |
+| Deployment Type    | deployment_type| This solution provides both [PowerVS Public](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-getting-started) & [PowerVS Private](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-private-cloud-architecture) which can be controlled by this input variable.| Public or Private |
+| Resource Name Prefix| prefix | Unique identifier prepended to all resources created by this template. |Use only lowercase letters with maximum 5 characters and allows only alpha-numeric and hyphen characters. Example: dbsi |
+| Deployment Region| region | IBM Cloud region where resources will be deployed. See all available regions at [IBM Cloud locations](https://cloud.ibm.com/docs/overview?topic=overview-locations).| Example: Dallas |
+| PowerVS Zone | zone | IBM Cloud data center zone within the region where IBM PowerVS infrastructure will be created (e.g., dal14, eu-de-1). See all available zones at [IBM PowerVS locations](https://www.ibm.com/docs/en/power-virtual-server?topic=locations-cloud-regions). For PowerVS Private we need to provide [Satellite Zone](https://www.ibm.com/docs/en/power-virtual-server?topic=locations-satellite-location) details | PowerVS Public: dal10 PowerVS Private: satloc_dal_XXXX|
 | PowerVS Workspace GUID | pi_existing_workspace_guid | GUID of an existing IBM Power Virtual Server Workspace. To find the GUID: IBM Cloud Console > Resource List > Compute > click the workspace > copy the GUID from the CRN (the segment between the 7th and 8th colon). To create a new workspace, see [Creating an IBM Power Virtual Server](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-power-virtual-server).| n/a|
-| Bastion Host IP Address | bastion_host_ip | Public IP address of the bastion/jump host used to reach the Ansible controller (RHEL instance) in the private network. The bastion host must have the SSH private key at ~/.ssh/id_rsa. To set up a VPN gateway as the bastion host, contact IBM Support. For more information, see [IBM PowerVS Private Cloud Network Architecture](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-private-cloud-architecture#network-spec-private-cloud).| Floating IP Address|
-| Bastion Host SSH Public Key Name | pi_ssh_public_key_name | Name of the existing SSH public key already uploaded to the PowerVS Workspace. To add an SSH key to the workspace, see [Managing IBM PowerVS SSH keys](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-ssh-key). | n/a|
+| Bastion Host IP Address | bastion_host_ip | Bastion host is a VPC vm hosted in IBM Cloud, Provide the [Floating IP address](https://cloud.ibm.com/docs/vpc?topic=vpc-fip-about) of the bastion host. | Example: 52.x.x.x |
+| Bastion Host SSH Public Key Name | pi_ssh_public_key_name | Add bastion host's ssh public key to the PowerVS workspace. Provide this name as an input. To add an SSH key to the workspace, see [Managing IBM PowerVS SSH keys](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-ssh-key). | Example: vpc_ssh_pubkey |
 | Bastion Host SSH Private Key | ssh_private_key | RSA private SSH key corresponding to the public key referenced by 'pi_ssh_public_key_name'. Used to connect to IBM PowerVS instances during provisioning. The key is stored temporarily and deleted after use. To generate a key pair on the bastion host, run: ssh-keygen -t rsa, then copy the output of: cat ~/.ssh/id_rsa. For more information, see [SSH keys](https://cloud.ibm.com/docs/vpc?topic=vpc-ssh-keys).| n/a |
 | PowerVS Networks | pi_networks | List of existing private subnet objects to attach to the instance. The first element becomes the primary network interface. Each object requires 'name' and 'id'. To list available subnets, run: ibmcloud pi networks. To create a subnet, see [Configuring a subnet](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-configuring-subnet). | [ { name = "ora_net" id = "c38d18ad-b39f-4ba0-94f0-ada107ab64df" } ] |
 | RHEL Management Server Type | pi_rhel_management_server_type | Server (machine) type for the RHEL management (Ansible controller) instance. To list available server types, run: ibmcloud pi server-types. | e.g., s1022, e980 |
-| Squid - Proxy Server IP Address | squid_server_ip | Private IP address of the Squid proxy server that provides internet access from within the private PowerVS network. Required for downloading packages and patches during installation. To configure a Squid proxy server, see [Creating a proxy server](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-full-linux-sub#create-proxy-private). | Private IP |
-| Oracle Database Name (SID) | ora_sid | Oracle Database System Identifier (SID). A unique name for the Oracle database instance (e.g., ORCL). Maximum 8 characters, alphanumeric, must start with a letter. For more information, see [Oracle Database Concepts](https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/introduction-to-oracle-database.html). | n/a |
-| Storage Type (ASM or File System JFS2) | oracle_install_type | Oracle storage installation type. Use 'ASM' for Automatic Storage Management (requires Grid Infrastructure binaries in COS and 'cos_oracle_grid_sw_path' set) or 'JFS' for Journal File System (JFS2). ASM is recommended for production environments. | ASM or JFS2
-| Cloud Object Storage(COS) Credentials | ibmcloud_cos_service_credentials | JSON service credentials for the IBM Cloud Object Storage instance used to access the COS bucket. To generate credentials: IBM Cloud Console > Cloud Object Storage > your instance > Service Credentials > New credential. See [COS Service Credentials](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials) for a JSON example. | | # pragma: allowlist secret
+| Squid - Proxy Server IP Address | squid_server_ip | Squid is configured on bastion host. Squid proxy IP refers to the Private IP on the bastion host which is used for communicating with PowerVS VSIs. It provides internet access to PowerVS VSIs required for downloading packages and patches during installation. To configure a Squid proxy server, see [Creating a proxy server](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-full-linux-sub#create-proxy-private). | Example: 10.x.x.x |
+| Oracle Database Name (SID) | ora_sid | Oracle Database System Identifier (SID). A unique name for the Oracle database instance. Maximum 8 characters, alphanumeric, must start with a letter. For more information, see [Oracle Database Concepts](https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/introduction-to-oracle-database.html). | Example: orcl |
+| Storage Type (ASM or File System JFS2) | oracle_install_type | Oracle storage installation type. Use 'ASM' for Automatic Storage Management (requires Grid Infrastructure binaries in COS and 'cos_oracle_grid_sw_path' set) or 'JFS2' for Journal File System (JFS2). ASM is recommended for production environments. | ASM or JFS2
+| Cloud Object Storage(COS) Credentials | ibmcloud_cos_service_credentials | JSON service credentials for the IBM Cloud Object Storage instance used to access the COS bucket. To generate credentials: IBM Cloud Console > Cloud Object Storage > your instance > Service Credentials > New credential. See [COS Service Credentials](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials) for a JSON example. | | #pragma: allowlist secret
 | COS Oracle Software Storage Configuration | ibmcloud_cos_configuration | IBM Cloud Object Storage details to download the files to the target host. | |
-| AIX OS Image Name | pi_aix_image_name | Name of the IBM PowerVS AIX boot image used to host the Oracle Database. Must be a valid AIX image available in the workspace. To list available images, run: ibmcloud pi images.| Example: 7300-04-00 |
-| AIX Instance Configuration(CPU,Mem) | pi_aix_instance | Configuration for the IBM PowerVS AIX instance where Oracle Database will be installed. Fields: memory_gb (RAM in GB), cores (number of virtual processors), core_type (shared / capped / dedicated), machine_type (e.g., s1022 or e980), pin_policy (hard / soft), health_status (OK / Warning / Critical). | { "core_type": "shared",  "cores": 0.5, "health_status": "OK", "machine_type": "s1022", "memory_gb": "16", "pin_policy": "hard" }|
-| Oracle Software Binary Disks | pi_oravg_volume | Disk configuration for the Oracle software volume group (oravg). Fields: name (default: oravg), size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). | { "count": "2", "size": "100", "tier": "tier1" } |
-| Database Data Disks | pi_data_volume | Disk configuration for the DATA volume. Used as the DATA diskgroup in ASM mode or as DATAVG in JFS2 mode. Fields: name (default: DATA), size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). | {  "count": "8",  "size": "5",  "tier": "tier1" } |
-| Redo Log Disks | pi_redo_volume | Disk configuration for the REDO volume. Used as the REDO diskgroup in ASM mode or as REDOVG in JFS2 mode. Fields: name (default: REDO), size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). | { "count": "4",  "size": "2",  "tier": "tier5k" } |
-| Redo log member size (MB) | redolog_size_in_mb | Size of each redo log member in megabytes (MB). Recommended minimum is 500 MB for production workloads. | Example: 1024 |
-| Resource Tags | pi_user_tags | List of tag names to apply to all IBM Cloud PowerVS instances and volumes created by this module. Can be set to null to skip tagging. | Example: ["oracledb"] |
+| AIX OS Image Name (Optional) | pi_aix_image_name | Name of the IBM PowerVS AIX boot image used to host the Oracle Database. Must be a valid AIX image available in the workspace. To list available images, run: ibmcloud pi images.| Example: 7300-04-00 |
+| AIX Instance Configuration(CPU,Mem) (Optional) | pi_aix_instance | Configuration for the IBM PowerVS AIX instance where Oracle Database will be installed. Fields: memory_gb (RAM in GB), cores (number of virtual processors), core_type (shared / capped / dedicated), machine_type (e.g., s1022 or e980), pin_policy (hard / soft), health_status (OK / Warning / Critical). | |
+| Oracle Software Binary Disks (Optional) | pi_oravg_volume | Disk configuration for the Oracle software volume group (oravg). Fields: name (default: oravg), size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). | |
+| Database Data Disks (Optional) | pi_data_volume | Disk configuration for the DATA. Used as the DATA diskgroup in ASM mode or as DATAVG in JFS2 mode. Fields: name (default: DATA), size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). |  |
+| Redo Log Disks (Optional) | pi_redo_volume | Disk configuration for the REDO. Used as the REDO diskgroup in ASM mode or as REDOVG in JFS2 mode. Fields: name (default: REDO), size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). |  |
+| Redo log member size (MB) (Optional) | redolog_size_in_mb | Size of each redo log member in megabytes (MB). Recommended minimum is 500 MB for production workloads. | Example: 1024 |
+| Resource Tags (Optional) | pi_user_tags | List of tag names to apply to all IBM Cloud PowerVS instances and volumes created by this module. Can be set to null to skip tagging. | Example: ["oracledb"] |
 
 ## Help and Support
 You can report issues and request features for this module in GitHub issues in the [repository link](https://github.com/terraform-ibm-modules/.github/blob/main/.github/SUPPORT.md)
