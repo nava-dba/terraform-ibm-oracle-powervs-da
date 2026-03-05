@@ -5,9 +5,9 @@
   "pi_aix_image_name": "7300-04-00",
   "pi_rhel_image_name": "RHEL10",
   "pi_rhel_management_server_type": "s1022",
-  "pi_ssh_public_key_name": "ibm003-dataplane-01-vpn",
+  "pi_ssh_public_key_name": "ora-da-vpc-pub-key",
   "bastion_host_ip": "52.118.210.134",
-  "squid_server_ip": "",
+  "squid_server_ip": "10.169.2.9",
   "redolog_size_in_mb": "1024",
   "ora_sid": "orcl",
   "pi_aix_instance": {
@@ -46,8 +46,8 @@
   },
   "pi_networks": [
     {
-      "name": "ora_net",
-      "id": "c38d18ad-b39f-4ba0-94f0-ada107ab64df"
+      "name": "ora-net",
+      "id": "daf771b1-d8bd-4cbf-9d08-a293de498e44"
     }
   ],
   "pi_user_tags": "[\"cd-pipeline\"]"
