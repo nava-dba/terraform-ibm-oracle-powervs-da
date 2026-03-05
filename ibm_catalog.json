@@ -817,6 +817,7 @@
             {
               "key": "cluster_domain",
               "display_name": "Cluster Domain Name",
+              "default_value": "da.com",
               "type": "string",
               "required": false
             },
