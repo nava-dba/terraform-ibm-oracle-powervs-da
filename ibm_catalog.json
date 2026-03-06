@@ -850,7 +850,7 @@
             {
               "key": "ru_version",
               "display_name": "Oracle Patch Version (RU)",
-              "default_value": "19.29",
+              "default_value": "19.30",
               "type": "string",
               "required": true,
               "options": [
@@ -913,6 +913,10 @@
                 {
                   "displayname": "RU 19.29",
                   "value": "19.29"
+                },
+                {
+                  "displayname": "RU 19.30",
+                  "value": "19.30"
                 }
               ]
             },
