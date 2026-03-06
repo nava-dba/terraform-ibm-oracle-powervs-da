@@ -1,18 +1,3 @@
-output "rac_node_details" {
-  description = "Per RAC node details including instance ID and IP addresses"
-
-  value = {
-    for inst in ibm_pi_instance.rac_nodes :
-    inst.pi_instance_name => {
-      id       = inst.instance_id
-      mgmt_ip  = inst.pi_network[0].ip_address
-      pub_ip   = inst.pi_network[1].ip_address
-      priv1_ip = inst.pi_network[2].ip_address
-      priv2_ip = inst.pi_network[3].ip_address
-    }
-  }
-}
-
 output "network_details" {
   description = "Network configuration details"
   value = {

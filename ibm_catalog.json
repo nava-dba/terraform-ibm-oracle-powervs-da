@@ -52,6 +52,10 @@
         {
           "title": "Creates an Single Instance Oracle Database on JFS2.",
           "description": "Get started with Oracle Database on AIX JFS2 by creating and configuring an single instance."
+        },
+        {
+          "title": "Creates an Real Application Cluster (RAC) Oracle Database.",
+          "description": "Get started with Oracle RAC Database by creating and configuring a RAC instance."
         }
       ],
       "support_details": "This product is in the community registry, as such support is handled through the originated repo. If you experience issues please open an issue in that repository [https://github.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/issues](https://github.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/issues). Please note this product is not supported via the IBM Cloud Support Center.",
@@ -269,14 +273,6 @@
               "default_value": "7300-04-00",
               "required": false,
               "options": [
-                {
-                  "displayname": "7100-05-09",
-                  "value": "7100-05-09"
-                },
-                {
-                  "displayname": "7200-05-10",
-                  "value": "7200-05-10"
-                },
                 {
                   "displayname": "7200-05-11",
                   "value": "7200-05-11"
@@ -739,14 +735,6 @@
               "default_value": "7300-04-00",
               "required": false,
               "options": [
-                {
-                  "displayname": "7100-05-09",
-                  "value": "7100-05-09"
-                },
-                {
-                  "displayname": "7200-05-10",
-                  "value": "7200-05-10"
-                },
                 {
                   "displayname": "7200-05-11",
                   "value": "7200-05-11"

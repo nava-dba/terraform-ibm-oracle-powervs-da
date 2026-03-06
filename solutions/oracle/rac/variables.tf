@@ -166,7 +166,7 @@ variable "redolog_size_in_mb" {
 ############################################
 
 variable "pi_user_tags" {
-  description = "List of tag names to apply to all IBM Cloud PowerVS instances and volumes created by this module. Can be set to null to skip tagging."
+  description = "List of tag names to apply to all IBM Cloud PowerVS instances and volumes created by this module. Cannot be null and use proper format."
   type        = list(string)
 }
 
