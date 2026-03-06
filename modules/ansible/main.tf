@@ -59,7 +59,7 @@ resource "terraform_data" "setup_ansible_host" {
 
   # Create terraform scripts directory
   provisioner "remote-exec" {
-    inline = ["mkdir -p ${local.dst_files_dir}", "chmod 777 ${local.dst_files_dir}", ]
+    inline = ["mkdir -p ${local.dst_files_dir}", "chmod 600 ${local.dst_files_dir}", ]
   }
 
   # Copy ansible_node_packages.sh shell file to ansible host
@@ -104,7 +104,7 @@ resource "terraform_data" "execute_playbooks" {
 
   # Create terraform scripts directory
   provisioner "remote-exec" {
-    inline = ["mkdir -p ${local.dst_files_dir}", "chmod 777 ${local.dst_files_dir}", ]
+    inline = ["mkdir -p ${local.dst_files_dir}", "chmod 600 ${local.dst_files_dir}", ]
   }
 
   # Copy and create ansible playbook template file on ansible host
@@ -186,7 +186,7 @@ resource "terraform_data" "execute_playbooks_with_vault" {
 
   # Create terraform scripts directory
   provisioner "remote-exec" {
-    inline = ["mkdir -p ${local.dst_files_dir}", "chmod 777 ${local.dst_files_dir}", ]
+    inline = ["mkdir -p ${local.dst_files_dir}", "chmod 600 ${local.dst_files_dir}", ]
   }
 
   # Copy and create ansible playbook template file on ansible host
