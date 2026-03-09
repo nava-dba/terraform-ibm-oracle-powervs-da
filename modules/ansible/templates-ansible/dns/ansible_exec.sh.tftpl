@@ -16,7 +16,6 @@ cat <<EOF > ansible.cfg
 host_key_checking = False
 # SSH connect timeout per attempt
 timeout = 60
-interpreter_python=/opt/freeware/bin/python3
 
 [ssh_connection]
 ssh_args = -o ForwardAgent=yes -o ControlPersist=30m -o ServerAliveInterval=45 -o ServerAliveCountMax=10
