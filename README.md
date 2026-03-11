@@ -1,5 +1,5 @@
 ## Overview
-This module creates a Oracle 19c Database Single Instance(SI) or Real Application Cluster(RAC) on IBM PowerVS Public or Private AIX VSI.
+This module creates an Oracle 19c Single Instance(SI) or Real Application Cluster(RAC) Database on IBM PowerVS Public or Private on AIX VSI(Virtual Server Instance).
 
 ## Deployment variations
 
