@@ -103,7 +103,7 @@ For more information related to Private Cloud Architecture, please refer to [IBM
 
 Sample Bastion Host details:
 
-<img width="800" alt="image" src="https://github.ibm.com/Shiva-Laveti/oracle_da_readme/blob/da-dev/bastion_image.png?raw=true" />
+<img width="800" alt="image" src="https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/blob/dev/images/screenshot1.png?raw=true" />
 
 **Step F**: Configure Squid Proxy service on Bastion host
 1. Squid Server is a proxy service which should be configured in the Bastion host, this will allow internet access to the resources in PowerVS workspace. To setup Squid, refer to the section ["Configuring the proxy instance"](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-set-full-Linux)
@@ -117,7 +117,7 @@ Sample Bastion Host details:
 
 Sample Security Group Details:
 
-<img width="800" alt="image" src="https://github.ibm.com/Shiva-Laveti/oracle_da_readme/blob/da-dev/SG.png?raw=true" />
+<img width="800" alt="image" src="https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/blob/dev/images/screenshot2.png?raw=true" />
 
 Note: For more security we can restrict the source in inbound rule to a specific networks instead of 0.0.0.0
 
