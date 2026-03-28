@@ -20,17 +20,18 @@ For information, see "Module names and descriptions" at
 https://terraform-ibm-modules.github.io/documentation/#/implementation-guidelines?id=module-names-and-descriptions
 -->
 
-This module creates a Oracle Real Application Clusters 19c Database on IBM PowerVS AIX Virtual Server Instances (VSIs).
+This module creates a Oracle Real Application Clusters(RAC) 19c Database on IBM PowerVS AIX Virtual Server Instances (VSIs).
 
 
 ## Overview
-This automated deployable architecture guide demonstrates the components used to deploy Oracle 19c Database on Real Application Cluster(RAC) on IBM PowerVS Public or Private AIX VSI. First it creates the infrastructure and next it creates the RAC database. This solution currently supports only **2 node** RAC deployment.
+
+This automated deployable architecture guide demonstrates how to deploy an Oracle 19c RAC Database on IBM PowerVS Public or Private AIX VSIs. The deployment process is divided into two main stages. In the first stage, the required infrastructure is provisioned. In the second stage, the Oracle database is created and configured on RAC. This solution currently supports only **2 node** RAC deployment.
 
 ## Reference Architecture
 
-<img width="342" alt="image" src="https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/3f48b4caf7a1b28941949c0ccc6120f461a876e2/images/Oracle_DA_RAC.svg" />
+<img width="342" alt="image" src="https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/ab93802d70c3f2036f14857602a9ee319a4f6706/images/Oracle_DA_RAC.svg" />
 
-Using terraform, RHEL & AIX vms will be created. The RHEL vm will act as Ansible controller which contains the playbooks required to setup Oracle RAC Database on AIX. The RHEL vm is also configured with NFS server for staging the Oracle binaries and DNS for the name resolution of RAC VIPs.
+Using Terraform, both RHEL and AIX virtual machines are provisioned as part of the deployment. The RHEL VM acts as the Ansible controller, hosting the playbooks required to install and configure the Oracle Database on the AIX system. It is also configured with an NFS server to stage and provide access to the Oracle installation binaries for the AIX VMs and DNS server for the name resolution of RAC VIPs.
 
 ## Planning
 ### Before you begin deploying
@@ -48,12 +49,18 @@ Using terraform, RHEL & AIX vms will be created. The RHEL vm will act as Ansible
 - For information about configuring permissions, contact your account administrator. For more details refer to [IAM in IBM Cloud](https://cloud.ibm.com/docs/account?topic=account-cloudaccess).
 
 **Step B**: Generate API key on the target account
-- Refer to the [IBM Documentation](https://www.ibm.com/docs/en/masv-and-l/cd?topic=cli-creating-your-cloud-api-key)
+1. Login in your IBM Cloud account.
+2. In the Manage menu, select Access (IAM).
+3. In the API keys menu, click Create button.
+4. In the Create IBM Cloud API key page, enter a name and description for your API Key.
+5. In the Leaked key section, select either to disable, delete, or not take any action if a key is discovered.
+6. In the Select creation section, choose whether the API key should create a session in the CLI or not.
+   - Refer to the [API Keys](https://www.ibm.com/docs/en/masv-and-l/cd?topic=cli-creating-your-cloud-api-key) for detailed description.
 
 **Step C**: Create Power Virtual Server Workspace and get guid & PowerVS zone
-1. To create an IBM Power® Virtual Server workspace, complete step 1 to step 8 from the IBM PowerVS documentation for [Creating an IBM Power® Virtual Server](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-power-virtual-server)
-2. Click on Menu --> “Resource List” --> Expand “Compute” --> Click on the blue circle dot on the left side of the workspace and copy the GUID
-3. GUID can also be obtained from CRN of the workspace.
+1. To create an IBM Power® Virtual Server workspace follow the steps from 1 to 8 of [Creating an IBM Power® Virtual Server](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-power-virtual-server)
+2. Once the Workspace is created get the GUID, Go to IBM Cloud dashboard -> "Resource List" -> "Compute" --> Click on the blue circle dot on the left side of the workspace and copy the GUID.
+4. GUID can also be obtained from CRN of the workspace.
 
 For example: This is the CRN:
 
@@ -64,13 +71,17 @@ For example: This is the CRN:
 > The corresponding zone is **dal14**
 
 **Step D**: Create the subnets for Oracle RAC in PowerVS Workspace. Below are the steps to create a single subnet.
-1. Go to the workspace that was created in Step C
-2. Click Subnets in the left navigation menu, then Add subnet.
-3. Enter a name for the subnet, CIDR value (for example: 192.168.100.14/24), gateway number (for example: 192.168.100.15), the IP range values for the subnet and [DNS server](https://cloud.ibm.com/docs/dns?topic=dns-dns-faq&locale=en) as 161.26.0.10, 161.26.0.11.
-4. Click Create Subnet.
-5. After creation of the subnet, click on the created subnet and note down the "Name" & "ID"
+1. Go to the workspace that was created in Step C.
+2. Click on "Subnets" in the left navigation menu, then click on "Create subnet".
+3. Enter the following
+   - "Name" for the subnet
+   - CIDR value (Example: 10.40.80.0/24)
+   - Gateway number (Example: 10.40.80.1), the IP range values for the subnet (Example: 10.40.80.2 — 10.40.80.254)
+   - DNS server (Example: 161.26.0.10).
+   - Click "Create subnet"
+4. Click on the created subnet to get the "Name" & "ID" details.
 
-For more information, please refer to [IBM PowerVS Documentation](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-configuring-subnet)
+For more information, please refer to [Configuring Subnets](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-configuring-subnet)
 
 For RAC deployment, we need 4 subnets.
 1. Management network
@@ -78,7 +89,22 @@ For RAC deployment, we need 4 subnets.
 3. Oracle RAC Private1
 4. Oracle RAC Private2
 
-**Note:** Deployment input for "PowerVS Networks" should be mentioned in this order only.
+**PowerVS Public:** During Creation of Oracle RAC Subnets(Public and Private), Enable ARP option. Supports both "Same Server" and "Different Server" placement policies.
+
+**PowerVS Private:** Doesn't have ARP option. In Private use "Same Server" placement policy for deployment. If you want "Different Server" placement policy Contact IBM support to enable the ARP for the subnet.
+
+**Note:** IP Range should be mentioned from 0-240. Rest of them are reserved for Public networks.
+
+| Name | CIDR | IP Range | ARP Broadcast |
+|------|------|----------|-----|
+| ora_net | 10.40.80.0/24 | 10.40.80.2 — 10.40.80.254 | Disabled |
+| ora-rac-pub | 172.16.10.0/24 | 172.16.10.2 — 172.16.10.240 | Enabled |
+| ora-rac-priv1 | 10.60.30.0/28 | 10.60.30.2 — 10.60.30.14 | Enabled |
+| ora-rac-priv2 | 10.50.20.0/28 | 10.50.20.2 — 10.50.20.14 | Enabled |
+
+**Note:** For ora-rac-pub subnet the IPs 172.16.10.241 to 172.16.10.254 are reserved for Oracle RAC VIPs(SCAN and Node-VIPs)
+
+Deployment input for "PowerVS Networks" should be mentioned in this order only.
 
 Example:
 
@@ -103,17 +129,36 @@ Example:
 ]
 ```
 
-**Step E**: Create VM with external connectivity
-1. For PowerVS Public: Goto dashboard Infrastructure->Compute->Virtual server instances; click on "Create". Next assign floating IP to VPC, please refer to [IBM PowerVS Documentation](https://cloud.ibm.com/docs/vpc?topic=vpc-about-advanced-virtual-servers)
-   - To enable the routing between VPC and PowerVS, Create a [transit gateway](https://cloud.ibm.com/docs/transit-gateway?topic=transit-gateway-getting-started) and add PowerVS workspace and VPC to it.
-   - Add the [Security Group](https://cloud.ibm.com/docs/vpc?topic=vpc-using-security-groups)(SG) rule for squid server IP and port. Allow only the traffic from powervs subnet
-3. For PowerVS Private: Contact IBM Support, IBM SRE will help in creating a VPN gateway for external connectivity. This will act as bastion host.
-For more information, please refer to [IBM PowerVS Documentation](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-private-cloud-architecture#network-spec-private-cloud)
+**Step E**: Create a Bastion Host (VPC) on IBM Cloud with external connectivity
+<br>Bastion host is an x86 based vm in IBM Cloud called as [VPC](https://cloud.ibm.com/docs/vpc?topic=vpc-about-advanced-virtual-servers). This acts like a jump server to connect to the resources in the PowerVS workspace.
+1. Public: Go to IBM Cloud Dashboard and click on "Infrastructure" -> "Compute" -> "Virtual server instances"; click on "Create".
+   - Next, add a floating IP to the bastion host, this [Floating IP](https://cloud.ibm.com/docs/vpc?topic=vpc-fip-about) allows users to access the bastion host from the public network.
+   - To enable the routing between VPC and PowerVS Workspace created in Step C, Create a ["Transit Gateway"](https://cloud.ibm.com/docs/transit-gateway?topic=transit-gateway-getting-started) and add PowerVS workspace and VPC to it.
 
-**Step F**: Configure Squid Server on the bastion host for proxy service.
-Please refer to [IBM PowerVS Documentation](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-full-linux-sub#create-proxy-private)
+2. Private: Contact IBM Support, IBM SRE will help in creating a VPN gateway for external connectivity. This will act as bastion host.
+For more information related to Private Cloud Architecture, please refer to [IBM PowerVS Private](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-private-cloud-architecture#network-spec-private-cloud)
 
-**Step G**: Get ssh-key pair from bastion host
+Sample Bastion Host details:
+
+<img width="800" alt="image" src="https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/blob/dev/images/screenshot1.png?raw=true" />
+
+**Step F**: Configure Squid Proxy service on Bastion host
+1. Squid Server is a proxy service which should be configured in the Bastion host, this will allow internet access to the resources in PowerVS workspace. To setup Squid, refer to the section ["Configuring the proxy instance"](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-set-full-Linux)
+2. Get the private IP address of Bastion host(VPC) using "ip a" command(Eg. 10.240.64.X). This IP will be given as "Squid - Proxy Server IP Address" input for DA.
+3. Add and allow http access for the subnet CIDR created in Step D to /etc/squid/squid.conf file
+  ```
+     acl ibmprivate src 10.40.80.0/24
+     http_access allow ibmprivate
+  ```
+4. Add a security group rule for squid server IP and port to allow only the traffic from powervs subnet. For more information related to Security groups refer to [Security Group](https://cloud.ibm.com/docs/vpc?topic=vpc-using-security-groups)
+
+Sample Security Group Details:
+
+<img width="800" alt="image" src="https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/blob/dev/images/screenshot2.png?raw=true" />
+
+Note: For more security we can restrict the source in inbound rule to a specific networks instead of 0.0.0.0
+
+**Step G**: Get ssh-key pair from Bastion host
 
 Note: If you are using pre-existing keys then make sure private and public ssh key pair are placed in bastion host at ~/.ssh/ and add public key to authorized_keys, and skip the following steps in this section. Below are the steps for generating the ssh keys
 
@@ -126,22 +171,27 @@ Note: If you are using pre-existing keys then make sure private and public ssh k
 > cat ~/.ssh/id_rsa   # Note down this private key, this must be given as a DA input "Bastion Host SSH Private Key"
 ```
 
-2. Similarly, add the public key of the bastion host to the PowerVS Workspace.
-For more information, please refer to [IBM PowerVS Documentation](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-ssh-key)
+2. Additionally, add the public key of the bastion host to the PowerVS Workspace.
+<br> Go to IBM Cloud Dashboard -> "Compute" -> Click on the <powervs workspace> -> "SSH keys" -> "Create SSH key" -> in the "key name" field, provide a desired name and paste the your public key in "Public key" field and click on "Add SSH key".
+For more information related to creating ssh keys, please refer to [Creating SSH Keys](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-ssh-key)
 
-**Step H**: Download Oracle Binaries and upload to COS bucket
+**Step H**: Create IBM Cloud Object Storage (COS)
+<br> IBM Cloud Storage bucket is needed to hold the Oracle binaries.
+1. Go to IBM Cloud dashboard, click on "Infrastructure" --> "Storage" --> "Object Storage"
+2. Click on "Create Instance", this will open a new window, provide "Service name" and "tags". Click on "Create"/
+3. After creation, click on "Create Bucket" and click on "Create a Custom Bucket" and enter the required fields and click on "Create bucket".
+4. In the Cloud Object Instance, click on "Service Credentials" and click on "New Credential". Provide the "Name", set writer to the "Role" and click "Add".
+5. Expand the credential and copy the contents.
+Please refer to [Getting started with Cloud Object Storage](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-getting-started-cloud-object-storage)
+Generate COS service credentials. Please refer to [COS Service Credentials](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials)
+
+**Step I**: Download the Oracle Binaries
 1. Download Oracle Binaries from [Oracle Site](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery) and Release Update(RU) system patches 19.X from [Oracle MOS](https://support.oracle.com).
    - RDBMS Base software: V982583-01_193000_db.zip
    - Grid Infrastructure software: V982588-01_193000_grid.zip
-   - Download the latest Release Update(RU) system patch 19.X containing both grid and rdbms RU patches for AIX from MOS. Refer to MOS note [2521164.1](https://support.oracle.com/epmos/faces/DocumentDisplay?parent=DOCUMENT&sourceId=2521164.1&id=2521164.1) and also Refer to this [Oracle documentation](https://docs.oracle.com/en/database/oracle/oracle-database/19/ntdbi/downloading-and-installing-patch-updates.html).
-2. Create Cloud Object Storage (COS) instance
-3. Generate COS service credentials
-4. Create COS bucket
-5. Upload Oracle files to IBM Cloud COS bucket and note down the COS Service Credentials.
-Please refer to the following links related to Cloud Object Storage
-   - [Getting started with Cloud Object Storage](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-getting-started-cloud-object-storage)
-   - [COS Service Credentials](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials)
-   - [Upload data to COS Bucket](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-upload)
+   - Download the latest System Patch (Release Update) 19.X containing both grid and rdbms RU patches for AIX from My Oracle Support. Refer to this MOS note [2521164.1](https://support.oracle.com/epmos/faces/DocumentDisplay?parent=DOCUMENT&sourceId=2521164.1&id=2521164.1) and also refer to this [Oracle documentation](https://docs.oracle.com/en/database/oracle/oracle-database/19/ntdbi/downloading-and-installing-patch-updates.html) to understand more on Oracle patch updates.
+2. Upload the Oracle binaries to IBM Cloud COS bucket. Please refer to this documentation to upload the files.
+[Upload data to COS Bucket](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-upload)
 
 Example of "COS Oracle Software Storage Configuration" deployment input.
 
@@ -157,12 +207,13 @@ Example of "COS Oracle Software Storage Configuration" deployment input.
 }
 ```
 
-**Step I**: Full Linux Subscription Implementation
-- In PowerVS Private DA need FLS setup which is required for RHEL Subscription. This release of DA we will be using only IBM provided subscription images, refer to [FLS Documentation](https://www.ibm.com/docs/en/power-virtual-server?topic=linux-full-subscription-power-virtual-server-private-cloud)
-- In PowerVS Public the RHEL Subscription is done at the time of VM creation automatically, and in DA we are not using any separate script for RHEL Subscription.
+**Step J**: Full Linux Subscription Implementation
+- In Private environment, FLS setup is needed which is required for RHEL Subscription. This release of DA we will be using only IBM provided subscription images, refer to [FLS Documentation](https://www.ibm.com/docs/en/power-virtual-server?topic=linux-full-subscription-power-virtual-server-private-cloud) for more details.
+- In Public environment, the RHEL Subscription is done at the time of VM creation automatically, and in DA we are not using any separate script for RHEL Subscription.
 
-**Step J**: Whitelist schematic CIDR/IP
-- At VPN Gateway level, whitelist the schematic CIDRs/IPs of region where schematic workspace gets created, refer to [Firewall Access – allowed IP addresses](https://cloud.ibm.com/docs/schematics?topic=schematics-allowed-ipaddresses)
+**Step K**: Whitelist schematic CIDR/IP
+- At VPN Gateway or VPC VM level, whitelist the schematic CIDRs/IPs of region where schematic workspace gets created, refer to [Firewall Access – allowed IP addresses](https://cloud.ibm.com/docs/schematics?topic=schematics-allowed-ipaddresses)
+- This step is optional if your using source as 0.0.0.0 under Security Group inbound rule for ssh connection
 
 ## Deployment Steps
 ### Deploy using projects
@@ -225,7 +276,7 @@ DV              Oracle Database Vault                              VALID
 | Oracle Patch Version (RU) | ru_version | Oracle Release Update (RU) patch version to apply to both Grid Infrastructure and the Database. This must match the RU patch zip uploaded to the COS bucket at 'cos_oracle_ru_file_path'. Find available RU patches on [Oracle MOS note KB111276](https://support.oracle.com/epmos/faces/DocumentDisplay?id=2521164.1). | Example: 19.29 |
 | Oracle Database Name (SID) | ora_sid | Oracle Database System Identifier (SID). A unique name for the Oracle database instance. Maximum 8 characters, alphanumeric, must start with a letter. For more information, see [Oracle Database Concepts](https://docs.oracle.com/en/database/oracle/oracle-database/19/cncpt/introduction-to-oracle-database.html). | Example: orcl |
 | Oracle SYS Password | ora_db_password | Password for Oracle database administrative users (SYS, SYSTEM). Must meet Oracle password complexity requirements: minimum 8 characters, include at least one uppercase letter, one lowercase letter, and one number. |
-| Cloud Object Storage(COS) Credentials | ibmcloud_cos_service_credentials | JSON service credentials for the IBM Cloud Object Storage instance used to access the COS bucket. To generate credentials: IBM Cloud Console > Cloud Object Storage > your instance > Service Credentials > New credential. See [COS Service Credentials](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials) for a JSON example. | | # pragma: allowlist secret
+| Cloud Object Storage(COS) Credentials | ibmcloud_cos_service_credentials | JSON service credentials for the IBM Cloud Object Storage instance used to access the COS bucket. To generate credentials: IBM Cloud Console > Cloud Object Storage > your instance > Service Credentials > New credential. See [COS Service Credentials](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials) for a JSON example. | | #pragma: allowlist secret
 | COS Oracle Software Storage Configuration | ibmcloud_cos_configuration | IBM Cloud Object Storage (COS) bucket details containing Oracle RAC installation binaries. Do not add a leading '/' to any path. Refer to "Step H" | Refer to "Step H" for sample example |
 | AIX OS Image Name (Optional) | pi_aix_image_name | Name of the IBM PowerVS AIX boot image used to host the Oracle Database. Must be a valid AIX image available in the workspace. To list available images, run: ibmcloud pi images.| Example: 7300-04-00 |
 | Number of RAC Nodes | rac_nodes | Number of Oracle RAC nodes to create. Minimum is 2 (required for RAC). All nodes will be provisioned with the same AIX image and instance configuration defined . For more information on Oracle RAC architecture, see [Oracle RAC Documentation](https://docs.oracle.com/en/database/oracle/oracle-database/19/racad/introduction-to-oracle-rac.html)." | 2
