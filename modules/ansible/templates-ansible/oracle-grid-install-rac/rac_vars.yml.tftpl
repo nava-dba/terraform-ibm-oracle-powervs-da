@@ -8,8 +8,8 @@ opatch_file: "${OPATCH_FILE}"
 cluvfy_file: "${CLUVFY_FILE}"
 ru_version: "${RU_VERSION}"
 ora_sid: "${ORA_SID}"
-root_password: "${ROOT_PASSWORD}"
-ora_db_password: "${ORA_DB_PASSWORD}"
+root_password: "${ROOT_PASSWORD}"                               #pragma: allowlist secret
+ora_db_password: "${ORA_DB_PASSWORD}"                           #pragma: allowlist secret
 time_zone: "${TIME_ZONE}"
 cluster_domain: ${CLUSTER_DOMAIN}
 cluster_name: ${CLUSTER_NAME}
@@ -30,14 +30,14 @@ ora_sw_fs: "/u01"
 ora_user: "oracle"
 ora_base: "{{ora_sw_fs}}/base"
 oracle_group: oinstall
-default_dbpass: "${ORA_DB_PASSWORD}"
-default_gipass: "${ORA_DB_PASSWORD}"
+default_dbpass: "${ORA_DB_PASSWORD}"                            #pragma: allowlist secret
+default_gipass: "${ORA_DB_PASSWORD}"                            #pragma: allowlist secret
 work_dir: "/tmp/ansible"
 done_file_dir: "/var/tmp/ansible_flags"
 
 global:
 
-  root_password: "${ROOT_PASSWORD}"
+  root_password: "${ROOT_PASSWORD}"                            #pragma: allowlist secret
   grid_owner:  &grid_owner  "grid"
   grid_pgroup: &grid_pgroup "oinstall"
   db_owner:    &db_owner    "oracle"
@@ -176,7 +176,7 @@ config:
       groups:       "bin,sys,security,cron,audit,lp"
       shell:        "/usr/bin/ksh"
       capabilities: "CAP_BYPASS_RAC_VMM,CAP_PROPAGATE,CAP_NUMA_ATTACH"
-      password:       "${ROOT_PASSWORD}"
+      password:       "${ROOT_PASSWORD}"                                              #pragma: allowlist secret
       ulimits: >-
                fsize=-1 data=-1 stack=-1 rss=-1 core=-1 cpu=-1 nofiles=65536
 
@@ -188,7 +188,7 @@ config:
       groups:       "oinstall,dba,asmadmin,oper,asmdba,hagsuser"
       shell:        "/usr/bin/ksh"
       capabilities: "CAP_BYPASS_RAC_VMM,CAP_PROPAGATE,CAP_NUMA_ATTACH"
-      password:       "${ORA_DB_PASSWORD}"
+      password:       "${ORA_DB_PASSWORD}"                                          #pragma: allowlist secret
       ulimits: >-
                fsize=-1 data=-1 stack=-1 rss=-1 core=-1 cpu=-1 nofiles=65536
 
@@ -200,7 +200,7 @@ config:
       groups:       "oinstall,dba,asmadmin,oper,asmdba,hagsuser"
       shell:        "/usr/bin/bash"
       capabilities: "CAP_BYPASS_RAC_VMM,CAP_PROPAGATE,CAP_NUMA_ATTACH"
-      password:       "${ORA_DB_PASSWORD}"
+      password:       "${ORA_DB_PASSWORD}"                                          #pragma: allowlist secret
       ulimits: >-
                fsize=-1 data=-1 stack=-1 rss=-1 core=-1 cpu=-1 nofiles=65536
 
@@ -288,7 +288,7 @@ install:
       '',  '',    ''
     ]
 
-  asm_sys_password: &asm_sys_password "${ORA_DB_PASSWORD}"
+  asm_sys_password: &asm_sys_password "${ORA_DB_PASSWORD}" #pragma: allowlist secret
 
   grid_rsp:
     INVENTORY_LOCATION: [ *ofa_fs, 'oraInventory' ]
@@ -303,9 +303,9 @@ install:
       asm:
         OSASM: *db_asmadmingroup
         OSDBA: *db_asmdbagroup
-        SYSASMPassword: *asm_sys_password
-        monitorPassword: monitor
-        emAdminPassword:
+        SYSASMPassword: *asm_sys_password               #pragma: allowlist secret
+        monitorPassword: monitor                        #pragma: allowlist secret
+        emAdminPassword:                                #pragma: allowlist secret
         diskGroup:
           name: CRSDG
           AUSize: 4
@@ -317,7 +317,7 @@ install:
           redundancy: EXTERNAL
       config:
         emAdminUser:
-        emAdminPassword:
+        emAdminPassword:                              #pragma: allowlist secret
         clusterName: "${CLUSTER_NAME}"
         clusterNodes: "${CLUSTER_NODES}"
 
