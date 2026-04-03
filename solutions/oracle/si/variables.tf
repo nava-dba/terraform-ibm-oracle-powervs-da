@@ -117,6 +117,11 @@ variable "pi_oravg_volume" {
     count = string
     tier  = string
   })
+
+  validation {
+    condition     = tonumber(var.pi_oravg_volume.size) * tonumber(var.pi_oravg_volume.count) >= 120
+    error_message = "Total Oracle Binary disk filesystem size (size * count) must be at least 120GB. Current: ${var.pi_oravg_volume.size}GB * ${var.pi_oravg_volume.count} = ${tonumber(var.pi_oravg_volume.size) * tonumber(var.pi_oravg_volume.count)}GB"
+  }
 }
 
 variable "pi_data_volume" {

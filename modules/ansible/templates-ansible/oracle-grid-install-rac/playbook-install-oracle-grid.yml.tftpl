@@ -275,7 +275,7 @@
             - "'already exists' not in arch_lv_result.stdout"
           when: not arch_jfs2_done.stat.exists
 
-        # crfs -v jfs2 -d archlv -m /oraarchlogs -A yes -p rw -a log=INLINE -a noatime=yes -a agblksize=512 && mount /oraarchlogs
+        # crfs -v jfs2 -d archlv -m /oraarchlogs -A yes -p rw -a log=INLINE -a noatime=yes -a agblksize=4096 && mount /oraarchlogs
         - name: Create and mount /oraarchlogs filesystem on this node
           ansible.builtin.shell: |
             if lsfs | grep -q "^/oraarchlogs:"; then
@@ -283,7 +283,7 @@
             fi
             crfs -v jfs2 -d archlv -m /oraarchlogs \
                  -A yes -p rw -a log=INLINE \
-                 -a noatime=yes -a agblksize=512
+                 -a noatime=yes -a agblksize=4096
             mount /oraarchlogs
           args:
             executable: /bin/ksh
