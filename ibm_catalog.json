@@ -99,7 +99,8 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[a-zA-Z0-9-]{1,5}$"
+                  "value": "^[a-zA-Z0-9-]{1,5}$",
+                  "description": "The prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
                 }
               ]
             },
@@ -557,7 +558,8 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[a-zA-Z0-9-]{1,5}$"
+                  "value": "^[a-zA-Z0-9-]{1,5}$",
+                  "description": "The prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
                 }
               ]
             },
