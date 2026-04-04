@@ -1,0 +1,19 @@
+# Ignore the ci/ directory and everything inside it
+ci/
+
+# Ignore the module-assets/ directory and everything inside it
+module-assets/
+
+.terraform/
+.terraform.lock.hcl
+.DS_Store
+.github/.DS_Store
+.lock
+settings.json
+terraform.tfstate*
+.terraform.tfstate*
+solutions/oracle/si/input.auto.tfvars
+.vscode
+solutions/oracle/si/*.tfvars
+solutions/oracle/rac/*.tfvars
+common-dev-assets
