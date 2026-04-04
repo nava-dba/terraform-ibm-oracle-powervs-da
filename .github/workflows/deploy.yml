@@ -275,10 +275,25 @@ jobs:
           MAX_WAIT=900
           INTERVAL=30
           ELAPSED=0
+          TOKEN_AGE=0
+          TOKEN_REFRESH_INTERVAL=2700
 
           echo "Polling validation status (max 15 min)..."
 
           while [ $ELAPSED -lt $MAX_WAIT ]; do
+            # Refresh IAM token every 45 minutes
+            if [ $TOKEN_AGE -ge $TOKEN_REFRESH_INTERVAL ]; then
+              echo "Refreshing IAM token..."
+              NEW_TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
+              if [ -n "${NEW_TOKEN}" ]; then
+                IAM_TOKEN=${NEW_TOKEN}
+                TOKEN_AGE=0
+                echo "IAM token refreshed"
+              else
+                echo "Warning: token refresh failed, continuing with existing token"
+              fi
+            fi
+
             RESPONSE=$(curl -s \
               "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
               -H "Authorization: Bearer ${IAM_TOKEN}")
@@ -314,6 +329,7 @@ jobs:
 
             sleep $INTERVAL
             ELAPSED=$((ELAPSED + INTERVAL))
+            TOKEN_AGE=$((TOKEN_AGE + INTERVAL))
           done
 
           echo "Validation timed out after ${MAX_WAIT}s"
@@ -337,6 +353,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
+          echo "IC_API_KEY_VAL=${{ secrets.IC_API_KEY }}" >> $GITHUB_ENV
           echo "IAM token obtained"
 
       - name: Approve Config
@@ -403,16 +420,39 @@ jobs:
           MAX_WAIT=$([ "${VARIATION}" == "si" ] && echo 10800 || echo 21600)
           INTERVAL=60
           ELAPSED=0
+          TOKEN_AGE=0
+          TOKEN_REFRESH_INTERVAL=2700
           DEPLOY_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           echo "Polling deploy (SI max 3hrs / RAC max 6hrs)..."
           echo "Deploy start time: ${DEPLOY_START}"
+          echo "Token refresh every 45 minutes"
 
           while [ $ELAPSED -lt $MAX_WAIT ]; do
-            # Fetch IBM Projects state and workspace ID each iteration
+
+            # Refresh IAM token every 45 minutes
+            if [ $TOKEN_AGE -ge $TOKEN_REFRESH_INTERVAL ]; then
+              echo "[${ELAPSED}s] Refreshing IAM token..."
+              NEW_TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
+              if [ -n "${NEW_TOKEN}" ]; then
+                IAM_TOKEN=${NEW_TOKEN}
+                TOKEN_AGE=0
+                echo "[${ELAPSED}s] IAM token refreshed successfully"
+              else
+                echo "[${ELAPSED}s] Warning: token refresh failed, re-login..."
+                ibmcloud login --apikey "${IC_API_KEY_VAL}" --no-region -q
+                ibmcloud target -r us-south -q
+                IAM_TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
+                TOKEN_AGE=0
+                echo "[${ELAPSED}s] IAM token re-obtained"
+              fi
+            fi
+
+            # Fetch IBM Projects state and workspace ID
             IBM_RESPONSE=$(curl -s \
               "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
               -H "Authorization: Bearer ${IAM_TOKEN}")
+
             IBM_STATE=$(echo "$IBM_RESPONSE" | python3 -c '
           import json, sys
           d = json.load(sys.stdin)
@@ -424,10 +464,13 @@ jobs:
                   sys.exit(0)
           print(state)
           ')
+
             WORKSPACE_ID=$(echo "$IBM_RESPONSE" | python3 -c \
               'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
-               echo "workspace: ${WORKSPACE_ID}"
-            # IBM Projects state  - deployed is definitive success
+
+            echo "workspace: ${WORKSPACE_ID}"
+
+            # IBM Projects deployed = definitive success
             if [[ "${IBM_STATE}" == "deployed" ]]; then
               echo "[${ELAPSED}s] IBM Projects: ${IBM_STATE} | Schematics: skipped (IBM Projects confirmed deployed)"
               echo "Deployment successful"
@@ -446,12 +489,12 @@ jobs:
             fi
 
             if [[ "${IBM_STATE}" == "deploying_failed" ]]; then
-              echo "Deployment failed"
+              echo "[${ELAPSED}s] Deployment failed"
               echo "## Deployment Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
 
-            # Check Schematics - only actions started after this pipeline run
+            # Check Schematics only when workspace ID is available
             WS_RESULT="pending"
             if [ -n "${WORKSPACE_ID}" ]; then
               WS_RESULT=$(curl -s \
@@ -507,6 +550,7 @@ jobs:
 
             sleep $INTERVAL
             ELAPSED=$((ELAPSED + INTERVAL))
+            TOKEN_AGE=$((TOKEN_AGE + INTERVAL))
           done
 
           echo "Deploy timed out after ${MAX_WAIT}s"
@@ -532,6 +576,7 @@ jobs:
           ibmcloud target -r us-south -q
           TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
           echo "IAM_TOKEN=${TOKEN}" >> $GITHUB_ENV
+          echo "IC_API_KEY_VAL=${{ secrets.IC_API_KEY }}" >> $GITHUB_ENV
           echo "IAM token obtained"
 
       - name: Set Config ID
@@ -613,28 +658,57 @@ jobs:
           MAX_WAIT=10800
           INTERVAL=60
           ELAPSED=0
+          TOKEN_AGE=0
+          TOKEN_REFRESH_INTERVAL=2700
 
           echo "Polling destroy status (max 3 hours)..."
+          echo "Token refresh every 45 minutes"
 
           while [ $ELAPSED -lt $MAX_WAIT ]; do
-            # Fetch IBM Projects state and workspace ID each iteration
+
+            # Refresh IAM token every 45 minutes
+            if [ $TOKEN_AGE -ge $TOKEN_REFRESH_INTERVAL ]; then
+              echo "[${ELAPSED}s] Refreshing IAM token..."
+              NEW_TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
+              if [ -n "${NEW_TOKEN}" ]; then
+                IAM_TOKEN=${NEW_TOKEN}
+                TOKEN_AGE=0
+                echo "[${ELAPSED}s] IAM token refreshed successfully"
+              else
+                echo "[${ELAPSED}s] Warning: token refresh failed, re-login..."
+                ibmcloud login --apikey "${IC_API_KEY_VAL}" --no-region -q
+                ibmcloud target -r us-south -q
+                IAM_TOKEN=$(ibmcloud iam oauth-tokens | grep "IAM token" | awk '{print $4}')
+                TOKEN_AGE=0
+                echo "[${ELAPSED}s] IAM token re-obtained"
+              fi
+            fi
+
+            # Fetch IBM Projects state and workspace ID
             IBM_RESPONSE=$(curl -s \
               "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
               -H "Authorization: Bearer ${IAM_TOKEN}")
+
             IBM_STATE=$(echo "$IBM_RESPONSE" | python3 -c \
               'import json,sys; d=json.load(sys.stdin); print(d.get("state","unknown"))')
+
             WORKSPACE_ID=$(echo "$IBM_RESPONSE" | python3 -c \
               'import json,sys; d=json.load(sys.stdin); print(d.get("schematics",{}).get("workspace_id",""))')
-               echo "workspace: ${WORKSPACE_ID}"
+
+            echo "workspace: ${WORKSPACE_ID}"
+
             if [[ "${IBM_STATE}" == "undeploying_failed" ]]; then
               echo "Destroy failed"
               echo "## Destroy Failed" >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
+
             # Check Schematics last action as source of truth
-            WS_RESULT=$(curl -s \
-              "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=1" \
-              -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c '
+            WS_RESULT="pending"
+            if [ -n "${WORKSPACE_ID}" ]; then
+              WS_RESULT=$(curl -s \
+                "https://us-south.schematics.cloud.ibm.com/v1/workspaces/${WORKSPACE_ID}/actions?limit=1" \
+                -H "Authorization: Bearer ${IAM_TOKEN}" | python3 -c '
           import json, sys
           d = json.load(sys.stdin)
           actions = d.get("actions", [])
@@ -653,6 +727,7 @@ jobs:
           else:
               print("pending")
           ')
+            fi
 
             echo "[${ELAPSED}s] IBM Projects: ${IBM_STATE} | Schematics: ${WS_RESULT}"
 
@@ -678,6 +753,7 @@ jobs:
 
             sleep $INTERVAL
             ELAPSED=$((ELAPSED + INTERVAL))
+            TOKEN_AGE=$((TOKEN_AGE + INTERVAL))
           done
 
           echo "Destroy timed out after ${MAX_WAIT}s"
