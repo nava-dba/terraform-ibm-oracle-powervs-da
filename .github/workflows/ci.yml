@@ -24,11 +24,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Get PR Head Ref
+        id: pr-info
+        run: |
+          PR_URL="${{ github.event.issue.pull_request.url }}"
+          if [ -n "${PR_URL}" ]; then
+            PR_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "${PR_URL}")
+            echo "ref=$(echo $PR_DATA | python3 -c 'import json,sys; print(json.load(sys.stdin)["head"]["ref"])')" >> $GITHUB_OUTPUT
+            echo "repo=$(echo $PR_DATA | python3 -c 'import json,sys; print(json.load(sys.stdin)["head"]["repo"]["full_name"])')" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref || github.event.issue.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name || github.event.issue.pull_request.head.repo.full_name }}
+          ref: ${{ steps.pr-info.outputs.ref }}
+          repository: ${{ steps.pr-info.outputs.repo }}
           token: ${{ secrets.GITHUB_TOKEN }}
           submodules: recursive
 
@@ -67,6 +80,9 @@ jobs:
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
           trivy --version
 
+      - name: Clean .terraform directories
+        run: find . -type d -name ".terraform" -not -path "./.git/*" | xargs rm -rf
+
       - name: Run pre-commit
         run: pre-commit run --all-files --show-diff-on-failure
 
@@ -88,11 +104,24 @@ jobs:
       fail-fast: false
 
     steps:
+      - name: Get PR Head Ref
+        id: pr-info
+        run: |
+          PR_URL="${{ github.event.issue.pull_request.url }}"
+          if [ -n "${PR_URL}" ]; then
+            PR_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "${PR_URL}")
+            echo "ref=$(echo $PR_DATA | python3 -c 'import json,sys; print(json.load(sys.stdin)["head"]["ref"])')" >> $GITHUB_OUTPUT
+            echo "repo=$(echo $PR_DATA | python3 -c 'import json,sys; print(json.load(sys.stdin)["head"]["repo"]["full_name"])')" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref || github.event.issue.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name || github.event.issue.pull_request.head.repo.full_name }}
+          ref: ${{ steps.pr-info.outputs.ref }}
+          repository: ${{ steps.pr-info.outputs.repo }}
           token: ${{ secrets.GITHUB_TOKEN }}
           submodules: recursive
 
@@ -124,11 +153,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Get PR Head Ref
+        id: pr-info
+        run: |
+          PR_URL="${{ github.event.issue.pull_request.url }}"
+          if [ -n "${PR_URL}" ]; then
+            PR_DATA=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "${PR_URL}")
+            echo "ref=$(echo $PR_DATA | python3 -c 'import json,sys; print(json.load(sys.stdin)["head"]["ref"])')" >> $GITHUB_OUTPUT
+            echo "repo=$(echo $PR_DATA | python3 -c 'import json,sys; print(json.load(sys.stdin)["head"]["repo"]["full_name"])')" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "repo=${{ github.repository }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref || github.event.issue.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name || github.event.issue.pull_request.head.repo.full_name }}
+          ref: ${{ steps.pr-info.outputs.ref }}
+          repository: ${{ steps.pr-info.outputs.repo }}
           token: ${{ secrets.GITHUB_TOKEN }}
           submodules: recursive
 
