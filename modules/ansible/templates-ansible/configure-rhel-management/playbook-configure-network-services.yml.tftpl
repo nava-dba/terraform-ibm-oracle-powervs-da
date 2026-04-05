@@ -14,7 +14,7 @@
   roles:
   - { role: ibm.power_linux_sap.powervs_storage_and_swap_setup, when: disks_configuration is defined }
 
-- name: Ansible play to export Software dir as NFS export
+- name: Ansible play to export Software dir as NFS export + NTP setup
   hosts: all
   vars:
     server_config: ${nfs_config}
