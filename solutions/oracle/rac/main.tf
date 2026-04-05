@@ -320,7 +320,7 @@ resource "ibm_pi_volume" "node_rootvg" {
 
 # --- Node-local volumes: oravg (multiple per node) ---
 resource "ibm_pi_volume" "node_oravg" {
-  depends_on = [ibm_pi_volume.node_rootvg]
+  depends_on = [data.ibm_pi_instance.attached_instances]
   count      = local.total_oravg_volumes
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
@@ -337,7 +337,7 @@ resource "ibm_pi_volume" "node_oravg" {
 
 # --- Node-local volumes: arch ---
 resource "ibm_pi_volume" "node_arch" {
-  depends_on = [ibm_pi_volume.node_oravg]
+  depends_on = [data.ibm_pi_instance.attached_instances]
   count      = local.total_arch_volumes
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
@@ -354,7 +354,7 @@ resource "ibm_pi_volume" "node_arch" {
 
 # --- Shared volumes: CRSDG, DATA, REDO, GIMR ---
 resource "ibm_pi_volume" "shared" {
-  depends_on = [ibm_pi_volume.node_arch]
+  depends_on = [data.ibm_pi_instance.attached_instances]
   count      = local.shared_count
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
@@ -369,6 +369,7 @@ resource "ibm_pi_volume" "shared" {
   }
 }
 
+# Attach vg serially to avoid resource busy error
 # --- Attach node-local volumes: rootvg ---
 resource "ibm_pi_volume_attach" "node_rootvg_attach" {
   count = var.rac_nodes
