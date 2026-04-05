@@ -276,7 +276,7 @@ jobs:
           INTERVAL=30
           ELAPSED=0
           TOKEN_AGE=0
-          TOKEN_REFRESH_INTERVAL=2700
+          TOKEN_REFRESH_INTERVAL=900
 
           echo "Polling validation status (max 15 min)..."
 
@@ -421,7 +421,7 @@ jobs:
           INTERVAL=60
           ELAPSED=0
           TOKEN_AGE=0
-          TOKEN_REFRESH_INTERVAL=2700
+          TOKEN_REFRESH_INTERVAL=900
           DEPLOY_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           echo "Polling deploy (SI max 3hrs / RAC max 6hrs)..."
@@ -659,7 +659,7 @@ jobs:
           INTERVAL=60
           ELAPSED=0
           TOKEN_AGE=0
-          TOKEN_REFRESH_INTERVAL=2700
+          TOKEN_REFRESH_INTERVAL=900
 
           echo "Polling destroy status (max 3 hours)..."
           echo "Token refresh every 45 minutes"
