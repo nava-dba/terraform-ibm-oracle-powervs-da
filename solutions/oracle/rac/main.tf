@@ -194,8 +194,15 @@ resource "time_sleep" "wait_after_rac_vm_creation" {
   create_duration = "180s"
 }
 
-
 # Refresh the data to get all IPs
+# Note: pi_instance_name is deprecated in favor of pi_instance_id
+# However, we must use pi_instance_name because:
+# 1. ibm_pi_instance.rac_nodes uses replication (single resource, not array)
+# 2. We need to look up each replicated instance individually
+# 3. Instance IDs are not available until after creation
+# 4. This is the only way to get network IPs for each node
+# TODO: Update when IBM provides instance_ids output for replicated resources
+
 data "ibm_pi_instance" "attached_instances" {
   depends_on           = [time_sleep.wait_after_rac_vm_creation]
   count                = var.rac_nodes
@@ -517,7 +524,13 @@ module "pi_instance_rhel_init" {
   dst_playbook_file_name     = "configure-rhel-management-playbook.yml"
 
   playbook_template_vars = {
-    server_config     = jsonencode(local.network_services_config)
+    server_config = jsonencode(local.network_services_config)
+    client_config = jsonencode({
+      ntp = {
+        enable        = true
+        ntp_server_ip = var.squid_server_ip
+      }
+    })
     pi_storage_config = jsonencode(module.pi_instance_rhel.pi_storage_configuration)
     nfs_config = jsonencode({
       nfs = {
