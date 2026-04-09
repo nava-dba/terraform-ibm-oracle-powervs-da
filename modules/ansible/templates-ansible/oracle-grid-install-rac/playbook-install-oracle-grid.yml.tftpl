@@ -231,7 +231,7 @@
             if [ "$current_value" = "0x100000" ]; then
               echo "SKIP: {{ item }} already set to 0x100000"
             else
-              chdev -l {{ item }} -a max_transfer=0x100000 -U
+              chdev -l {{ item }} -a max_transfer=0x100000
               echo "UPDATED: {{ item }} max_transfer=0x100000"
             fi
           loop: "{{ root_arch_disks | default([]) }}"
