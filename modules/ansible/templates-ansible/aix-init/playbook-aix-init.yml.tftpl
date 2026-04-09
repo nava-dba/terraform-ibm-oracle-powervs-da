@@ -88,7 +88,7 @@
             state: touch
 
     #################################################################
-    # 1.5 Disk Performance Tuning (queue_depth + reserve_policy)
+    # 1.5 Disk Performance Tuning (queue_depth + reserve_policy + max_transfer)
     #################################################################
 
     - name: Check if disk tuning already done
@@ -106,14 +106,14 @@
           register: hdisk_list
           changed_when: false
 
-        - name: Apply queue_depth and reserve_policy
+        - name: Apply queue_depth, reserve_policy, and max_transfer
           ansible.builtin.shell: |
-            chdev -l {{ item }} -a queue_depth=64 -a reserve_policy=no_reserve -U
+            chdev -l {{ item }} -a queue_depth=64 -a reserve_policy=no_reserve -a max_transfer=0x100000 -U
           loop: "{{ hdisk_list.stdout_lines }}"
 
         - name: Verify attributes
           ansible.builtin.shell: |
-            lsattr -El {{ item }} | egrep "queue_depth|reserve_policy"
+            lsattr -El {{ item }} | egrep "queue_depth|reserve_policy|max_transfer"
           loop: "{{ hdisk_list.stdout_lines }}"
           changed_when: false
 

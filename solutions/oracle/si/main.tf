@@ -142,8 +142,9 @@ locals {
       enable     = true
       squid_port = "3128"
     }
-    ntp = {
-      enable = true
+    nfs = {
+      enable      = true
+      directories = [local.nfs_mount]
     }
   }
 }
@@ -166,20 +167,14 @@ module "pi_instance_rhel_init" {
   dst_playbook_file_name     = "configure-rhel-management-playbook.yml"
 
   playbook_template_vars = {
-    server_config = jsonencode(local.network_services_config)
-    client_config = jsonencode({
+    server_config     = jsonencode(local.network_services_config)
+    client_config     = jsonencode({
       ntp = {
         enable        = true
         ntp_server_ip = var.squid_server_ip
       }
     })
     pi_storage_config = jsonencode(module.pi_instance_rhel.pi_storage_configuration)
-    nfs_config = jsonencode({
-      nfs = {
-        enable      = true
-        directories = [local.nfs_mount]
-      }
-    })
   }
 
   src_inventory_template_name = "inventory.tftpl"
