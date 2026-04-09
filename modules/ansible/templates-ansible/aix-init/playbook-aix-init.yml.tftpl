@@ -111,16 +111,16 @@
             chdev -l {{ item }} -a queue_depth=64 -a reserve_policy=no_reserve -U
           loop: "{{ hdisk_list.stdout_lines }}"
 
-        - name: Apply max_transfer persistently
+        - name: Apply max_transfer with chdev -P on all disks
           ansible.builtin.shell: |
             current_value=$(lsattr -El {{ item }} -a max_transfer 2>/dev/null | awk '{print $2}')
             if [ "$current_value" = "0x100000" ]; then
               echo "SKIP: {{ item }} already set to 0x100000"
             else
-              chdev -l {{ item }} -a max_transfer=0x100000
+              chdev -P -l {{ item }} -a max_transfer=0x100000
               echo "UPDATED: {{ item }} max_transfer=0x100000"
             fi
-          loop: "{{ hdisk_list.stdout_lines }}"
+          loop: "{{ hdisk_list.stdout_lines | default([]) }}"
           register: max_transfer_result
           changed_when: "'UPDATED' in max_transfer_result.stdout"
 

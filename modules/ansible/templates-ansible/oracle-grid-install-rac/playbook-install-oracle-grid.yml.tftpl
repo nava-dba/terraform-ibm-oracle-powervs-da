@@ -110,7 +110,7 @@
         redo_new_disk_string:  "{{ disk_num_raw.results[3].stdout_lines | map('split',' ') | map(attribute=1) | join(' ') }}"
         arch_disk_string:      "{{ disk_num_raw.results[4].stdout_lines | map('split',' ') | map(attribute=0) | join(' ') }}"
         arch_new_disk_string:  "{{ disk_num_raw.results[4].stdout_lines | map('split',' ') | map(attribute=1) | join(' ') }}"
-        arch_local_disks:      "{{ disk_num_raw.results[4].stdout_lines | map('split',' ') | map(attribute=1) | map('regex_replace', '^', 'hdiskAR') | list }}"
+        local_disk_devices:    "{{ disk_num_raw.results[4].stdout_lines | map('split',' ') | map(attribute=1) | map('regex_replace', '^', 'hdiskAR') | list }}"
         arch_rename_pairs:     "{{ disk_num_raw.results[4].stdout_lines | map('split',' ') | list }}"
 
     - name: Debug — correlated disk number mapping
@@ -206,60 +206,48 @@
     #######################################################
     # Standardize max_transfer on root and ARCH disks
     #######################################################
-    - name: Standardize max_transfer on root and ARCH disks
+    - name: Standardize max_transfer on local disks
       block:
-        - name: Check if root and ARCH max_transfer tuning already done
+        - name: Check if local disk max_transfer tuning already done
           ansible.builtin.stat:
-            path: "{{ done_file_dir }}/root_arch_max_transfer.done"
-          register: root_arch_max_transfer_done
+            path: "{{ done_file_dir }}/local_disk_max_transfer.done"
+          register: local_disk_max_transfer_done
 
-        - name: Discover rootvg disks
-          ansible.builtin.shell: |
-            lspv | awk '$3 == "rootvg" {print $1}'
-          register: rootvg_disks
-          changed_when: false
-          when: not root_arch_max_transfer_done.stat.exists
-
-        - name: Build root and ARCH disk list for max_transfer tuning
-          ansible.builtin.set_fact:
-            root_arch_disks: "{{ ((rootvg_disks.stdout_lines | default([])) + (arch_local_disks | default([]))) | unique }}"
-          when: not root_arch_max_transfer_done.stat.exists
-
-        - name: Apply max_transfer=0x100000 to root and ARCH disks
+        - name: Apply max_transfer=0x100000 to local disks
           ansible.builtin.shell: |
             current_value=$(lsattr -El {{ item }} -a max_transfer 2>/dev/null | awk '{print $2}')
             if [ "$current_value" = "0x100000" ]; then
               echo "SKIP: {{ item }} already set to 0x100000"
             else
-              chdev -l {{ item }} -a max_transfer=0x100000
+              chdev -P -l {{ item }} -a max_transfer=0x100000
               echo "UPDATED: {{ item }} max_transfer=0x100000"
             fi
-          loop: "{{ root_arch_disks | default([]) }}"
-          register: root_arch_max_transfer_result
-          changed_when: "'UPDATED' in root_arch_max_transfer_result.stdout"
+          loop: "{{ local_disk_devices | default([]) }}"
+          register: local_disk_max_transfer_result
+          changed_when: "'UPDATED' in local_disk_max_transfer_result.stdout"
           when:
-            - not root_arch_max_transfer_done.stat.exists
-            - (root_arch_disks | default([]) | length) > 0
+            - not local_disk_max_transfer_done.stat.exists
+            - (local_disk_devices | default([]) | length) > 0
 
-        - name: Verify max_transfer on root and ARCH disks
+        - name: Verify max_transfer on local disks
           ansible.builtin.shell: |
             lsattr -El {{ item }} -a max_transfer | awk '{print $2}'
-          loop: "{{ root_arch_disks | default([]) }}"
-          register: root_arch_max_transfer_verify
+          loop: "{{ local_disk_devices | default([]) }}"
+          register: local_disk_max_transfer_verify
           changed_when: false
-          failed_when: root_arch_max_transfer_verify.stdout != "0x100000"
+          failed_when: local_disk_max_transfer_verify.stdout != "0x100000"
           when:
-            - not root_arch_max_transfer_done.stat.exists
-            - (root_arch_disks | default([]) | length) > 0
+            - not local_disk_max_transfer_done.stat.exists
+            - (local_disk_devices | default([]) | length) > 0
 
-        - name: Mark root and ARCH max_transfer tuning complete on this node
+        - name: Mark local disk max_transfer tuning complete on this node
           ansible.builtin.file:
-            path: "{{ done_file_dir }}/root_arch_max_transfer.done"
+            path: "{{ done_file_dir }}/local_disk_max_transfer.done"
             state: touch
             mode: '0644'
           when:
-            - not root_arch_max_transfer_done.stat.exists
-            - (root_arch_disks | default([]) | length) > 0
+            - not local_disk_max_transfer_done.stat.exists
+            - (local_disk_devices | default([]) | length) > 0
 
 
   roles:
