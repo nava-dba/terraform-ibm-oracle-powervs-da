@@ -142,6 +142,9 @@ locals {
       enable     = true
       squid_port = "3128"
     }
+    ntp = {
+      enable = true
+    }
     nfs = {
       enable      = true
       directories = [local.nfs_mount]

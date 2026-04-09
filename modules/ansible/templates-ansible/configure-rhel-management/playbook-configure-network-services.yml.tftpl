@@ -20,5 +20,15 @@
     server_config: ${server_config}
     client_config: ${client_config}
 
+  tasks:
+  - name: Pre-configure NFS for low-memory PowerVS systems
+    ansible.builtin.lineinfile:
+      path: /etc/nfs.conf
+      regexp: '^#?\s*threads\s*='
+      line: 'threads=2'
+      insertafter: '^\[nfsd\]'
+      create: yes
+    when: server_config is defined and server_config.nfs is defined and server_config.nfs.enable|default(false)|bool
+
   roles:
   - { role: ibm.power_linux_sap.configure_network_management_services, when: server_config is defined or client_config is defined}

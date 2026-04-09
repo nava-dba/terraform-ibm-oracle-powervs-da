@@ -96,7 +96,7 @@
         path: "{{ done_file_dir }}/disk_tuning.done"
       register: disk_tuning_done
 
-    - name: Tune AIX disk attributes online
+    - name: Tune AIX disk attributes
       when: not disk_tuning_done.stat.exists
       block:
 
@@ -106,10 +106,23 @@
           register: hdisk_list
           changed_when: false
 
-        - name: Apply queue_depth, reserve_policy, and max_transfer
+        - name: Apply queue_depth and reserve_policy online
           ansible.builtin.shell: |
-            chdev -l {{ item }} -a queue_depth=64 -a reserve_policy=no_reserve -a max_transfer=0x100000 -U
+            chdev -l {{ item }} -a queue_depth=64 -a reserve_policy=no_reserve -U
           loop: "{{ hdisk_list.stdout_lines }}"
+
+        - name: Apply max_transfer persistently
+          ansible.builtin.shell: |
+            current_value=$(lsattr -El {{ item }} -a max_transfer 2>/dev/null | awk '{print $2}')
+            if [ "$current_value" = "0x100000" ]; then
+              echo "SKIP: {{ item }} already set to 0x100000"
+            else
+              chdev -l {{ item }} -a max_transfer=0x100000
+              echo "UPDATED: {{ item }} max_transfer=0x100000"
+            fi
+          loop: "{{ hdisk_list.stdout_lines }}"
+          register: max_transfer_result
+          changed_when: "'UPDATED' in max_transfer_result.stdout"
 
         - name: Verify attributes
           ansible.builtin.shell: |

@@ -3,10 +3,10 @@
     "public": {
       "asm": {
         "project_id": "f73696ee-e728-4af3-874f-88b5bac2c086",
-        "config_id": "0a559aeb-81ba-487c-bdbc-e280ca9baaff",
-        "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.adcd3e78-8293-440f-9e59-3b3dfd66093d",
-        "version": "v4.13.3",
-        "last_updated": "2026-04-09T13:03:54Z"
+        "config_id": "4eb74150-3d96-41db-beaf-224be105c2ef",
+        "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.b76a59bd-88bd-4227-b046-fb176908f356",
+        "version": "v4.12.5",
+        "last_updated": "2026-04-04T05:37:54Z"
       },
       "jfs2": {
         "project_id": "f73696ee-e728-4af3-874f-88b5bac2c086",
