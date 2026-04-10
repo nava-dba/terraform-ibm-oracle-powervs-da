@@ -17,7 +17,7 @@
   "pi_replication_policy": "anti-affinity",
   "rac_nodes": 2,
   "pi_aix_instance": {
-    "memory_gb": 16,
+    "memory_gb": 24,
     "cores": 0.05,
     "core_type": "shared",
     "machine_type": "s1022",
