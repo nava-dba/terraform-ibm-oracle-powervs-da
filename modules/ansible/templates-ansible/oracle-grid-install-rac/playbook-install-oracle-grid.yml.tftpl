@@ -62,7 +62,7 @@
         asm_data_diskgroup_disk: "{{ discovered_disks.DATA }}"
         asm_redo_diskgroup_disk: "{{ discovered_disks.REDO }}"
         ora_gimr_diskgroup_disk: "{{ discovered_disks.GIMR }}"
-        arch_local_disks:        "{{ discovered_disks.ARCH }}"
+        local_disk_devices:      "{{ discovered_disks.ARCH }}"
 
     - name: Debug discovered disks
       ansible.builtin.debug:
@@ -281,7 +281,7 @@
         - name: Create archvg Volume Group on this node
           ibm.power_aix.lvg:
             vg_name: archvg
-            pvs: "{{ arch_local_disks }}"
+            pvs: "{{ local_disk_devices }}"
             vg_type: scalable
             pp_size: 512
             state: present
@@ -291,11 +291,11 @@
         - name: Calculate MAX LV PP for archvg on this node
           ansible.builtin.shell: |
             min_pp=999999
-            for d in {{ arch_local_disks | join(' ') }}; do
+            for d in {{ local_disk_devices | join(' ') }}; do
               pp=$(lspv $d | grep "FREE PPs" | awk '{print $3}')
               if [ $pp -lt $min_pp ]; then min_pp=$pp; fi
             done
-            echo $((min_pp * {{ arch_local_disks | length }}))
+            echo $((min_pp * {{ local_disk_devices | length }}))
           args:
             executable: /bin/ksh
           register: arch_max_pp
@@ -309,9 +309,9 @@
               echo "LV archlv already exists"; exit 0
             fi
             mklv -S 2M -t jfs2 -y archlv -c 1 \
-                 -C {{ arch_local_disks | length }} \
+                 -C {{ local_disk_devices | length }} \
                  archvg {{ arch_max_pp.stdout | int }} \
-                 {{ arch_local_disks | join(' ') }}
+                 {{ local_disk_devices | join(' ') }}
           args:
             executable: /bin/ksh
           register: arch_lv_result
