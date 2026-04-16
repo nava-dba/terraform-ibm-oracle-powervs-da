@@ -319,17 +319,20 @@
             {
               "key": "ora_db_password",
               "display_name": "Oracle SYS Password",
+              "description": "Password for Oracle database administrative users (SYS, SYSTEM). Password must be 15-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (e.g., !@#$%^&*). This password is required for database administration and must meet Oracle password complexity requirements.",
               "default_value": "",
               "type": "password",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$"
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
+                  "description": "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
                 },
                 {
                   "type": "regex",
-                  "value": "^.{8,30}$"
+                  "value": "^.{15,30}$",
+                  "description": "Password must be between 15 and 30 characters"
                 }
               ],
               "custom_config": {}
@@ -403,6 +406,7 @@
             {
               "key": "pi_oravg_volume",
               "display_name": "Oracle Software Binary Disks",
+              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size × count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB × count=2 = 200GB total.",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -827,17 +831,20 @@
             {
               "key": "root_password",
               "display_name": "RAC Nodes Root User Password",
+              "description": "Root user password for all Oracle RAC AIX virtual server instances. Password must be 15-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (e.g., !@#$%^&*). This password is set on each RAC node during provisioning and is required for administrative access.",
               "type": "password",
               "default_value": "",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$"
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
+                  "description": "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
                 },
                 {
                   "type": "regex",
-                  "value": "^.{8,30}$"
+                  "value": "^.{15,30}$",
+                  "description": "Password must be between 15 and 30 characters"
                 }
               ],
               "custom_config": {}
@@ -942,17 +949,20 @@
             {
               "key": "ora_db_password",
               "display_name": "Oracle SYS Password",
+              "description": "Password for Oracle database administrative users (SYS, SYSTEM). Password must be 15-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (e.g., !@#$%^&*). This password is required for database administration and must meet Oracle password complexity requirements.",
               "default_value": "",
               "type": "password",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$"
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
+                  "description": "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
                 },
                 {
                   "type": "regex",
-                  "value": "^.{8,30}$"
+                  "value": "^.{15,30}$",
+                  "description": "Password must be between 15 and 30 characters"
                 }
               ],
               "custom_config": {}
@@ -1009,6 +1019,7 @@
             {
               "key": "pi_oravg_volume",
               "display_name": "Oracle Software Binary Disks",
+              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size × count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB × count=2 = 200GB total.",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
