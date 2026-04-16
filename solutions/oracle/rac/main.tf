@@ -195,28 +195,32 @@ resource "time_sleep" "wait_after_rac_vm_creation" {
 }
 
 # Refresh the data to get all IPs
-# Note: pi_instance_name is deprecated in favor of pi_instance_id
-# However, we must use pi_instance_name because:
-# 1. ibm_pi_instance.rac_nodes uses replication (single resource, not array)
-# 2. We need to look up each replicated instance individually
-# 3. Instance IDs are not available until after creation
-# 4. This is the only way to get network IPs for each node
-# TODO: Update when IBM provides instance_ids output for replicated resources
-
-data "ibm_pi_instance" "attached_instances" {
+# Using ibm_pi_instances (plural) to avoid deprecated pi_instance_name parameter
+data "ibm_pi_instances" "workspace_instances" {
   depends_on           = [time_sleep.wait_after_rac_vm_creation]
-  count                = var.rac_nodes
   pi_cloud_instance_id = var.pi_existing_workspace_guid
-  pi_instance_name     = "${var.prefix}-aix-${count.index + 1}"
 }
 
 locals {
+  # Filter and map instances by server_name for easy lookup
+  rac_instance_map = {
+    for instance in data.ibm_pi_instances.workspace_instances.pvm_instances :
+    instance.server_name => instance
+    if can(regex("^${var.prefix}-aix-[0-9]+$", instance.server_name))
+  }
+
+  # Create ordered list of instances matching the count
+  rac_instances = [
+    for idx in range(var.rac_nodes) :
+    local.rac_instance_map["${var.prefix}-aix-${idx + 1}"]
+  ]
+
   get_ip_by_network = {
     for idx in range(var.rac_nodes) :
     idx => {
       for net_name in [local.mgmt_network_name, local.pub_network_name, local.priv1_network_name, local.priv2_network_name] :
       net_name => try([
-        for n in data.ibm_pi_instance.attached_instances[idx].networks :
+        for n in local.rac_instances[idx].networks :
         n.ip if n.network_name == net_name
       ][0], null) if net_name != null
     }
@@ -228,7 +232,7 @@ locals {
 
   hosts_and_vars = {
     for idx in range(var.rac_nodes) :
-    data.ibm_pi_instance.attached_instances[idx].pi_instance_name => {
+    local.rac_instances[idx].server_name => {
       ip                     = local.get_ip_by_network[idx][local.mgmt_network_name]
       EXTEND_ROOT_VOLUME_WWN = ibm_pi_volume.node_rootvg[idx].wwn
     }
@@ -243,7 +247,7 @@ locals {
   # Create /etc/hosts entries from AIX instances
   hosts_file_entries = join("\n", [
     for idx in range(var.rac_nodes) :
-    "${local.hosts_and_vars[data.ibm_pi_instance.attached_instances[idx].pi_instance_name].ip} ${data.ibm_pi_instance.attached_instances[idx].pi_instance_name}"
+    "${local.hosts_and_vars[local.rac_instances[idx].server_name].ip} ${local.rac_instances[idx].server_name}"
   ])
 }
 
@@ -252,7 +256,7 @@ locals {
 #####################################################
 locals {
   aix_instance_ids = [
-    for i in range(var.rac_nodes) : data.ibm_pi_instance.attached_instances[i].id
+    for i in range(var.rac_nodes) : local.rac_instances[i].pvm_instance_id
   ]
 
   # --- oravg: node-local, multiple disks per node ---
@@ -303,7 +307,7 @@ locals {
 
 # --- Node-local volumes: rootvg ---
 resource "ibm_pi_volume" "node_rootvg" {
-  depends_on = [data.ibm_pi_instance.attached_instances]
+  depends_on = [data.ibm_pi_instances.workspace_instances]
   count      = var.rac_nodes
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
@@ -320,7 +324,7 @@ resource "ibm_pi_volume" "node_rootvg" {
 
 # --- Node-local volumes: oravg (multiple per node) ---
 resource "ibm_pi_volume" "node_oravg" {
-  depends_on = [data.ibm_pi_instance.attached_instances]
+  depends_on = [data.ibm_pi_instances.workspace_instances]
   count      = local.total_oravg_volumes
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
@@ -337,7 +341,7 @@ resource "ibm_pi_volume" "node_oravg" {
 
 # --- Node-local volumes: arch ---
 resource "ibm_pi_volume" "node_arch" {
-  depends_on = [data.ibm_pi_instance.attached_instances]
+  depends_on = [data.ibm_pi_instances.workspace_instances]
   count      = local.total_arch_volumes
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
@@ -354,7 +358,7 @@ resource "ibm_pi_volume" "node_arch" {
 
 # --- Shared volumes: CRSDG, DATA, REDO, GIMR ---
 resource "ibm_pi_volume" "shared" {
-  depends_on = [data.ibm_pi_instance.attached_instances]
+  depends_on = [data.ibm_pi_instances.workspace_instances]
   count      = local.shared_count
 
   pi_cloud_instance_id = var.pi_existing_workspace_guid
@@ -601,7 +605,7 @@ module "pi_instance_aix_init" {
 locals {
   rac_nodes_list = [
     for idx in range(var.rac_nodes) : {
-      hostname = data.ibm_pi_instance.attached_instances[idx].pi_instance_name
+      hostname = local.rac_instances[idx].server_name
       pub_ip   = local.get_ip_by_network[idx][local.pub_network_name]
       vip      = cidrhost(local.pub_network_cidr, 245 + idx)
     }
@@ -756,14 +760,14 @@ locals {
   # Build cluster_nodes string
   cluster_nodes = join(",", [
     for idx in range(var.rac_nodes) :
-    "${data.ibm_pi_instance.attached_instances[idx].pi_instance_name}:${data.ibm_pi_instance.attached_instances[idx].pi_instance_name}-vip"
+    "${local.rac_instances[idx].server_name}:${local.rac_instances[idx].server_name}-vip"
   ])
 
   # Build nodes list for Oracle installation (different from DNS rac_nodes_list)
   oracle_rac_nodes = [
     for idx in range(var.rac_nodes) : {
-      name     = data.ibm_pi_instance.attached_instances[idx].pi_instance_name
-      fqdn     = "${data.ibm_pi_instance.attached_instances[idx].pi_instance_name}.${var.cluster_domain}"
+      name     = local.rac_instances[idx].server_name
+      fqdn     = "${local.rac_instances[idx].server_name}.${var.cluster_domain}"
       pub_ip   = local.get_ip_by_network[idx][local.pub_network_name]
       priv1_ip = local.get_ip_by_network[idx][local.priv1_network_name]
       priv2_ip = local.get_ip_by_network[idx][local.priv2_network_name]
