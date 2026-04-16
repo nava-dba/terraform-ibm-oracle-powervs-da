@@ -36,10 +36,10 @@
   "rac": {
     "public": {
       "project_id": "68f30c7b-2688-4aa4-86ad-25b54a98b8a3",
-      "config_id": "bed216eb-b491-4d17-b24a-b2f12fd70020",
-      "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.9c289816-c306-4d56-ba52-fcd0313c370e",
-      "version": "v4.15.1",
-      "last_updated": "2026-04-16T16:32:40Z"
+      "config_id": "a2bc326f-11e0-4b31-84b1-4dcae5033342",
+      "version_locator": "7d140544-621d-4a3f-9009-c8d3ac9bea86.eb43dc9b-fb22-4d7f-8e69-9dec229e8da2",
+      "version": "v4.13.10",
+      "last_updated": "2026-04-11T03:09:55Z"
     },
     "private": {
       "project_id": "9e241f6f-6d50-4866-ba29-ed877eaa8142",
