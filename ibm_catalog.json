@@ -319,7 +319,7 @@
             {
               "key": "ora_db_password",
               "display_name": "Oracle SYS Password",
-              "description": "Password for Oracle database administrative users (SYS, SYSTEM). Password must be 15-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (e.g., !@#$%^&*). This password is required for database administration and must meet Oracle password complexity requirements.",
+              "description": "Password for Oracle database administrative users (SYS, SYSTEM). Password must be 8-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (e.g., !@#$%^&*). This password is required for database administration and must meet Oracle password complexity requirements.",
               "default_value": "",
               "type": "password",
               "required": true,
@@ -331,8 +331,8 @@
                 },
                 {
                   "type": "regex",
-                  "value": "^.{15,30}$",
-                  "description": "Password must be between 15 and 30 characters"
+                  "value": "^.{8,30}$",
+                  "description": "Password must be between 8 and 30 characters"
                 }
               ],
               "custom_config": {}
@@ -388,7 +388,7 @@
             {
               "key": "pi_aix_instance",
               "display_name": "AIX Instance Configuration(CPU,Mem)",
-              "description": "Configuration for the IBM PowerVS AIX instance where Oracle Database will be installed. IMPORTANT: memory_gb must be at least 24GB. Fields: memory_gb (RAM in GB, minimum 24GB required), cores (number of virtual processors), core_type (shared | capped | dedicated), machine_type (e.g., s1022 or e980), pin_policy (hard | soft), health_status (OK | Warning | Critical).",
+              "description": "Configuration for the IBM PowerVS AIX instance where Oracle Database will be installed. IMPORTANT: memory_gb must be at least 16GB. Fields: memory_gb (RAM in GB, minimum 16GB required), cores (number of virtual processors), core_type (shared | capped | dedicated), machine_type (e.g., s1022 or e980), pin_policy (hard | soft), health_status (OK | Warning | Critical).",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -396,7 +396,7 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "memory_gb": "24",
+                "memory_gb": "16",
                 "cores": null,
                 "core_type": "shared",
                 "machine_type": "s1022",
@@ -950,7 +950,7 @@
             {
               "key": "ora_db_password",
               "display_name": "Oracle SYS Password",
-              "description": "Password for Oracle database administrative users (SYS, SYSTEM). Password must be 15-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (e.g., !@#$%^&*). This password is required for database administration and must meet Oracle password complexity requirements.",
+              "description": "Password for Oracle database administrative users (SYS, SYSTEM). Password must be 8-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character (e.g., !@#$%^&*). This password is required for database administration and must meet Oracle password complexity requirements.",
               "default_value": "",
               "type": "password",
               "required": true,
@@ -962,8 +962,8 @@
                 },
                 {
                   "type": "regex",
-                  "value": "^.{15,30}$",
-                  "description": "Password must be between 15 and 30 characters"
+                  "value": "^.{8,30}$",
+                  "description": "Password must be between 8 and 30 characters"
                 }
               ],
               "custom_config": {}
