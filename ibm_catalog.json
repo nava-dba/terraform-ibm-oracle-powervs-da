@@ -72,6 +72,7 @@
             "profiles": []
           },
           "dependencies": [],
+          "dependency_version_2": true,
           "configuration": [
             {
               "key": "deployment_type",
@@ -536,6 +537,7 @@
             "profiles": []
           },
           "dependencies": [],
+          "dependency_version_2": true,
           "configuration": [
             {
               "key": "deployment_type",
