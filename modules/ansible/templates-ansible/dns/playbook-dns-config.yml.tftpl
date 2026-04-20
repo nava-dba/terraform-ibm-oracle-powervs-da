@@ -15,7 +15,7 @@
 
   tasks:
     - name: Install BIND packages on RHEL
-      ansible.builtin.package:
+      ansible.builtin.dnf:
         name:
           - bind
           - bind-utils
