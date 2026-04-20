@@ -64,7 +64,7 @@ variable "pi_aix_image_name" {
 }
 
 variable "pi_aix_instance" {
-  description = "Configuration for the IBM PowerVS AIX instance where Oracle Database will be installed. Fields: memory_gb (RAM in GB, minimum 24GB), cores (number of virtual processors), core_type (shared | capped | dedicated), machine_type (e.g., s1022 or e980), pin_policy (hard | soft), health_status (OK | Warning | Critical)."
+  description = "Configuration for the IBM PowerVS AIX instance where Oracle Database will be installed. Fields: memory_gb (RAM in GB, minimum 16GB), cores (number of virtual processors), core_type (shared | capped | dedicated), machine_type (e.g., s1022 or e980), pin_policy (hard | soft), health_status (OK | Warning | Critical)."
   type = object({
     memory_gb     = number
     cores         = optional(number)
@@ -75,8 +75,8 @@ variable "pi_aix_instance" {
   })
 
   validation {
-    condition     = var.pi_aix_instance.memory_gb >= 24
-    error_message = "AIX instance memory_gb must be at least 24GB. Current value: ${var.pi_aix_instance.memory_gb}GB"
+    condition     = var.pi_aix_instance.memory_gb >= 16
+    error_message = "AIX instance memory_gb must be at least 16GB. Current value: ${var.pi_aix_instance.memory_gb}GB"
   }
 }
 
