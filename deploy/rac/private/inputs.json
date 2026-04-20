@@ -58,15 +58,15 @@
     },
     {
       "name": "ora-rac-pub",
-      "id": "47e38742-5850-411a-95ba-80fea41c12ec"
+      "id": "61c89228-e1d1-4b13-b741-d012e6f30336"
     },
     {
       "name": "ora-rac-priv1",
-      "id": "65167db2-715a-4cb9-b600-806c77d33cc4"
+      "id": "060b281a-41f2-41af-8a2e-f69a4821e1bb"
     },
     {
       "name": "ora-rac-priv2",
-      "id": "856db87c-cb23-416d-898b-834bb2b8e0bc"
+      "id": "dd117943-6a62-43f2-88be-1b93a92409b7"
     }
   ],
   "pi_user_tags": "[\"cd-pipeline\"]"
