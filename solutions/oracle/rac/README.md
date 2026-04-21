@@ -120,7 +120,7 @@ Example:
   },
   {
     name = "ora-rac-priv1"
-    id   = "65167db2-715a-4cb9-b600-806c77d33cc4"
+    id   = "65167db2-715a-4cb9-b600-806c77d33cc6"
   },
   {
     name = "ora-rac-priv2"
