@@ -215,7 +215,32 @@
           changed_when: false
 
     #################################################################
-    # 3. Reset root password
+    # 2.5 Sync system time (before password reset to avoid expiration)
+    #################################################################
+    - name: Check if time sync already done
+      ansible.builtin.stat:
+        path: "{{ done_file_dir }}/time_sync.done"
+      register: time_sync_done
+
+    - name: Sync system time with NTP server
+      when:
+        - AIX_INIT_MODE == "rac"
+        - not time_sync_done.stat.exists
+      block:
+
+        - name: Sync time using ntpdate
+          ansible.builtin.shell: |
+            ntpdate -u {{ PROXY_IP_PORT.split(':')[0] }}
+          changed_when: true
+          failed_when: false
+
+        - name: Mark time sync done
+          ansible.builtin.file:
+            path: "{{ done_file_dir }}/time_sync.done"
+            state: touch
+
+    #################################################################
+    # 3. Reset root password (after time sync)
     #################################################################
     - name: Check if Reset root password on AIX already done
       ansible.builtin.stat:
