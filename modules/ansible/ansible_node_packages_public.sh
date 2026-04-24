@@ -8,7 +8,7 @@
 ############################################################
 
 GLOBAL_RHEL_PACKAGES="rhel-system-roles expect perl nfs-utils python3-pip net-tools bind-utils ansible-core"
-GLOBAL_GALAXY_COLLECTIONS="ibm.power_linux_sap:>=3.0.0,<4.0.0 ibm.power_aix:2.1.1 ibm.power_aix_oracle:1.3.3 ibm.power_aix_oracle_dba:2.0.9 ibm.power_aix_oracle_rac_asm:1.3.8 ansible.utils:6.0.0"
+GLOBAL_GALAXY_COLLECTIONS="ibm.power_linux_sap:>=3.0.0,<4.0.0 ibm.power_aix:2.1.1 ibm.power_aix_oracle:1.3.3 ibm.power_aix_oracle_dba:2.0.9 ibm.power_aix_oracle_rac_asm:1.3.9 ansible.utils:6.0.0"
 
 ############################################################
 # Start functions
