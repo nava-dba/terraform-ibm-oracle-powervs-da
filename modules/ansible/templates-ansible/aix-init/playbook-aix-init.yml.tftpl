@@ -228,11 +228,17 @@
         - not time_sync_done.stat.exists
       block:
 
-        - name: Sync time using ntpdate
-          ansible.builtin.shell: |
-            ntpdate -u {{ PROXY_IP_PORT.split(':')[0] }}
-          changed_when: true
-          failed_when: false
+        - name: Capture time from RHEL Control Node
+          ansible.builtin.set_fact:
+            rhel_time: "{{ lookup('pipe', 'date +%m%d%H%M%y') }}"
+          delegate_to: localhost
+
+        - name: Set AIX System Clock using rhel time
+          ansible.builtin.command: "date -u {{ rhel_time }}"
+          register: result
+        - name: Print debug
+          ansible.builtin.debug:
+            var: result.stdout_lines
 
         - name: Mark time sync done
           ansible.builtin.file:
