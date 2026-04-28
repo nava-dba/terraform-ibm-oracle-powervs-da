@@ -18,7 +18,7 @@
   "rac_nodes": 2,
   "pi_aix_instance": {
     "memory_gb": 24,
-    "cores": 0.15,
+    "cores": 0.2,
     "core_type": "shared",
     "machine_type": "s1022",
     "pin_policy": "hard",
