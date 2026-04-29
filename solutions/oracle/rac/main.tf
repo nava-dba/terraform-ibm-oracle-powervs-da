@@ -54,7 +54,7 @@ locals {
 
   pi_cpu_map = {
     public  = 0.25
-    private = 0.05
+    private = 0.20
   }
 
   pi_rhel_cpu_cores = lookup(local.pi_cpu_map, var.deployment_type, 0.25)
