@@ -78,6 +78,13 @@ variable "pi_aix_instance" {
     condition     = var.pi_aix_instance.memory_gb >= 16
     error_message = "AIX instance memory_gb must be at least 16GB. Current value: ${var.pi_aix_instance.memory_gb}GB"
   }
+  
+  validation {
+    condition = var.pi_aix_instance.cores == null || (
+      var.deployment_type == "public" ? var.pi_aix_instance.cores >= 0.25 : var.pi_aix_instance.cores >= 0.05
+    )
+    error_message = "AIX instance cores must be at least 0.25 for public deployment or 0.05 for private deployment. Current: ${var.pi_aix_instance.cores} for ${var.deployment_type}"
+  }
 }
 
 variable "pi_networks" {
