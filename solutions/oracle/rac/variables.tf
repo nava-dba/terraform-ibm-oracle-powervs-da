@@ -80,10 +80,12 @@ variable "pi_aix_instance" {
   }
 
   validation {
-    condition = var.pi_aix_instance.cores == null || (
-      var.deployment_type == "public" ? var.pi_aix_instance.cores >= 0.25 : var.pi_aix_instance.cores >= 0.2
+    condition = (
+      var.pi_aix_instance.cores == null ? true :
+      var.deployment_type == "public" ? var.pi_aix_instance.cores >= 0.25 :
+      var.pi_aix_instance.cores >= 0.2
     )
-    error_message = "AIX RAC instance cores must be at least 0.25 for public deployment or 0.2 for private deployment. Current: ${var.pi_aix_instance.cores} for ${var.deployment_type}"
+    error_message = "AIX RAC instance cores must be at least 0.25 for public deployment or 0.2 for private deployment. Current: ${coalesce(var.pi_aix_instance.cores, "not specified")} for ${var.deployment_type}"
   }
 }
 
