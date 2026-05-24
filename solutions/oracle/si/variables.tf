@@ -78,7 +78,7 @@ variable "pi_aix_instance" {
     condition     = var.pi_aix_instance.memory_gb >= 16
     error_message = "AIX instance memory_gb must be at least 16GB. Current value: ${var.pi_aix_instance.memory_gb}GB"
   }
-  
+
   validation {
     condition = (
       var.pi_aix_instance.cores == null ? true :

@@ -29,7 +29,7 @@ This automated deployable architecture guide demonstrates how to deploy an Oracl
 
 ## Reference Architecture
 
-<img width="342" alt="image" src="https://raw.githubusercontent.com/nava-dba/terraform-ibm-oracle-powervs-da/ab93802d70c3f2036f14857602a9ee319a4f6706/images/Oracle_DA_RAC.svg" />
+<img width="342" alt="image" src="https://raw.githubusercontenhttps://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/0859fa3a4c1581e6db02c0cc7f8e9cf104976e05/images/Oracle_DA_RAC.svg" />
 
 Using Terraform, both RHEL and AIX virtual machines are provisioned as part of the deployment. The RHEL VM acts as the Ansible controller, hosting the playbooks required to install and configure the Oracle Database on the AIX system. It is also configured with an NFS server to stage and provide access to the Oracle installation binaries for the AIX VMs and DNS server for the name resolution of RAC VIPs.
 
@@ -83,6 +83,8 @@ For example: This is the CRN:
 
 For more information, please refer to [Configuring Subnets](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-configuring-subnet)
 
+**Note:** For Oracle RAC interconnect subnet provide the MTU value as 9000
+
 For RAC deployment, we need 4 subnets.
 1. Management network
 2. Oracle RAC Public
@@ -93,16 +95,18 @@ For RAC deployment, we need 4 subnets.
 
 **PowerVS Private:** Doesn't have ARP option. In Private use "Same Server" placement policy for deployment. If you want "Different Server" placement policy Contact IBM support to enable the ARP for the subnet.
 
-**Note:** IP Range should be mentioned from 0-240. Rest of them are reserved for Public networks.
+**Note:** For ora-rac-pub subnet IP Range should be mentioned from 0-240. Rest of them are reserved for Public networks. The IPs 172.16.10.241 to 172.16.10.254 are reserved for Oracle RAC VIPs(SCAN and Node-VIPs)
 
-| Name | CIDR | IP Range | ARP Broadcast |
-|------|------|----------|-----|
-| ora_net | 10.40.80.0/24 | 10.40.80.2 — 10.40.80.254 | Disabled |
-| ora-rac-pub | 172.16.10.0/24 | 172.16.10.2 — 172.16.10.240 | Enabled |
-| ora-rac-priv1 | 10.60.30.0/28 | 10.60.30.2 — 10.60.30.14 | Enabled |
-| ora-rac-priv2 | 10.50.20.0/28 | 10.50.20.2 — 10.50.20.14 | Enabled |
+| Name | Subnet Name | CIDR | IP Range | ARP Broadcast | MTU |
+|------|------|------|----------|-----|-----|
+| Management network | ora_net | 10.40.80.0/24 | 10.40.80.2 — 10.40.80.254 | Disabled | 1450 |
+| Oracle RAC Public | ora-rac-pub | 172.16.10.0/24 | 172.16.10.2 — 172.16.10.240 | Enabled | 1450 |
+| Oracle RAC Private1 | ora-rac-priv1 | 10.60.30.0/28 | 10.60.30.2 — 10.60.30.14 | Enabled | 9000 |
+| Oracle RAC Private2 | ora-rac-priv2 | 10.50.20.0/28 | 10.50.20.2 — 10.50.20.14 | Enabled | 9000 |
 
-**Note:** For ora-rac-pub subnet the IPs 172.16.10.241 to 172.16.10.254 are reserved for Oracle RAC VIPs(SCAN and Node-VIPs)
+
+Below is the screenshot from IBM Cloud GUI
+<img width="800" alt="image" src="https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/refs/heads/main/images/ora_rac_subnets.png" />
 
 Deployment input for "PowerVS Networks" should be mentioned in this order only.
 
@@ -111,7 +115,7 @@ Example:
 ```
 [
   {
-    name = "ora_mgmt_net"
+    name = "ora_net"
     id   = "c38d18ad-b39f-4ba0-94f0-ada107ab64df"
   },
   {
@@ -120,7 +124,7 @@ Example:
   },
   {
     name = "ora-rac-priv1"
-    id   = "65167db2-715a-4cb9-b600-806c77d33cc6"
+    id   = "65167db2-715a-4cb9-b600-806c77d33cc4"
   },
   {
     name = "ora-rac-priv2"
@@ -140,25 +144,153 @@ For more information related to Private Cloud Architecture, please refer to [IBM
 
 Sample Bastion Host details:
 
-<img width="800" alt="image" src="https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/blob/dev/images/screenshot1.png?raw=true" />
+<img width="800" alt="image" src="https://github.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/blob/main/images/screenshot1.png?raw=true" />
 
 **Step F**: Configure Squid Proxy service on Bastion host
-1. Squid Server is a proxy service which should be configured in the Bastion host, this will allow internet access to the resources in PowerVS workspace. To setup Squid, refer to the section ["Configuring the proxy instance"](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-set-full-Linux)
-2. Get the private IP address of Bastion host(VPC) using "ip a" command(Eg. 10.240.64.X). This IP will be given as "Squid - Proxy Server IP Address" input for DA.
-3. Add and allow http access for the subnet CIDR created in Step D to /etc/squid/squid.conf file
-  ```
-     acl ibmprivate src 10.40.80.0/24
-     http_access allow ibmprivate
-  ```
-4. Add a security group rule for squid server IP and port to allow only the traffic from powervs subnet. For more information related to Security groups refer to [Security Group](https://cloud.ibm.com/docs/vpc?topic=vpc-using-security-groups)
+
+Squid Server is a proxy service which should be configured in the Bastion host, this will allow internet access to the resources in PowerVS workspace.
+
+1. Install squid
+   ```bash
+   yum update -y
+   yum install epel-release
+   yum install squid
+   ```
+
+2. Update the squid config file `/etc/squid/squid.conf`
+
+   Add and allow http access for the subnet CIDR created in Step D to `/etc/squid/squid.conf` file. Below is the sample squid configuration file.
+
+<details>
+<summary><b>📋 Click to view example squid configuration file</b></summary>
+
+Below is a complete `/etc/squid/squid.conf` configuration file example. Adjust the network ranges according to your environment:
+
+```conf
+#
+# Recommended minimum configuration:
+#
+
+# Example rule allowing access from your local networks.
+# Adapt to list your (internal) IP networks from where browsing
+# should be allowed
+acl localnet src 10.40.80.0/24		# ora-net (PowerVS subnet)
+acl ibmprivate dst 161.26.0.0/16	# IBM Cloud private network
+acl ibmprivate dst 166.8.0.0/14		# IBM Cloud private network
+acl SSL_ports port 443 8443
+acl Safe_ports port 80			# http
+acl Safe_ports port 443			# https
+acl Safe_ports port 8443		# 8443
+
+#
+# Recommended minimum Access Permission configuration:
+#
+# Deny requests to certain unsafe ports
+http_access deny !Safe_ports
+
+# Deny CONNECT to other than secure SSL ports
+http_access deny CONNECT !SSL_ports
+
+# Only allow cachemgr access from localhost
+http_access allow localhost manager
+http_access deny manager
+
+# This default configuration only allows localhost requests because a more
+# permissive Squid installation could introduce new attack vectors into the
+# network by proxying external TCP connections to unprotected services.
+http_access allow localhost
+http_access allow ibmprivate
+
+# The two deny rules below are unnecessary in this default configuration
+# because they are followed by a "deny all" rule. However, they may become
+# critically important when you start allowing external requests below them.
+
+# Protect web applications running on the same server as Squid. They often
+# assume that only local users can access them at "localhost" ports.
+http_access deny to_localhost
+
+# Protect cloud servers that provide local users with sensitive info about
+# their server via certain well-known link-local (a.k.a. APIPA) addresses.
+http_access deny to_linklocal
+
+#
+# INSERT YOUR OWN RULE(S) HERE TO ALLOW ACCESS FROM YOUR CLIENTS
+#
+
+# For example, to allow access from your local networks, you may uncomment the
+# following rule (and/or add rules that match your definition of "local"):
+http_access allow localnet
+
+# And finally deny all other access to this proxy
+http_access deny all
+
+# Squid normally listens to port 3128
+http_port 3128
+
+# Uncomment and adjust the following to add a disk cache directory.
+#cache_dir ufs /var/spool/squid 100 16 256
+
+# Leave coredumps in the first cache dir
+coredump_dir /var/spool/squid
+
+#
+# Add any of your own refresh_pattern entries above these.
+#
+refresh_pattern ^ftp:		1440	20%	10080
+refresh_pattern -i (/cgi-bin/|\?) 0	0%	0
+refresh_pattern .		0	20%	4320
+```
+</details>
+
+3. Save the squid config file and restart the squid service
+   ```bash
+   # Test configuration syntax
+   sudo squid -k parse
+
+   # Restart Squid service
+   sudo systemctl restart squid
+
+   # Enable Squid to start on boot
+   sudo systemctl enable squid
+
+   # Check Squid status
+   sudo systemctl status squid
+   ```
+For more information on squid, refer to the section ["Configuring the proxy instance"](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-set-full-Linux)
+
+Get the private IP address of Bastion host(VPC) using "ip a" command(Eg. 10.240.64.X). This IP will be given as "Squid - Proxy Server IP Address" input for DA.
+
+**Step G**: Configure NTP on Bastion host
+
+NTP Server is configured on bastion host(VPC), to synchronize the time on PowerVS RHEL VM
+
+1. Check chrony status, by default chrony get installed
+   ```bash
+   systemctl status chronyd
+   ```
+2. Update chrony config file /etc/chrony.conf, add the powervs workspace subnet CIDR created in Step D. If port is "port 0", comment it "#port 0" so that it will use the default port 123.
+   ```bash
+   # Allow NTP client access from local network.
+   allow 10.40.80.0/24
+
+3. Restart chrony
+   ```bash
+   systemctl stop chronyd
+   systemctl start chronyd
+   systemctl status chronyd
+   ```
+
+**Step H**: Add security group rules for squid and ntp on Bastion host
+
+Add a security group rule for squid server IP and port to allow only the traffic from powervs subnet. Similarly add the another security group rule for ntp default port 123. For more information related to Security groups refer to [Security Group](https://cloud.ibm.com/docs/vpc?topic=vpc-using-security-groups)
 
 Sample Security Group Details:
 
-<img width="800" alt="image" src="https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/blob/dev/images/screenshot2.png?raw=true" />
+<img width="800" alt="image" src="https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/refs/heads/main/images/SG_1.png" />
 
 Note: For more security we can restrict the source in inbound rule to a specific networks instead of 0.0.0.0
 
-**Step G**: Get ssh-key pair from Bastion host
+**Step I**: Get ssh-key pair from Bastion host
 
 Note: If you are using pre-existing keys then make sure private and public ssh key pair are placed in bastion host at ~/.ssh/ and add public key to authorized_keys, and skip the following steps in this section. Below are the steps for generating the ssh keys
 
@@ -175,7 +307,7 @@ Note: If you are using pre-existing keys then make sure private and public ssh k
 <br> Go to IBM Cloud Dashboard -> "Compute" -> Click on the <powervs workspace> -> "SSH keys" -> "Create SSH key" -> in the "key name" field, provide a desired name and paste the your public key in "Public key" field and click on "Add SSH key".
 For more information related to creating ssh keys, please refer to [Creating SSH Keys](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-ssh-key)
 
-**Step H**: Create IBM Cloud Object Storage (COS)
+**Step J**: Create IBM Cloud Object Storage (COS)
 <br> IBM Cloud Storage bucket is needed to hold the Oracle binaries.
 1. Go to IBM Cloud dashboard, click on "Infrastructure" --> "Storage" --> "Object Storage"
 2. Click on "Create Instance", this will open a new window, provide "Service name" and "tags". Click on "Create"/
@@ -185,7 +317,7 @@ For more information related to creating ssh keys, please refer to [Creating SSH
 Please refer to [Getting started with Cloud Object Storage](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-getting-started-cloud-object-storage)
 Generate COS service credentials. Please refer to [COS Service Credentials](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials)
 
-**Step I**: Download the Oracle Binaries
+**Step K**: Download the Oracle Binaries
 1. Download Oracle Binaries from [Oracle Site](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery) and Release Update(RU) system patches 19.X from [Oracle MOS](https://support.oracle.com).
    - RDBMS Base software: V982583-01_193000_db.zip
    - Grid Infrastructure software: V982588-01_193000_grid.zip
@@ -207,24 +339,22 @@ Example of "COS Oracle Software Storage Configuration" deployment input.
 }
 ```
 
-**Step J**: Full Linux Subscription Implementation
+**Step L**: Full Linux Subscription Implementation
 - In Private environment, FLS setup is needed which is required for RHEL Subscription. This release of DA we will be using only IBM provided subscription images, refer to [FLS Documentation](https://www.ibm.com/docs/en/power-virtual-server?topic=linux-full-subscription-power-virtual-server-private-cloud) for more details.
 - In Public environment, the RHEL Subscription is done at the time of VM creation automatically, and in DA we are not using any separate script for RHEL Subscription.
 
-**Step K**: Whitelist schematic CIDR/IP
+**Step M**: Whitelist schematic CIDR/IP
 - At VPN Gateway or VPC VM level, whitelist the schematic CIDRs/IPs of region where schematic workspace gets created, refer to [Firewall Access – allowed IP addresses](https://cloud.ibm.com/docs/schematics?topic=schematics-allowed-ipaddresses)
 - This step is optional if your using source as 0.0.0.0 under Security Group inbound rule for ssh connection
 
 ## Deployment Steps
 ### Deploy using projects
-1. Go to the catalog and search for oracle. Under catalog community registry, select tile "Oracle on IBM Power Virtual Server".
-2. Click "Configure and deploy"
-3. Next, we will deploy the DA using the IBM Cloud projects.
-Refer to this link for more information about [Projects](https://cloud.ibm.com/docs/secure-enterprise?topic=secure-enterprise-understanding-projects)
-4. Select and Review the deployment options
-5. Select the Add to project deployment type in Deployment options, and then click Add to project
-6. Name your project, enter a description, and specify a configuration name. Click Create.
-7. Edit and validate the configuration:
+1. Go to IBM Cloud dashboard and create a new project. Refer to this link for more information about [Projects](https://cloud.ibm.com/docs/codeengine?topic=codeengine-manage-project)
+2. Go to the catalog and search for oracle. Under community registry, select tile "Oracle on IBM Power Virtual Server".
+3. In "Deployable architecture setup", select the project which was created in step 1.
+4. Select the Architecture variation as "Oracle Database – Real Application Clusters (RAC)"
+5. Click "Configure and deploy"
+6. Edit and validate the configuration:
    1.	Enter values for required input fields
    2.	Review and update the optional inputs if needed
    3.	Save the configuration
@@ -263,7 +393,7 @@ DV              Oracle Database Vault                              VALID
 | Deployment Type    | deployment_type| This solution provides both [PowerVS Public](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-getting-started) & [PowerVS Private](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-private-cloud-architecture) which can be controlled by this input variable.| Public or Private |
 | Resource Name Prefix| prefix | Unique identifier prepended to all resources created by this template. |Use only lowercase letters with maximum 5 characters and allows only alpha-numeric and hyphen characters. Example: rac |
 | Deployment Region| region | IBM Cloud region where resources will be deployed. See all available regions at [IBM Cloud locations](https://cloud.ibm.com/docs/overview?topic=overview-locations).| Example: Dallas |
-| PowerVS Zone | zone | IBM Cloud data center zone within the region where IBM PowerVS infrastructure will be created (e.g., dal14, eu-de-1). See all available zones at [IBM PowerVS locations](https://www.ibm.com/docs/en/power-virtual-server?topic=locations-cloud-regions). For PowerVS Private we need to provide [Satellite Zone](https://www.ibm.com/docs/en/power-virtual-server?topic=locations-satellite-location) details. The zone can be retrieved from the workspace CRN, refer to "Step C" | Public: dal10      Private: satloc_dal_XXXX|
+| PowerVS Zone | zone | IBM Cloud data center zone within the region where IBM PowerVS infrastructure will be created (e.g., dal14, eu-de-1). See all available zones at [IBM PowerVS locations](https://www.ibm.com/docs/en/power-virtual-server?topic=locations-cloud-regions). For PowerVS Private we need to provide [Satellite Zone](https://www.ibm.com/docs/en/power-virtual-server?topic=locations-satellite-location) details. The zone can be retrieved from the workspace CRN, refer to "Step C" | Public: dal14      Private: satloc_dal_XXXX|
 | PowerVS Workspace GUID | pi_existing_workspace_guid | GUID of an existing IBM Power Virtual Server Workspace. To find the GUID: IBM Cloud Console > Resource List > Compute > click the workspace > copy the GUID from the CRN, refer to "Step C". To create a new workspace, see [Creating an IBM Power Virtual Server](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-power-virtual-server).| |
 | Bastion Host IP Address | bastion_host_ip | Bastion host is a VPC vm hosted in IBM Cloud, Provide the [Floating IP address](https://cloud.ibm.com/docs/vpc?topic=vpc-fip-about) of the bastion host. | Example: 52.x.x.x |
 | Bastion Host SSH Public Key Name | pi_ssh_public_key_name | Add bastion host's ssh public key to the PowerVS workspace. Provide this name as an input. To add an SSH key to the workspace, see [Managing IBM PowerVS SSH keys](https://cloud.ibm.com/docs/power-iaas?topic=power-iaas-creating-ssh-key). | Example: vpc_ssh_pubkey |
