@@ -1179,19 +1179,24 @@
               "display_name": "IBM Cloud API Key",
               "type": "password",
               "required": true,
-              "description": "The IBM Cloud API key with permissions to create resources"
+              "description": "IBM Cloud API key used to authenticate and provision resources",
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "password"
+              }
             },
             {
               "key": "prefix",
               "display_name": "Resource Name Prefix",
-              "default_value": "ora-si",
+              "default_value": "",
               "type": "string",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[a-z][a-z0-9-]{0,14}$",
-                  "description": "Prefix must start with a lowercase letter, contain only lowercase letters, numbers, and hyphens, and be 1-15 characters long"
+                  "value": "^[a-z0-9-]{1,8}$",
+                  "description": "Prefix must be lowercase alphanumeric with hyphens, max 8 characters"
                 }
               ]
             },
@@ -1269,107 +1274,271 @@
               ]
             },
             {
+              "key": "powervs_resource_group_name",
+              "display_name": "Resource Group Name",
+              "type": "string",
+              "default_value": "Default",
+              "required": false
+            },
+            {
+              "key": "tags",
+              "display_name": "Resource Tags",
+              "type": "array",
+              "required": false,
+              "default_value": []
+            },
+            {
+              "key": "powervs_management_network_cidr",
+              "display_name": "Management Network CIDR",
+              "type": "string",
+              "default_value": "10.51.0.0/24",
+              "required": false
+            },
+            {
+              "key": "external_access_ip",
+              "display_name": "External Access IP (CIDR)",
+              "type": "string",
+              "default_value": "0.0.0.0/0",
+              "required": true,
+              "description": "Source IP/CIDR for SSH access. Use your public IP for security (e.g., 203.0.113.5/32)"
+            },
+            {
               "key": "ssh_public_key",
               "display_name": "SSH Public Key",
               "type": "string",
               "required": true,
-              "description": "Public SSH key for accessing instances"
+              "description": "Public SSH key (RSA format) for VSI access"
             },
             {
               "key": "ssh_private_key",
               "display_name": "SSH Private Key",
               "type": "multiline_secure_value",
               "required": true,
-              "description": "Private SSH key for Ansible automation"
+              "description": "Private SSH key for Ansible automation",
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "multiline_secure_value"
+              }
             },
             {
-              "key": "external_access_ip",
-              "display_name": "External Access IP",
+              "key": "powervs_aix_image_name",
+              "display_name": "AIX OS Image Name",
               "type": "string",
+              "default_value": "7300-02-01",
               "required": true,
-              "description": "Your public IP address for SSH access (CIDR format, e.g., 203.0.113.5/32)"
+              "options": [
+                {
+                  "displayname": "AIX 7.2 TL5 SP6 (7200-05-06)",
+                  "value": "7200-05-06"
+                },
+                {
+                  "displayname": "AIX 7.3 TL1 SP2 (7300-01-02)",
+                  "value": "7300-01-02"
+                },
+                {
+                  "displayname": "AIX 7.3 TL2 SP1 (7300-02-01)",
+                  "value": "7300-02-01"
+                }
+              ]
+            },
+            {
+              "key": "powervs_aix_instance",
+              "display_name": "AIX Instance Configuration",
+              "description": "CPU and memory configuration for AIX instance. memory_gb must be at least 16GB for Oracle Database",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "memory_gb": 32,
+                "cores": 2,
+                "core_type": "shared",
+                "machine_type": "s1022",
+                "pin_policy": "none"
+              }
+            },
+            {
+              "key": "oracle_install_type",
+              "display_name": "Storage Type",
+              "type": "string",
+              "default_value": "ASM",
+              "required": true,
+              "options": [
+                {
+                  "displayname": "ASM (Automatic Storage Management)",
+                  "value": "ASM"
+                },
+                {
+                  "displayname": "JFS2 (Journal File System)",
+                  "value": "JFS2"
+                }
+              ]
+            },
+            {
+              "key": "powervs_oravg_volume",
+              "display_name": "Oracle Software Volume",
+              "description": "Storage for Oracle binaries and Grid Infrastructure",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "50",
+                "count": "1",
+                "tier": "tier3"
+              }
+            },
+            {
+              "key": "powervs_data_volume",
+              "display_name": "Database Data Volume",
+              "description": "Storage for Oracle DATA diskgroup or filesystem",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "100",
+                "count": "2",
+                "tier": "tier1"
+              }
+            },
+            {
+              "key": "powervs_redo_volume",
+              "display_name": "Redo Log Volume",
+              "description": "Storage for Oracle REDO logs",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "50",
+                "count": "2",
+                "tier": "tier1"
+              }
             },
             {
               "key": "oracle_sid",
               "display_name": "Oracle Database SID",
               "type": "string",
-              "default_value": "ORADB",
+              "default_value": "",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z][A-Za-z0-9_]{0,7}$",
-                  "description": "SID must start with a letter and be 1-8 characters (letters, numbers, underscore)"
+                  "value": "^[a-zA-Z][a-zA-Z0-9]{0,7}$",
+                  "description": "SID must start with a letter, be alphanumeric, max 8 characters"
                 }
               ]
             },
             {
-              "key": "oracle_password",
+              "key": "oracle_db_password",
               "display_name": "Oracle SYS Password",
               "type": "password",
               "required": true,
-              "description": "Password for Oracle SYS and SYSTEM users (8-30 chars, must include uppercase, lowercase, digit, and special character)",
+              "description": "Password for Oracle SYS and SYSTEM users (min 8 characters)",
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,30}$",
-                  "description": "Password must be 8-30 characters with uppercase, lowercase, digit, and special character"
+                  "value": "^.{8,}$",
+                  "description": "Password must be at least 8 characters"
                 }
-              ]
+              ],
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "password"
+              }
             },
             {
-              "key": "cos_access_key_id",
-              "display_name": "COS Access Key ID",
-              "type": "string",
-              "required": true,
-              "description": "IBM Cloud Object Storage HMAC access key ID"
+              "key": "oracle_redolog_size_in_mb",
+              "display_name": "Redo Log Size (MB)",
+              "type": "number",
+              "default_value": 512,
+              "required": false
             },
             {
-              "key": "cos_secret_access_key",
-              "display_name": "COS Secret Access Key",
-              "type": "password",
+              "key": "ibmcloud_cos_service_credentials",
+              "type": "multiline_secure_value",
+              "display_name": "Cloud Object Storage Credentials",
               "required": true,
-              "description": "IBM Cloud Object Storage HMAC secret access key"
+              "description": "IBM Cloud Object Storage service credentials in JSON format",
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "multiline_secure_value"
+              },
+              "default_value": "{\"apikey\":\"your-cos-apikey\",\"endpoints\":\"https://control.cloud-object-storage.cloud.ibm.com/v2/endpoints\",\"resource_instance_id\":\"crn:v1:bluemix:public:cloud-object-storage:global:a/your-account-id:your-instance-id::\"}"
             },
             {
-              "key": "cos_bucket_name",
-              "display_name": "COS Bucket Name",
-              "type": "string",
+              "key": "ibmcloud_cos_configuration",
+              "display_name": "COS Oracle Software Configuration",
               "required": true,
-              "description": "Name of the COS bucket containing Oracle software"
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "cos_region": "us-south",
+                "cos_bucket_name": "oracle-sw-bucket",
+                "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
+                "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
+                "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
+                "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
+              }
             },
             {
-              "key": "cos_bucket_region",
-              "display_name": "COS Bucket Region",
-              "type": "string",
-              "default_value": "us-south",
-              "required": true,
-              "options": [
-                {
-                  "displayname": "US South",
-                  "value": "us-south"
-                },
-                {
-                  "displayname": "US East",
-                  "value": "us-east"
-                },
-                {
-                  "displayname": "EU Germany",
-                  "value": "eu-de"
-                },
-                {
-                  "displayname": "EU Great Britain",
-                  "value": "eu-gb"
-                },
-                {
-                  "displayname": "Japan",
-                  "value": "jp-tok"
-                },
-                {
-                  "displayname": "Australia",
-                  "value": "au-syd"
-                }
-              ]
+              "key": "nfs_server_config",
+              "display_name": "NFS Server Configuration",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": 200,
+                "iops": 600,
+                "mount_path": "/nfs"
+              }
+            },
+            {
+              "key": "client_to_site_vpn",
+              "display_name": "Client-to-Site VPN Configuration",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "enable": false,
+                "client_ip_pool": "192.168.0.0/16",
+                "vpn_client_access_group_users": []
+              }
+            },
+            {
+              "key": "enable_monitoring",
+              "display_name": "Enable IBM Cloud Monitoring",
+              "type": "boolean",
+              "default_value": false,
+              "required": false
+            },
+            {
+              "key": "enable_scc_wp",
+              "display_name": "Enable Security and Compliance Center Workload Protection",
+              "type": "boolean",
+              "default_value": false,
+              "required": false
             }
           ],
           "scripts": [],
@@ -1446,19 +1615,24 @@
               "display_name": "IBM Cloud API Key",
               "type": "password",
               "required": true,
-              "description": "The IBM Cloud API key with permissions to create resources"
+              "description": "IBM Cloud API key used to authenticate and provision resources",
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "password"
+              }
             },
             {
               "key": "prefix",
               "display_name": "Resource Name Prefix",
-              "default_value": "ora-rac",
+              "default_value": "",
               "type": "string",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[a-z][a-z0-9-]{0,14}$",
-                  "description": "Prefix must start with a lowercase letter, contain only lowercase letters, numbers, and hyphens, and be 1-15 characters long"
+                  "value": "^[a-z0-9-]{1,8}$",
+                  "description": "Prefix must be lowercase alphanumeric with hyphens, max 8 characters"
                 }
               ]
             },
@@ -1536,25 +1710,68 @@
               ]
             },
             {
+              "key": "powervs_resource_group_name",
+              "display_name": "Resource Group Name",
+              "type": "string",
+              "default_value": "Default",
+              "required": false
+            },
+            {
+              "key": "tags",
+              "display_name": "Resource Tags",
+              "type": "array",
+              "required": false,
+              "default_value": []
+            },
+            {
+              "key": "powervs_management_network_cidr",
+              "display_name": "Management Network CIDR",
+              "type": "string",
+              "default_value": "10.51.0.0/24",
+              "required": false
+            },
+            {
+              "key": "powervs_rac_networks",
+              "display_name": "Pre-created RAC Networks",
+              "type": "array",
+              "required": true,
+              "description": "Three pre-created PowerVS networks: [0]=public (client), [1]=private1 (interconnect), [2]=private2 (interconnect). Each must have: name, id, cidr",
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "code_editor",
+                "config_constraints": {
+                  "supportedLanguages": ["hcl"]
+                }
+              },
+              "default_value": "[\n  {\n    name = \"rac-public\"\n    id   = \"network-id-1\"\n    cidr = \"10.52.0.0/24\"\n  },\n  {\n    name = \"rac-private1\"\n    id   = \"network-id-2\"\n    cidr = \"10.53.0.0/24\"\n  },\n  {\n    name = \"rac-private2\"\n    id   = \"network-id-3\"\n    cidr = \"10.54.0.0/24\"\n  }\n]"
+            },
+            {
+              "key": "external_access_ip",
+              "display_name": "External Access IP (CIDR)",
+              "type": "string",
+              "default_value": "0.0.0.0/0",
+              "required": true,
+              "description": "Source IP/CIDR for SSH access. Use your public IP for security (e.g., 203.0.113.5/32)"
+            },
+            {
               "key": "ssh_public_key",
               "display_name": "SSH Public Key",
               "type": "string",
               "required": true,
-              "description": "Public SSH key for accessing instances"
+              "description": "Public SSH key (RSA format) for VSI access"
             },
             {
               "key": "ssh_private_key",
               "display_name": "SSH Private Key",
               "type": "multiline_secure_value",
               "required": true,
-              "description": "Private SSH key for Ansible automation"
-            },
-            {
-              "key": "external_access_ip",
-              "display_name": "External Access IP",
-              "type": "string",
-              "required": true,
-              "description": "Your public IP address for SSH access (CIDR format, e.g., 203.0.113.5/32)"
+              "description": "Private SSH key for Ansible automation",
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "multiline_secure_value"
+              }
             },
             {
               "key": "rac_node_count",
@@ -1594,93 +1811,228 @@
               ]
             },
             {
-              "key": "oracle_sid",
-              "display_name": "Oracle Database SID",
+              "key": "pi_replication_policy",
+              "display_name": "RAC Node Placement Policy",
               "type": "string",
-              "default_value": "ORADB",
-              "required": true,
-              "value_constraints": [
+              "default_value": "anti-affinity",
+              "required": false,
+              "options": [
                 {
-                  "type": "regex",
-                  "value": "^[A-Za-z][A-Za-z0-9_]{0,7}$",
-                  "description": "SID must start with a letter and be 1-8 characters (letters, numbers, underscore)"
+                  "displayname": "Anti-affinity (Recommended for HA)",
+                  "value": "anti-affinity"
+                },
+                {
+                  "displayname": "Affinity",
+                  "value": "affinity"
+                },
+                {
+                  "displayname": "None",
+                  "value": "none"
                 }
               ]
             },
             {
-              "key": "oracle_password",
-              "display_name": "Oracle SYS Password",
-              "type": "password",
-              "required": true,
-              "description": "Password for Oracle SYS and SYSTEM users (8-30 chars, must include uppercase, lowercase, digit, and special character)",
-              "value_constraints": [
-                {
-                  "type": "regex",
-                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,30}$",
-                  "description": "Password must be 8-30 characters with uppercase, lowercase, digit, and special character"
-                }
-              ]
-            },
-            {
-              "key": "powervs_rac_networks",
-              "display_name": "Pre-created RAC Networks",
-              "type": "array",
-              "required": true,
-              "description": "Three pre-created PowerVS networks for RAC: public (client access), private1 (interconnect), private2 (interconnect). Each network object must include: name, cidr, dns_servers (array), gateway"
-            },
-            {
-              "key": "cos_access_key_id",
-              "display_name": "COS Access Key ID",
+              "key": "powervs_aix_image_name",
+              "display_name": "AIX OS Image Name",
               "type": "string",
-              "required": true,
-              "description": "IBM Cloud Object Storage HMAC access key ID"
-            },
-            {
-              "key": "cos_secret_access_key",
-              "display_name": "COS Secret Access Key",
-              "type": "password",
-              "required": true,
-              "description": "IBM Cloud Object Storage HMAC secret access key"
-            },
-            {
-              "key": "cos_bucket_name",
-              "display_name": "COS Bucket Name",
-              "type": "string",
-              "required": true,
-              "description": "Name of the COS bucket containing Oracle software"
-            },
-            {
-              "key": "cos_bucket_region",
-              "display_name": "COS Bucket Region",
-              "type": "string",
-              "default_value": "us-south",
+              "default_value": "7300-02-01",
               "required": true,
               "options": [
                 {
-                  "displayname": "US South",
-                  "value": "us-south"
+                  "displayname": "AIX 7.2 TL5 SP6 (7200-05-06)",
+                  "value": "7200-05-06"
                 },
                 {
-                  "displayname": "US East",
-                  "value": "us-east"
+                  "displayname": "AIX 7.3 TL1 SP2 (7300-01-02)",
+                  "value": "7300-01-02"
                 },
                 {
-                  "displayname": "EU Germany",
-                  "value": "eu-de"
-                },
-                {
-                  "displayname": "EU Great Britain",
-                  "value": "eu-gb"
-                },
-                {
-                  "displayname": "Japan",
-                  "value": "jp-tok"
-                },
-                {
-                  "displayname": "Australia",
-                  "value": "au-syd"
+                  "displayname": "AIX 7.3 TL2 SP1 (7300-02-01)",
+                  "value": "7300-02-01"
                 }
               ]
+            },
+            {
+              "key": "powervs_aix_instance",
+              "display_name": "AIX Instance Configuration (per node)",
+              "description": "CPU and memory configuration for each RAC node. memory_gb must be at least 24GB for Oracle RAC",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "memory_gb": 32,
+                "cores": 2,
+                "core_type": "shared",
+                "machine_type": "s1022",
+                "pin_policy": "none"
+              }
+            },
+            {
+              "key": "powervs_oravg_volume",
+              "display_name": "Oracle Software Volume",
+              "description": "Storage for Oracle binaries and Grid Infrastructure",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "50",
+                "count": "1",
+                "tier": "tier3"
+              }
+            },
+            {
+              "key": "powervs_data_volume",
+              "display_name": "Database Data Volume (ASM)",
+              "description": "Shared storage for Oracle DATA ASM diskgroup",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "100",
+                "count": "2",
+                "tier": "tier1"
+              }
+            },
+            {
+              "key": "powervs_redo_volume",
+              "display_name": "Redo Log Volume (ASM)",
+              "description": "Shared storage for Oracle REDO ASM diskgroup",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "50",
+                "count": "2",
+                "tier": "tier1"
+              }
+            },
+            {
+              "key": "oracle_sid",
+              "display_name": "Oracle Database SID",
+              "type": "string",
+              "default_value": "",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^[a-zA-Z][a-zA-Z0-9]{0,7}$",
+                  "description": "SID must start with a letter, be alphanumeric, max 8 characters"
+                }
+              ]
+            },
+            {
+              "key": "oracle_db_password",
+              "display_name": "Oracle SYS Password",
+              "type": "password",
+              "required": true,
+              "description": "Password for Oracle SYS and SYSTEM users (min 8 characters)",
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^.{8,}$",
+                  "description": "Password must be at least 8 characters"
+                }
+              ],
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "password"
+              }
+            },
+            {
+              "key": "oracle_redolog_size_in_mb",
+              "display_name": "Redo Log Size (MB)",
+              "type": "number",
+              "default_value": 512,
+              "required": false
+            },
+            {
+              "key": "ibmcloud_cos_service_credentials",
+              "type": "multiline_secure_value",
+              "display_name": "Cloud Object Storage Credentials",
+              "required": true,
+              "description": "IBM Cloud Object Storage service credentials in JSON format",
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "multiline_secure_value"
+              },
+              "default_value": "{\"apikey\":\"your-cos-apikey\",\"endpoints\":\"https://control.cloud-object-storage.cloud.ibm.com/v2/endpoints\",\"resource_instance_id\":\"crn:v1:bluemix:public:cloud-object-storage:global:a/your-account-id:your-instance-id::\"}"
+            },
+            {
+              "key": "ibmcloud_cos_configuration",
+              "display_name": "COS Oracle Software Configuration",
+              "required": true,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "cos_region": "us-south",
+                "cos_bucket_name": "oracle-rac-sw-bucket",
+                "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
+                "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
+                "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
+                "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip",
+                "cos_oracle_cluvfy_file_path": "cvupack_aix_7_ppc64.zip"
+              }
+            },
+            {
+              "key": "nfs_server_config",
+              "display_name": "NFS Server Configuration",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": 200,
+                "iops": 600,
+                "mount_path": "/nfs"
+              }
+            },
+            {
+              "key": "client_to_site_vpn",
+              "display_name": "Client-to-Site VPN Configuration",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "enable": false,
+                "client_ip_pool": "192.168.0.0/16",
+                "vpn_client_access_group_users": []
+              }
+            },
+            {
+              "key": "enable_monitoring",
+              "display_name": "Enable IBM Cloud Monitoring",
+              "type": "boolean",
+              "default_value": false,
+              "required": false
+            },
+            {
+              "key": "enable_scc_wp",
+              "display_name": "Enable Security and Compliance Center Workload Protection",
+              "type": "boolean",
+              "default_value": false,
+              "required": false
             }
           ],
           "scripts": [],
