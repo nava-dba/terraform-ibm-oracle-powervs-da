@@ -1160,6 +1160,584 @@
             ]
           },
           "terraform_version": "1.10.5"
+        },
+        {
+          "label": "Oracle Database – Single Instance Ready-to-Go",
+          "name": "oracle-si-ready-to-go",
+          "short_description": "Fully automated Oracle SI deployment with VPC landing zone",
+          "install_type": "fullstack",
+          "index": 3,
+          "working_directory": "solutions/oracle/si-ready-to-go",
+          "compliance": {
+            "authority": "",
+            "profiles": []
+          },
+          "dependencies": [],
+          "configuration": [
+            {
+              "key": "ibmcloud_api_key",
+              "display_name": "IBM Cloud API Key",
+              "type": "password",
+              "required": true,
+              "description": "The IBM Cloud API key with permissions to create resources"
+            },
+            {
+              "key": "prefix",
+              "display_name": "Resource Name Prefix",
+              "default_value": "ora-si",
+              "type": "string",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^[a-z][a-z0-9-]{0,14}$",
+                  "description": "Prefix must start with a lowercase letter, contain only lowercase letters, numbers, and hyphens, and be 1-15 characters long"
+                }
+              ]
+            },
+            {
+              "key": "powervs_zone",
+              "display_name": "PowerVS Zone",
+              "type": "string",
+              "default_value": "dal12",
+              "required": true,
+              "options": [
+                {
+                  "displayname": "Dallas 12 (dal12)",
+                  "value": "dal12"
+                },
+                {
+                  "displayname": "Dallas 13 (dal13)",
+                  "value": "dal13"
+                },
+                {
+                  "displayname": "Washington DC 06 (wdc06)",
+                  "value": "wdc06"
+                },
+                {
+                  "displayname": "Washington DC 07 (wdc07)",
+                  "value": "wdc07"
+                },
+                {
+                  "displayname": "Frankfurt 04 (eu-de-1)",
+                  "value": "eu-de-1"
+                },
+                {
+                  "displayname": "Frankfurt 05 (eu-de-2)",
+                  "value": "eu-de-2"
+                },
+                {
+                  "displayname": "London 06 (lon06)",
+                  "value": "lon06"
+                },
+                {
+                  "displayname": "Madrid 02 (mad02)",
+                  "value": "mad02"
+                },
+                {
+                  "displayname": "Madrid 04 (mad04)",
+                  "value": "mad04"
+                },
+                {
+                  "displayname": "Tokyo 04 (tok04)",
+                  "value": "tok04"
+                },
+                {
+                  "displayname": "Osaka 21 (osa21)",
+                  "value": "osa21"
+                },
+                {
+                  "displayname": "Sydney 04 (syd04)",
+                  "value": "syd04"
+                },
+                {
+                  "displayname": "Sydney 05 (syd05)",
+                  "value": "syd05"
+                },
+                {
+                  "displayname": "Sao Paulo 01 (sao01)",
+                  "value": "sao01"
+                },
+                {
+                  "displayname": "Toronto 01 (tor01)",
+                  "value": "tor01"
+                },
+                {
+                  "displayname": "Montreal 01 (mon01)",
+                  "value": "mon01"
+                }
+              ]
+            },
+            {
+              "key": "ssh_public_key",
+              "display_name": "SSH Public Key",
+              "type": "string",
+              "required": true,
+              "description": "Public SSH key for accessing instances"
+            },
+            {
+              "key": "ssh_private_key",
+              "display_name": "SSH Private Key",
+              "type": "multiline_secure_value",
+              "required": true,
+              "description": "Private SSH key for Ansible automation"
+            },
+            {
+              "key": "external_access_ip",
+              "display_name": "External Access IP",
+              "type": "string",
+              "required": true,
+              "description": "Your public IP address for SSH access (CIDR format, e.g., 203.0.113.5/32)"
+            },
+            {
+              "key": "oracle_sid",
+              "display_name": "Oracle Database SID",
+              "type": "string",
+              "default_value": "ORADB",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^[A-Za-z][A-Za-z0-9_]{0,7}$",
+                  "description": "SID must start with a letter and be 1-8 characters (letters, numbers, underscore)"
+                }
+              ]
+            },
+            {
+              "key": "oracle_password",
+              "display_name": "Oracle SYS Password",
+              "type": "password",
+              "required": true,
+              "description": "Password for Oracle SYS and SYSTEM users (8-30 chars, must include uppercase, lowercase, digit, and special character)",
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,30}$",
+                  "description": "Password must be 8-30 characters with uppercase, lowercase, digit, and special character"
+                }
+              ]
+            },
+            {
+              "key": "cos_access_key_id",
+              "display_name": "COS Access Key ID",
+              "type": "string",
+              "required": true,
+              "description": "IBM Cloud Object Storage HMAC access key ID"
+            },
+            {
+              "key": "cos_secret_access_key",
+              "display_name": "COS Secret Access Key",
+              "type": "password",
+              "required": true,
+              "description": "IBM Cloud Object Storage HMAC secret access key"
+            },
+            {
+              "key": "cos_bucket_name",
+              "display_name": "COS Bucket Name",
+              "type": "string",
+              "required": true,
+              "description": "Name of the COS bucket containing Oracle software"
+            },
+            {
+              "key": "cos_bucket_region",
+              "display_name": "COS Bucket Region",
+              "type": "string",
+              "default_value": "us-south",
+              "required": true,
+              "options": [
+                {
+                  "displayname": "US South",
+                  "value": "us-south"
+                },
+                {
+                  "displayname": "US East",
+                  "value": "us-east"
+                },
+                {
+                  "displayname": "EU Germany",
+                  "value": "eu-de"
+                },
+                {
+                  "displayname": "EU Great Britain",
+                  "value": "eu-gb"
+                },
+                {
+                  "displayname": "Japan",
+                  "value": "jp-tok"
+                },
+                {
+                  "displayname": "Australia",
+                  "value": "au-syd"
+                }
+              ]
+            }
+          ],
+          "scripts": [],
+          "iam_permissions": [
+            {
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ],
+              "service_name": "cloud-object-storage"
+            },
+            {
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager",
+                "crn:v1:bluemix:public:iam::::role:Administrator"
+              ],
+              "service_name": "is.vpc"
+            },
+            {
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Editor"
+              ],
+              "service_name": "transit.gateway"
+            },
+            {
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ],
+              "service_name": "power-iaas"
+            }
+          ],
+          "architecture": {
+            "features": [
+              {
+                "title": "Fully Automated Deployment",
+                "description": "Complete infrastructure and Oracle installation with VPC landing zone integration"
+              },
+              {
+                "title": "Production-Ready Architecture",
+                "description": "Two-VSI design with management bastion and network services (SQUID, DNS, NTP, NFS)"
+              },
+              {
+                "title": "Flexible Storage Options",
+                "description": "Choose between ASM or JFS2 for Oracle database storage"
+              }
+            ],
+            "diagrams": [
+              {
+                "diagram": {
+                  "caption": "Oracle Single Instance Ready-to-Go on Power Virtual Server with VPC Landing Zone",
+                  "url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/main/images/Oracle_DA_SI_ReadyToGo.svg",
+                  "type": "image/svg+xml"
+                },
+                "description": "This fully automated deployable architecture provisions Oracle Database Single Instance on IBM Power Virtual Server with complete VPC landing zone integration. It creates VPC infrastructure, PowerVS workspace, network services (SQUID proxy, DNS, NTP, NFS), and deploys Oracle Database 19c on AIX with automated installation via Ansible."
+              }
+            ]
+          },
+          "terraform_version": "1.9"
+        },
+        {
+          "label": "Oracle Database – RAC Ready-to-Go",
+          "name": "oracle-rac-ready-to-go",
+          "short_description": "Fully automated Oracle RAC deployment with VPC landing zone",
+          "install_type": "fullstack",
+          "index": 4,
+          "working_directory": "solutions/oracle/rac-ready-to-go",
+          "compliance": {
+            "authority": "",
+            "profiles": []
+          },
+          "dependencies": [],
+          "configuration": [
+            {
+              "key": "ibmcloud_api_key",
+              "display_name": "IBM Cloud API Key",
+              "type": "password",
+              "required": true,
+              "description": "The IBM Cloud API key with permissions to create resources"
+            },
+            {
+              "key": "prefix",
+              "display_name": "Resource Name Prefix",
+              "default_value": "ora-rac",
+              "type": "string",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^[a-z][a-z0-9-]{0,14}$",
+                  "description": "Prefix must start with a lowercase letter, contain only lowercase letters, numbers, and hyphens, and be 1-15 characters long"
+                }
+              ]
+            },
+            {
+              "key": "powervs_zone",
+              "display_name": "PowerVS Zone",
+              "type": "string",
+              "default_value": "dal12",
+              "required": true,
+              "options": [
+                {
+                  "displayname": "Dallas 12 (dal12)",
+                  "value": "dal12"
+                },
+                {
+                  "displayname": "Dallas 13 (dal13)",
+                  "value": "dal13"
+                },
+                {
+                  "displayname": "Washington DC 06 (wdc06)",
+                  "value": "wdc06"
+                },
+                {
+                  "displayname": "Washington DC 07 (wdc07)",
+                  "value": "wdc07"
+                },
+                {
+                  "displayname": "Frankfurt 04 (eu-de-1)",
+                  "value": "eu-de-1"
+                },
+                {
+                  "displayname": "Frankfurt 05 (eu-de-2)",
+                  "value": "eu-de-2"
+                },
+                {
+                  "displayname": "London 06 (lon06)",
+                  "value": "lon06"
+                },
+                {
+                  "displayname": "Madrid 02 (mad02)",
+                  "value": "mad02"
+                },
+                {
+                  "displayname": "Madrid 04 (mad04)",
+                  "value": "mad04"
+                },
+                {
+                  "displayname": "Tokyo 04 (tok04)",
+                  "value": "tok04"
+                },
+                {
+                  "displayname": "Osaka 21 (osa21)",
+                  "value": "osa21"
+                },
+                {
+                  "displayname": "Sydney 04 (syd04)",
+                  "value": "syd04"
+                },
+                {
+                  "displayname": "Sydney 05 (syd05)",
+                  "value": "syd05"
+                },
+                {
+                  "displayname": "Sao Paulo 01 (sao01)",
+                  "value": "sao01"
+                },
+                {
+                  "displayname": "Toronto 01 (tor01)",
+                  "value": "tor01"
+                },
+                {
+                  "displayname": "Montreal 01 (mon01)",
+                  "value": "mon01"
+                }
+              ]
+            },
+            {
+              "key": "ssh_public_key",
+              "display_name": "SSH Public Key",
+              "type": "string",
+              "required": true,
+              "description": "Public SSH key for accessing instances"
+            },
+            {
+              "key": "ssh_private_key",
+              "display_name": "SSH Private Key",
+              "type": "multiline_secure_value",
+              "required": true,
+              "description": "Private SSH key for Ansible automation"
+            },
+            {
+              "key": "external_access_ip",
+              "display_name": "External Access IP",
+              "type": "string",
+              "required": true,
+              "description": "Your public IP address for SSH access (CIDR format, e.g., 203.0.113.5/32)"
+            },
+            {
+              "key": "rac_node_count",
+              "display_name": "Number of RAC Nodes",
+              "type": "number",
+              "default_value": 2,
+              "required": true,
+              "options": [
+                {
+                  "displayname": "2 nodes",
+                  "value": 2
+                },
+                {
+                  "displayname": "3 nodes",
+                  "value": 3
+                },
+                {
+                  "displayname": "4 nodes",
+                  "value": 4
+                },
+                {
+                  "displayname": "5 nodes",
+                  "value": 5
+                },
+                {
+                  "displayname": "6 nodes",
+                  "value": 6
+                },
+                {
+                  "displayname": "7 nodes",
+                  "value": 7
+                },
+                {
+                  "displayname": "8 nodes",
+                  "value": 8
+                }
+              ]
+            },
+            {
+              "key": "oracle_sid",
+              "display_name": "Oracle Database SID",
+              "type": "string",
+              "default_value": "ORADB",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^[A-Za-z][A-Za-z0-9_]{0,7}$",
+                  "description": "SID must start with a letter and be 1-8 characters (letters, numbers, underscore)"
+                }
+              ]
+            },
+            {
+              "key": "oracle_password",
+              "display_name": "Oracle SYS Password",
+              "type": "password",
+              "required": true,
+              "description": "Password for Oracle SYS and SYSTEM users (8-30 chars, must include uppercase, lowercase, digit, and special character)",
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,30}$",
+                  "description": "Password must be 8-30 characters with uppercase, lowercase, digit, and special character"
+                }
+              ]
+            },
+            {
+              "key": "powervs_rac_networks",
+              "display_name": "Pre-created RAC Networks",
+              "type": "array",
+              "required": true,
+              "description": "Three pre-created PowerVS networks for RAC: public (client access), private1 (interconnect), private2 (interconnect). Each network object must include: name, cidr, dns_servers (array), gateway"
+            },
+            {
+              "key": "cos_access_key_id",
+              "display_name": "COS Access Key ID",
+              "type": "string",
+              "required": true,
+              "description": "IBM Cloud Object Storage HMAC access key ID"
+            },
+            {
+              "key": "cos_secret_access_key",
+              "display_name": "COS Secret Access Key",
+              "type": "password",
+              "required": true,
+              "description": "IBM Cloud Object Storage HMAC secret access key"
+            },
+            {
+              "key": "cos_bucket_name",
+              "display_name": "COS Bucket Name",
+              "type": "string",
+              "required": true,
+              "description": "Name of the COS bucket containing Oracle software"
+            },
+            {
+              "key": "cos_bucket_region",
+              "display_name": "COS Bucket Region",
+              "type": "string",
+              "default_value": "us-south",
+              "required": true,
+              "options": [
+                {
+                  "displayname": "US South",
+                  "value": "us-south"
+                },
+                {
+                  "displayname": "US East",
+                  "value": "us-east"
+                },
+                {
+                  "displayname": "EU Germany",
+                  "value": "eu-de"
+                },
+                {
+                  "displayname": "EU Great Britain",
+                  "value": "eu-gb"
+                },
+                {
+                  "displayname": "Japan",
+                  "value": "jp-tok"
+                },
+                {
+                  "displayname": "Australia",
+                  "value": "au-syd"
+                }
+              ]
+            }
+          ],
+          "scripts": [],
+          "iam_permissions": [
+            {
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ],
+              "service_name": "cloud-object-storage"
+            },
+            {
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager",
+                "crn:v1:bluemix:public:iam::::role:Administrator"
+              ],
+              "service_name": "is.vpc"
+            },
+            {
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Editor"
+              ],
+              "service_name": "transit.gateway"
+            },
+            {
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ],
+              "service_name": "power-iaas"
+            }
+          ],
+          "architecture": {
+            "features": [
+              {
+                "title": "Fully Automated RAC Deployment",
+                "description": "Complete Oracle RAC cluster with Grid Infrastructure and shared storage"
+              },
+              {
+                "title": "High Availability Architecture",
+                "description": "Multi-node cluster with anti-affinity placement and SCAN load balancing"
+              },
+              {
+                "title": "Production-Ready Infrastructure",
+                "description": "VPC landing zone with network services and four-network RAC topology"
+              }
+            ],
+            "diagrams": [
+              {
+                "diagram": {
+                  "caption": "Oracle RAC Ready-to-Go on Power Virtual Server with VPC Landing Zone",
+                  "url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/main/images/Oracle_DA_RAC_ReadyToGo.svg",
+                  "type": "image/svg+xml"
+                },
+                "description": "This fully automated deployable architecture provisions Oracle Real Application Clusters (RAC) on IBM Power Virtual Server with complete VPC landing zone integration. It creates VPC infrastructure, PowerVS workspace, network services, and deploys a multi-node Oracle RAC cluster with Grid Infrastructure and shared ASM storage, all automated via Ansible."
+              }
+            ]
+          },
+          "terraform_version": "1.9"
         }
       ]
     }
