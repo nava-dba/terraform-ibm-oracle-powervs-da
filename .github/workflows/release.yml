@@ -34,11 +34,15 @@ on:
       - main
 
 env:
-  IBM_API_URL:         "https://projects.api.cloud.ibm.com/v1"
-  SI_VARIATION_LABEL:  "Oracle Database – Single Instance (SI)"
-  RAC_VARIATION_LABEL: "Oracle Database – Real Application Clusters (RAC)"
-  SI_WORKING_DIR:      "solutions/oracle/si"
-  RAC_WORKING_DIR:     "solutions/oracle/rac"
+  IBM_API_URL:                "https://projects.api.cloud.ibm.com/v1"
+  SI_VARIATION_LABEL:         "Oracle Database – Single Instance (SI)"
+  RAC_VARIATION_LABEL:        "Oracle Database – Real Application Clusters (RAC)"
+  SI_RTG_VARIATION_LABEL:     "Oracle Database – Single Instance Ready-to-Go"
+  RAC_RTG_VARIATION_LABEL:    "Oracle Database – RAC Ready-to-Go"
+  SI_WORKING_DIR:             "solutions/oracle/si"
+  RAC_WORKING_DIR:            "solutions/oracle/rac"
+  SI_RTG_WORKING_DIR:         "solutions/oracle/si-ready-to-go"
+  RAC_RTG_WORKING_DIR:        "solutions/oracle/rac-ready-to-go"
 
 jobs:
 
@@ -138,8 +142,10 @@ jobs:
     if: needs.semantic_release.outputs.released == 'true'
 
     outputs:
-      si_version_id:  ${{ steps.import_si.outputs.si_version_id }}
-      rac_version_id: ${{ steps.import_rac.outputs.rac_version_id }}
+      si_version_id:      ${{ steps.import_si.outputs.si_version_id }}
+      rac_version_id:     ${{ steps.import_rac.outputs.rac_version_id }}
+      si_rtg_version_id:  ${{ steps.import_si_rtg.outputs.si_rtg_version_id }}
+      rac_rtg_version_id: ${{ steps.import_rac_rtg.outputs.rac_rtg_version_id }}
 
     steps:
       - name: Checkout
@@ -247,6 +253,98 @@ jobs:
           RAC_VERSION_ID=$(echo "${RAC_LOCATOR}" | cut -d'.' -f2)
           echo "rac_version_id=${RAC_VERSION_ID}" >> $GITHUB_OUTPUT
           echo "RAC v${VERSION} imported - version_id: ${RAC_VERSION_ID}"
+
+      - name: Import SI Ready-to-Go Version to Catalog
+        id: import_si_rtg
+        run: |
+          VERSION="${{ needs.semantic_release.outputs.version }}"
+          REPO="${{ github.repository }}"
+          ZIPURL="https://github.com/${REPO}/archive/refs/tags/v${VERSION}.tar.gz"
+
+          echo "Importing SI Ready-to-Go v${VERSION}"
+
+          ibmcloud catalog offering import-version \
+            --catalog           "${{ secrets.IBM_CATALOG_ID }}" \
+            --offering          "${{ secrets.IBM_OFFERING_ID }}" \
+            --zipurl            "${ZIPURL}" \
+            --target-version    "${VERSION}" \
+            --variation-label   "${SI_RTG_VARIATION_LABEL}" \
+            --working-directory "${SI_RTG_WORKING_DIR}" \
+            --install-type      "fullstack" \
+            --include-config
+
+          SI_RTG_LOCATOR=$(ibmcloud catalog offering get \
+            --catalog  "${{ secrets.IBM_CATALOG_ID }}" \
+            --offering "${{ secrets.IBM_OFFERING_ID }}" \
+            --output json 2>/dev/null | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          target_version = "'"${VERSION}"'"
+          for kind in data.get("kinds", []):
+              for v in kind.get("versions", []):
+                  if v.get("version") == target_version:
+                      flavor_label = v.get("flavor", {}).get("label", "")
+                      if "ready-to-go" in flavor_label.lower() and "single instance" in flavor_label.lower():
+                          print(v.get("version_locator", ""))
+                          sys.exit(0)
+          ')
+
+          echo "SI Ready-to-Go Version Locator: ${SI_RTG_LOCATOR}"
+
+          if [ -z "${SI_RTG_LOCATOR}" ]; then
+            echo "Could not extract SI Ready-to-Go version locator"
+            exit 1
+          fi
+
+          SI_RTG_VERSION_ID=$(echo "${SI_RTG_LOCATOR}" | cut -d'.' -f2)
+          echo "si_rtg_version_id=${SI_RTG_VERSION_ID}" >> $GITHUB_OUTPUT
+          echo "SI Ready-to-Go v${VERSION} imported - version_id: ${SI_RTG_VERSION_ID}"
+
+      - name: Import RAC Ready-to-Go Version to Catalog
+        id: import_rac_rtg
+        run: |
+          VERSION="${{ needs.semantic_release.outputs.version }}"
+          REPO="${{ github.repository }}"
+          ZIPURL="https://github.com/${REPO}/archive/refs/tags/v${VERSION}.tar.gz"
+
+          echo "Importing RAC Ready-to-Go v${VERSION}"
+
+          ibmcloud catalog offering import-version \
+            --catalog           "${{ secrets.IBM_CATALOG_ID }}" \
+            --offering          "${{ secrets.IBM_OFFERING_ID }}" \
+            --zipurl            "${ZIPURL}" \
+            --target-version    "${VERSION}" \
+            --variation-label   "${RAC_RTG_VARIATION_LABEL}" \
+            --working-directory "${RAC_RTG_WORKING_DIR}" \
+            --install-type      "fullstack" \
+            --include-config
+
+          RAC_RTG_LOCATOR=$(ibmcloud catalog offering get \
+            --catalog  "${{ secrets.IBM_CATALOG_ID }}" \
+            --offering "${{ secrets.IBM_OFFERING_ID }}" \
+            --output json 2>/dev/null | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          target_version = "'"${VERSION}"'"
+          for kind in data.get("kinds", []):
+              for v in kind.get("versions", []):
+                  if v.get("version") == target_version:
+                      flavor_label = v.get("flavor", {}).get("label", "")
+                      if "ready-to-go" in flavor_label.lower() and "rac" in flavor_label.lower():
+                          print(v.get("version_locator", ""))
+                          sys.exit(0)
+          ')
+
+          echo "RAC Ready-to-Go Version Locator: ${RAC_RTG_LOCATOR}"
+
+          if [ -z "${RAC_RTG_LOCATOR}" ]; then
+            echo "Could not extract RAC Ready-to-Go version locator"
+            exit 1
+          fi
+
+          RAC_RTG_VERSION_ID=$(echo "${RAC_RTG_LOCATOR}" | cut -d'.' -f2)
+          echo "rac_rtg_version_id=${RAC_RTG_VERSION_ID}" >> $GITHUB_OUTPUT
+          echo "RAC Ready-to-Go v${VERSION} imported - version_id: ${RAC_RTG_VERSION_ID}"
 
       - name: Show Catalog State
         run: |
