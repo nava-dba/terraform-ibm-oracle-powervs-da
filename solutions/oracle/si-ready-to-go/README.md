@@ -111,7 +111,7 @@ prefix                          = "oradb"
 ssh_public_key                  = "ssh-rsa AAAAB3..."
 ssh_private_key                 = "-----BEGIN RSA PRIVATE KEY-----..."
 powervs_aix_image_name          = "7300-02-01"
-powervs_aix_instance = {
+pi_aix_instance = {
   memory_gb    = 32
   cores        = 2
   core_type    = "shared"
@@ -179,7 +179,7 @@ powervs_data_volume = {
 
 #### Small (Development/Test)
 ```hcl
-powervs_aix_instance = {
+pi_aix_instance = {
   memory_gb    = 16
   cores        = 1
   core_type    = "shared"
@@ -190,7 +190,7 @@ powervs_aix_instance = {
 
 #### Medium (Production)
 ```hcl
-powervs_aix_instance = {
+pi_aix_instance = {
   memory_gb    = 64
   cores        = 4
   core_type    = "shared"
@@ -201,7 +201,7 @@ powervs_aix_instance = {
 
 #### Large (High Performance)
 ```hcl
-powervs_aix_instance = {
+pi_aix_instance = {
   memory_gb    = 128
   cores        = 8
   core_type    = "dedicated"

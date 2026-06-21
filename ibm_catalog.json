@@ -1201,77 +1201,53 @@
               ]
             },
             {
-              "key": "powervs_zone",
-              "display_name": "PowerVS Zone",
+              "key": "region",
+              "display_name": "Deployment Region",
               "type": "string",
-              "default_value": "dal12",
+              "default_value": "",
               "required": true,
               "options": [
                 {
-                  "displayname": "Dallas 12 (dal12)",
-                  "value": "dal12"
+                  "displayname": "Dallas (dallas)",
+                  "value": "us-south"
                 },
                 {
-                  "displayname": "Dallas 13 (dal13)",
-                  "value": "dal13"
+                  "displayname": "Washington, D.C.",
+                  "value": "us-east"
                 },
                 {
-                  "displayname": "Washington DC 06 (wdc06)",
-                  "value": "wdc06"
+                  "displayname": "Frankfurt",
+                  "value": "eu-de"
                 },
                 {
-                  "displayname": "Washington DC 07 (wdc07)",
-                  "value": "wdc07"
+                  "displayname": "London",
+                  "value": "eu-gb"
                 },
                 {
-                  "displayname": "Frankfurt 04 (eu-de-1)",
-                  "value": "eu-de-1"
+                  "displayname": "Tokyo",
+                  "value": "jp-tok"
                 },
                 {
-                  "displayname": "Frankfurt 05 (eu-de-2)",
-                  "value": "eu-de-2"
+                  "displayname": "Sydney",
+                  "value": "au-syd"
                 },
                 {
-                  "displayname": "London 06 (lon06)",
-                  "value": "lon06"
+                  "displayname": "Sao Paulo",
+                  "value": "br-sao"
                 },
                 {
-                  "displayname": "Madrid 02 (mad02)",
-                  "value": "mad02"
-                },
-                {
-                  "displayname": "Madrid 04 (mad04)",
-                  "value": "mad04"
-                },
-                {
-                  "displayname": "Tokyo 04 (tok04)",
-                  "value": "tok04"
-                },
-                {
-                  "displayname": "Osaka 21 (osa21)",
-                  "value": "osa21"
-                },
-                {
-                  "displayname": "Sydney 04 (syd04)",
-                  "value": "syd04"
-                },
-                {
-                  "displayname": "Sydney 05 (syd05)",
-                  "value": "syd05"
-                },
-                {
-                  "displayname": "Sao Paulo 01 (sao01)",
-                  "value": "sao01"
-                },
-                {
-                  "displayname": "Toronto 01 (tor01)",
-                  "value": "tor01"
-                },
-                {
-                  "displayname": "Montreal 01 (mon01)",
-                  "value": "mon01"
+                  "displayname": "Toronto",
+                  "value": "ca-tor"
                 }
-              ]
+              ],
+              "custom_config": {}
+            },
+            {
+              "key": "zone",
+              "display_name": "PowerVS Zone",
+              "type": "string",
+              "required": true,
+              "default_value": ""
             },
             {
               "key": "powervs_resource_group_name",
@@ -1636,83 +1612,59 @@
               ]
             },
             {
-              "key": "powervs_zone",
-              "display_name": "PowerVS Zone",
+              "key": "region",
+              "display_name": "Deployment Region",
               "type": "string",
-              "default_value": "dal12",
+              "default_value": "",
               "required": true,
               "options": [
                 {
-                  "displayname": "Dallas 12 (dal12)",
-                  "value": "dal12"
+                  "displayname": "Dallas (dallas)",
+                  "value": "us-south"
                 },
                 {
-                  "displayname": "Dallas 13 (dal13)",
-                  "value": "dal13"
+                  "displayname": "Washington, D.C.",
+                  "value": "us-east"
                 },
                 {
-                  "displayname": "Washington DC 06 (wdc06)",
-                  "value": "wdc06"
+                  "displayname": "Frankfurt",
+                  "value": "eu-de"
                 },
                 {
-                  "displayname": "Washington DC 07 (wdc07)",
-                  "value": "wdc07"
+                  "displayname": "London",
+                  "value": "eu-gb"
                 },
                 {
-                  "displayname": "Frankfurt 04 (eu-de-1)",
-                  "value": "eu-de-1"
+                  "displayname": "Tokyo",
+                  "value": "jp-tok"
                 },
                 {
-                  "displayname": "Frankfurt 05 (eu-de-2)",
-                  "value": "eu-de-2"
+                  "displayname": "Sydney",
+                  "value": "au-syd"
                 },
                 {
-                  "displayname": "London 06 (lon06)",
-                  "value": "lon06"
+                  "displayname": "Sao Paulo",
+                  "value": "br-sao"
                 },
                 {
-                  "displayname": "Madrid 02 (mad02)",
-                  "value": "mad02"
-                },
-                {
-                  "displayname": "Madrid 04 (mad04)",
-                  "value": "mad04"
-                },
-                {
-                  "displayname": "Tokyo 04 (tok04)",
-                  "value": "tok04"
-                },
-                {
-                  "displayname": "Osaka 21 (osa21)",
-                  "value": "osa21"
-                },
-                {
-                  "displayname": "Sydney 04 (syd04)",
-                  "value": "syd04"
-                },
-                {
-                  "displayname": "Sydney 05 (syd05)",
-                  "value": "syd05"
-                },
-                {
-                  "displayname": "Sao Paulo 01 (sao01)",
-                  "value": "sao01"
-                },
-                {
-                  "displayname": "Toronto 01 (tor01)",
-                  "value": "tor01"
-                },
-                {
-                  "displayname": "Montreal 01 (mon01)",
-                  "value": "mon01"
+                  "displayname": "Toronto",
+                  "value": "ca-tor"
                 }
-              ]
+              ],
+              "custom_config": {}
+            },
+            {
+              "key": "zone",
+              "display_name": "PowerVS Zone",
+              "type": "string",
+              "required": true,
+              "default_value": ""
             },
             {
               "key": "powervs_resource_group_name",
               "display_name": "Resource Group Name",
               "type": "string",
-              "default_value": "Default",
+              "default_value": "oracle-da",
               "required": false
             },
             {
@@ -1728,24 +1680,6 @@
               "type": "string",
               "default_value": "10.51.0.0/24",
               "required": false
-            },
-            {
-              "key": "powervs_rac_networks",
-              "display_name": "Pre-created RAC Networks",
-              "type": "array",
-              "required": true,
-              "description": "Three pre-created PowerVS networks: [0]=public (client), [1]=private1 (interconnect), [2]=private2 (interconnect). Each must have: name, id, cidr",
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "code_editor",
-                "config_constraints": {
-                  "supportedLanguages": [
-                    "hcl"
-                  ]
-                }
-              },
-              "default_value": "[\n  {\n    name = \"rac-public\"\n    id   = \"network-id-1\"\n    cidr = \"10.52.0.0/24\"\n  },\n  {\n    name = \"rac-private1\"\n    id   = \"network-id-2\"\n    cidr = \"10.53.0.0/24\"\n  },\n  {\n    name = \"rac-private2\"\n    id   = \"network-id-3\"\n    cidr = \"10.54.0.0/24\"\n  }\n]"
             },
             {
               "key": "external_access_ip",
@@ -1833,30 +1767,34 @@
               ]
             },
             {
-              "key": "powervs_aix_image_name",
+              "key": "pi_aix_image_name",
               "display_name": "AIX OS Image Name",
               "type": "string",
-              "default_value": "7300-02-01",
-              "required": true,
+              "default_value": "7300-03-02",
+              "required": false,
               "options": [
                 {
-                  "displayname": "AIX 7.2 TL5 SP6 (7200-05-06)",
-                  "value": "7200-05-06"
+                  "displayname": "7200-05-11",
+                  "value": "7200-05-11"
                 },
                 {
-                  "displayname": "AIX 7.3 TL1 SP2 (7300-01-02)",
-                  "value": "7300-01-02"
+                  "displayname": "7300-03-01",
+                  "value": "7300-03-01"
                 },
                 {
-                  "displayname": "AIX 7.3 TL2 SP1 (7300-02-01)",
-                  "value": "7300-02-01"
+                  "displayname": "7300-04-00",
+                  "value": "7300-04-00"
+                },
+                {
+                  "displayname": "7300-03-02",
+                  "value": "7300-03-02"
                 }
               ]
             },
             {
-              "key": "powervs_aix_instance",
-              "display_name": "AIX Instance Configuration (per node)",
-              "description": "CPU and memory configuration for each RAC node. memory_gb must be at least 24GB for Oracle RAC",
+              "key": "pi_aix_instance",
+              "display_name": "AIX Instance Configuration(CPU,Mem)",
+              "description": "Configuration for the IBM PowerVS AIX instance where Oracle Database will be installed. IMPORTANT: memory_gb must be at least 16GB. Fields: memory_gb (RAM in GB, minimum 16GB required), cores (number of virtual processors), core_type (shared | capped | dedicated), machine_type (e.g., s1022 or e980), pin_policy (hard | soft), health_status (OK | Warning | Critical).",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1864,33 +1802,18 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "memory_gb": 32,
-                "cores": 2,
+                "memory_gb": "16",
+                "cores": null,
                 "core_type": "shared",
                 "machine_type": "s1022",
-                "pin_policy": "none"
+                "pin_policy": "hard",
+                "health_status": "OK"
               }
             },
             {
-              "key": "powervs_oravg_volume",
-              "display_name": "Oracle Software Volume",
-              "description": "Storage for Oracle binaries and Grid Infrastructure",
-              "required": false,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "json_editor"
-              },
-              "default_value": {
-                "size": "50",
-                "count": "1",
-                "tier": "tier3"
-              }
-            },
-            {
-              "key": "powervs_data_volume",
-              "display_name": "Database Data Volume (ASM)",
-              "description": "Shared storage for Oracle DATA ASM diskgroup",
+              "key": "pi_oravg_volume",
+              "display_name": "Oracle Software Binary Disks",
+              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size × count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB × count=2 = 200GB total.",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1904,9 +1827,8 @@
               }
             },
             {
-              "key": "powervs_redo_volume",
-              "display_name": "Redo Log Volume (ASM)",
-              "description": "Shared storage for Oracle REDO ASM diskgroup",
+              "key": "pi_data_volume",
+              "display_name": "Database Data Disks",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1914,9 +1836,24 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "50",
-                "count": "2",
+                "size": "5",
+                "count": "8",
                 "tier": "tier1"
+              }
+            },
+            {
+              "key": "pi_redo_volume",
+              "display_name": "Redo Log Disks",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "2",
+                "count": "4",
+                "tier": "tier5k"
               }
             },
             {
