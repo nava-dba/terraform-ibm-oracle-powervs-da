@@ -1281,11 +1281,11 @@
               "required": false
             },
             {
-              "key": "tags",
+              "key": "pi_user_tags",
               "display_name": "Resource Tags",
-              "type": "array",
               "required": false,
-              "default_value": []
+              "type": "string",
+              "default_value": "[\"tag-001\", \"tag-002\"]"
             },
             {
               "key": "powervs_management_network_cidr",
@@ -1322,30 +1322,30 @@
               }
             },
             {
-              "key": "powervs_aix_image_name",
+              "key": "pi_aix_image_name",
               "display_name": "AIX OS Image Name",
               "type": "string",
-              "default_value": "7300-02-01",
-              "required": true,
+              "default_value": "7300-04-00",
+              "required": false,
               "options": [
                 {
-                  "displayname": "AIX 7.2 TL5 SP6 (7200-05-06)",
-                  "value": "7200-05-06"
+                  "displayname": "7200-05-11",
+                  "value": "7200-05-11"
                 },
                 {
-                  "displayname": "AIX 7.3 TL1 SP2 (7300-01-02)",
-                  "value": "7300-01-02"
+                  "displayname": "7300-03-01",
+                  "value": "7300-03-01"
                 },
                 {
-                  "displayname": "AIX 7.3 TL2 SP1 (7300-02-01)",
-                  "value": "7300-02-01"
+                  "displayname": "7300-04-00",
+                  "value": "7300-04-00"
                 }
               ]
             },
             {
-              "key": "powervs_aix_instance",
-              "display_name": "AIX Instance Configuration",
-              "description": "CPU and memory configuration for AIX instance. memory_gb must be at least 16GB for Oracle Database",
+              "key": "pi_aix_instance",
+              "display_name": "AIX Instance Configuration(CPU,Mem)",
+              "description": "Configuration for the IBM PowerVS AIX instance where Oracle Database will be installed. IMPORTANT: memory_gb must be at least 16GB. Fields: memory_gb (RAM in GB, minimum 16GB required), cores (number of virtual processors), core_type (shared | capped | dedicated), machine_type (e.g., s1022 or e980), pin_policy (hard | soft), health_status (OK | Warning | Critical).",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1353,11 +1353,12 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "memory_gb": 32,
-                "cores": 2,
+                "memory_gb": "16",
+                "cores": null,
                 "core_type": "shared",
                 "machine_type": "s1022",
-                "pin_policy": "none"
+                "pin_policy": "hard",
+                "health_status": "OK"
               }
             },
             {
@@ -1378,25 +1379,9 @@
               ]
             },
             {
-              "key": "powervs_oravg_volume",
-              "display_name": "Oracle Software Volume",
-              "description": "Storage for Oracle binaries and Grid Infrastructure",
-              "required": false,
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "json_editor"
-              },
-              "default_value": {
-                "size": "50",
-                "count": "1",
-                "tier": "tier3"
-              }
-            },
-            {
-              "key": "powervs_data_volume",
-              "display_name": "Database Data Volume",
-              "description": "Storage for Oracle DATA diskgroup or filesystem",
+              "key": "pi_oravg_volume",
+              "display_name": "Oracle Software Binary Disks",
+              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size × count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB × count=2 = 200GB total.",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1410,9 +1395,8 @@
               }
             },
             {
-              "key": "powervs_redo_volume",
-              "display_name": "Redo Log Volume",
-              "description": "Storage for Oracle REDO logs",
+              "key": "pi_data_volume",
+              "display_name": "Database Data Disks",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1420,9 +1404,24 @@
                 "type": "json_editor"
               },
               "default_value": {
-                "size": "50",
-                "count": "2",
+                "size": "5",
+                "count": "8",
                 "tier": "tier1"
+              }
+            },
+            {
+              "key": "pi_redo_volume",
+              "display_name": "Redo Log Disks",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "size": "2",
+                "count": "4",
+                "tier": "tier5k"
               }
             },
             {
@@ -1459,11 +1458,11 @@
               }
             },
             {
-              "key": "oracle_redolog_size_in_mb",
-              "display_name": "Redo Log Size (MB)",
-              "type": "number",
-              "default_value": 512,
-              "required": false
+              "key": "redolog_size_in_mb",
+              "display_name": "Redo log member size (MB)",
+              "type": "string",
+              "required": false,
+              "default_value": "1024"
             },
             {
               "key": "ibmcloud_cos_service_credentials",
@@ -1741,7 +1740,9 @@
                 "original_grouping": "deployment",
                 "type": "code_editor",
                 "config_constraints": {
-                  "supportedLanguages": ["hcl"]
+                  "supportedLanguages": [
+                    "hcl"
+                  ]
                 }
               },
               "default_value": "[\n  {\n    name = \"rac-public\"\n    id   = \"network-id-1\"\n    cidr = \"10.52.0.0/24\"\n  },\n  {\n    name = \"rac-private1\"\n    id   = \"network-id-2\"\n    cidr = \"10.53.0.0/24\"\n  },\n  {\n    name = \"rac-private2\"\n    id   = \"network-id-3\"\n    cidr = \"10.54.0.0/24\"\n  }\n]"
