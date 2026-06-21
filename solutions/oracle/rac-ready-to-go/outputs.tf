@@ -124,13 +124,13 @@ output "vsi_names" {
 
 output "rac_node_count" {
   description = "Number of nodes in the RAC cluster."
-  value       = var.rac_node_count
+  value       = var.rac_nodes
 }
 
 output "rac_cluster_nodes" {
   description = "List of RAC cluster node details."
   value = [
-    for idx in range(var.rac_node_count) : {
+    for idx in range(var.rac_nodes) : {
       name         = local.rac_instances[idx].server_name
       id           = local.rac_instances[idx].pvm_instance_id
       management_ip = local.rac_node_ips[idx].management
@@ -157,12 +157,12 @@ output "rac_scan_ips" {
 
 output "oracle_sid" {
   description = "Oracle System Identifier (SID)."
-  value       = var.oracle_sid
+  value       = var.ora_sid
 }
 
 output "oracle_database_name" {
   description = "Oracle RAC database name (typically SID for RAC)."
-  value       = var.oracle_sid
+  value       = var.ora_sid
 }
 
 ########################################################
@@ -213,13 +213,13 @@ output "ssh_access_instructions" {
        ssh root@${module.landing_zone.access_host_or_ip}
     
     2. From Bastion, access RAC nodes:
-       ${join("\n       ", [for idx in range(var.rac_node_count) : "ssh root@${local.rac_node_ips[idx].management}  # ${local.rac_instances[idx].server_name}"])}
+       ${join("\n       ", [for idx in range(var.rac_nodes) : "ssh root@${local.rac_node_ips[idx].management}  # ${local.rac_instances[idx].server_name}"])}
     
     3. Oracle RAC Database Connection:
-       - Database Name: ${var.oracle_sid}
+       - Database Name: ${var.ora_sid}
        - SCAN Name: ${local.scan_name}
        - SCAN IPs: ${join(", ", local.scan_ips_list)}
-       - Connect String: ${var.oracle_sid}/${var.oracle_sid}@${local.scan_name}:1521/${var.oracle_sid}
+       - Connect String: ${var.ora_sid}/${var.ora_sid}@${local.scan_name}:1521/${var.ora_sid}
        - Connect as SYSDBA: sqlplus / as sysdba
     
     4. Network Services:
@@ -231,7 +231,7 @@ output "ssh_access_instructions" {
     5. RAC Cluster Management:
        - Check cluster status: crsctl stat res -t
        - Check ASM status: asmcmd lsdg
-       - Check database status: srvctl status database -d ${var.oracle_sid}
+       - Check database status: srvctl status database -d ${var.ora_sid}
     
     ========================================
   EOT
@@ -245,16 +245,40 @@ output "rac_cluster_summary" {
   description = "Summary of the Oracle RAC cluster configuration."
   value = {
     cluster_name  = "${var.prefix}-rac"
-    node_count    = var.rac_node_count
+    node_count    = var.rac_nodes
     scan_name     = local.scan_name
     scan_ips      = local.scan_ips_list
-    database_name = var.oracle_sid
+    database_name = var.ora_sid
     nodes = [
-      for idx in range(var.rac_node_count) : {
+      for idx in range(var.rac_nodes) : {
         hostname      = local.rac_instances[idx].server_name
         management_ip = local.rac_node_ips[idx].management
         public_ip     = local.rac_node_ips[idx].public
       }
     ]
+  }
+}
+########################################################
+# RAC Network Outputs
+########################################################
+
+output "rac_networks_created" {
+  description = "Automatically created RAC networks"
+  value = {
+    public = {
+      name = ibm_pi_network.rac_public.pi_network_name
+      id   = ibm_pi_network.rac_public.network_id
+      cidr = ibm_pi_network.rac_public.pi_cidr
+    }
+    private1 = {
+      name = ibm_pi_network.rac_private1.pi_network_name
+      id   = ibm_pi_network.rac_private1.network_id
+      cidr = ibm_pi_network.rac_private1.pi_cidr
+    }
+    private2 = {
+      name = ibm_pi_network.rac_private2.pi_network_name
+      id   = ibm_pi_network.rac_private2.network_id
+      cidr = ibm_pi_network.rac_private2.pi_cidr
+    }
   }
 }

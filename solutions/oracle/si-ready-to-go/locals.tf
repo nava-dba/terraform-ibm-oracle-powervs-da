@@ -65,40 +65,46 @@ locals {
   powervs_network_services_config = {
     squid = {
       enable               = true
-      squid_server_ip_port = module.landing_zone.proxy_host_or_ip_port
-      no_proxy_hosts       = "161.0.0.0/8,10.0.0.0/8,localhost,127.0.0.1"
+      squid_server_ip_port = module.standard.proxy_host_or_ip_port
+      no_proxy_hosts       = "161.0.0.0/8,${var.vpc_subnet_cidrs.vpn},${var.vpc_subnet_cidrs.mgmt},${var.vpc_subnet_cidrs.vpe},${var.vpc_subnet_cidrs.edge},${var.powervs_oracle_network_cidr != null ? "${var.powervs_oracle_network_cidr}," : ""}${var.client_to_site_vpn.client_ip_pool}"
     }
     nfs = {
       enable          = true
-      nfs_server_path = module.landing_zone.nfs_host_or_ip_path
+      nfs_server_path = module.standard.nfs_host_or_ip_path
       nfs_client_path = var.nfs_server_config.mount_path
-      opts            = module.landing_zone.network_services_config.nfs.opts
-      fstype          = module.landing_zone.network_services_config.nfs.fstype
+      opts            = module.standard.network_services_config.nfs.opts
+      fstype          = module.standard.network_services_config.nfs.fstype
     }
     dns = {
       enable        = true
-      dns_server_ip = module.landing_zone.dns_host_or_ip
+      dns_server_ip = module.standard.dns_host_or_ip
     }
     ntp = {
-      enable        = module.landing_zone.ntp_host_or_ip != "" ? true : false
-      ntp_server_ip = module.landing_zone.ntp_host_or_ip
+      enable        = module.standard.ntp_host_or_ip != "" ? true : false
+      ntp_server_ip = module.standard.ntp_host_or_ip
     }
   }
 
   # PowerVS AIX instance configuration
+  # CPU cores with fallback to 0.25 for public deployment if not specified
+  pi_aix_cpu_cores = coalesce(
+    try(var.pi_aix_instance.cores, null),
+    0.25
+  )
+
   powervs_aix_instance = {
-    name                       = "ora-aix"
-    image_id                   = var.powervs_aix_image_name
-    memory_size                = var.powervs_aix_instance.memory_gb
-    number_of_processors       = var.powervs_aix_instance.cores
-    cpu_proc_type              = var.powervs_aix_instance.core_type
-    server_type                = var.powervs_aix_instance.machine_type
-    pin_policy                 = var.powervs_aix_instance.pin_policy
-    boot_image_storage_tier    = "tier1"
-    user_tags                  = var.tags
+    name                    = "ora-aix"
+    image_id                = var.pi_aix_image_name
+    memory_size             = var.pi_aix_instance.memory_gb
+    number_of_processors    = local.pi_aix_cpu_cores
+    cpu_proc_type           = var.pi_aix_instance.core_type
+    server_type             = var.pi_aix_instance.machine_type
+    pin_policy              = var.pi_aix_instance.pin_policy
+    boot_image_storage_tier = "tier1"
+    user_tags               = var.pi_user_tags
   }
 
-  # Storage configuration based on Oracle install type
+  # Storage volumes configuration
   pi_boot_volume = {
     name  = "rootvg"
     size  = "40"
@@ -121,28 +127,28 @@ locals {
   }
 
   # Calculate total sizes for Ansible (subtract 1GB for VG overhead)
-  oravg_total_size = tonumber(var.powervs_oravg_volume.size) * tonumber(var.powervs_oravg_volume.count)
-  data_total_size  = tonumber(var.powervs_data_volume.size) * tonumber(var.powervs_data_volume.count)
-  redo_total_size  = tonumber(var.powervs_redo_volume.size) * tonumber(var.powervs_redo_volume.count)
+  oravg_total_size = tonumber(var.pi_oravg_volume.size) * tonumber(var.pi_oravg_volume.count)
+  data_total_size  = tonumber(var.pi_data_volume.size) * tonumber(var.pi_data_volume.count)
+  redo_total_size  = tonumber(var.pi_redo_volume.size) * tonumber(var.pi_redo_volume.count)
   arch_total_size  = tonumber(local.pi_arc_volume.size) * tonumber(local.pi_arc_volume.count)
 
-  # Storage configuration for AIX instance
+  # Storage configuration for AIX instance based on Oracle install type
   powervs_aix_storage_config = (
     var.oracle_install_type == "ASM" ?
     [
       local.pi_boot_volume,
-      var.powervs_oravg_volume,   # Oracle software VG
-      local.pi_crsdg_volume,       # ASM CRSDG
-      var.powervs_data_volume,     # ASM DATA diskgroup
-      var.powervs_redo_volume,     # ASM REDO diskgroup
-      local.pi_arc_volume          # ASM ARCH diskgroup
+      var.pi_oravg_volume, # Oracle software VG
+      local.pi_crsdg_volume,    # ASM CRSDG
+      var.pi_data_volume,  # ASM DATA diskgroup
+      var.pi_redo_volume,  # ASM REDO diskgroup
+      local.pi_arc_volume       # ASM ARCH diskgroup
     ] :
     [
       local.pi_boot_volume,
-      var.powervs_oravg_volume,    # Oracle software VG
-      var.powervs_data_volume,     # JFS2 DATAVG (for datafiles)
-      var.powervs_redo_volume,     # JFS2 REDOVG (for redo + control files)
-      local.pi_arc_volume          # JFS2 ARCHVG (for archives)
+      var.pi_oravg_volume, # Oracle software VG
+      var.pi_data_volume,  # JFS2 DATAVG (for datafiles)
+      var.pi_redo_volume,  # JFS2 REDOVG (for redo + control files)
+      local.pi_arc_volume       # JFS2 ARCHVG (for archives)
     ]
   )
 
@@ -151,7 +157,7 @@ locals {
   cos_apikey               = local.cos_service_credentials.apikey
   cos_resource_instance_id = local.cos_service_credentials.resource_instance_id
 
-  # COS configurations for Oracle binaries
+  # COS configurations for Oracle binaries download
   ibmcloud_cos_oracle_configuration = {
     cos_apikey               = local.cos_apikey
     cos_region               = var.ibmcloud_cos_configuration.cos_region
@@ -188,32 +194,30 @@ locals {
     download_dir_path        = local.nfs_mount
   }
 
+  # AIX instance initialization configuration
+  powervs_instance_init_aix = {
+    enable             = true
+    bastion_host_ip    = module.standard.access_host_or_ip
+    ansible_host_or_ip = module.standard.ansible_host_or_ip
+    ssh_private_key    = var.ssh_private_key
+  }
+
   # Ansible playbook variables for Oracle installation
+  # Uses File Storage NFS discovered from Network Services VSI
   playbook_oracle_install_vars = {
-    ORA_NFS_HOST        = module.landing_zone.ansible_host_or_ip
-    ORA_NFS_DEVICE      = local.nfs_mount
+    ORA_NFS_HOST        = local.nfs_server
+    ORA_NFS_DEVICE      = local.nfs_device  # NFS export path for mounting
     DATABASE_SW         = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_database_sw_path}"
     GRID_SW             = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path}"
     RU_FILE             = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_ru_file_path}"
     OPATCH_FILE         = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path}"
-    ORA_SID             = var.oracle_sid
+    ORA_SID             = var.ora_sid
     ORACLE_INSTALL_TYPE = var.oracle_install_type
-    ORA_DB_PASSWORD     = var.oracle_db_password
-    REDOLOG_SIZE_IN_MB  = var.oracle_redolog_size_in_mb
+    ORA_DB_PASSWORD     = var.ora_db_password
+    REDOLOG_SIZE_IN_MB  = var.redolog_size_in_mb
     ORAVG_SIZE          = tostring(local.oravg_total_size - 1)
     DATA_SIZE           = tostring(local.data_total_size - 1)
     REDO_SIZE           = tostring(local.redo_total_size - 1)
     ARCH_SIZE           = tostring(local.arch_total_size - 1)
-  }
-
-  # Ansible playbook variables for AIX initialization
-  playbook_aix_init_vars = {
-    PROXY_IP_PORT          = module.landing_zone.proxy_host_or_ip_port
-    NO_PROXY               = "localhost,127.0.0.1"
-    ORA_NFS_HOST           = module.pi_instance_aix.pi_instance_primary_ip
-    ORA_NFS_DEVICE         = local.nfs_mount
-    EXTEND_ROOT_VOLUME_WWN = module.pi_instance_aix.pi_storage_configuration[0].wwns
-    AIX_INIT_MODE          = ""
-    ROOT_PASSWORD          = ""
   }
 }

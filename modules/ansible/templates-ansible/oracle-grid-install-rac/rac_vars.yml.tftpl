@@ -248,9 +248,9 @@ install:
     vol_size_GB:     "200"
 
   ora_zips:
-    nfs_mount: [ '/repos',     '/repos',     '${ORA_NFS_HOST}', ]
+    nfs_mount: [ '/nfs',     '/nfs',     '${ORA_NFS_HOST}', ]
     ora_binary_location: nfs
-    remote_local_mount: /repos
+    remote_local_mount: /nfs
     goldimage_flag: false
     opatch_subdir: ""
     opatch_zips:
