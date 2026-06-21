@@ -147,7 +147,7 @@ powervs_rac_networks = [
 
 # AIX Instance Configuration
 powervs_aix_image_name          = "7300-02-01"
-powervs_aix_instance = {
+pi_aix_instance = {
   memory_gb    = 64
   cores        = 4
   core_type    = "shared"
@@ -192,7 +192,7 @@ terraform apply
 ```hcl
 rac_node_count = 2
 
-powervs_aix_instance = {
+pi_aix_instance = {
   memory_gb    = 32
   cores        = 2
   core_type    = "shared"
@@ -205,7 +205,7 @@ powervs_aix_instance = {
 ```hcl
 rac_node_count = 4
 
-powervs_aix_instance = {
+pi_aix_instance = {
   memory_gb    = 64
   cores        = 4
   core_type    = "shared"
@@ -218,7 +218,7 @@ powervs_aix_instance = {
 ```hcl
 rac_node_count = 8
 
-powervs_aix_instance = {
+pi_aix_instance = {
   memory_gb    = 128
   cores        = 8
   core_type    = "dedicated"

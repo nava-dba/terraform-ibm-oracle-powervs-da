@@ -92,7 +92,7 @@ locals {
     0.25
   )
 
-  powervs_aix_instance = {
+  pi_aix_instance = {
     name                    = "ora-aix"
     image_id                = var.pi_aix_image_name
     memory_size             = var.pi_aix_instance.memory_gb

@@ -108,16 +108,16 @@ module "pi_instance_aix" {
 
   pi_workspace_guid          = module.standard.powervs_workspace_guid
   pi_ssh_public_key_name     = module.standard.powervs_ssh_public_key.name
-  pi_image_id                = local.powervs_aix_instance.image_id
+  pi_image_id                = local.pi_aix_instance.image_id
   pi_networks                = [module.standard.powervs_management_subnet]
   pi_instance_name           = "${var.prefix}-ora-aix"
-  pi_pin_policy              = local.powervs_aix_instance.pin_policy
-  pi_server_type             = local.powervs_aix_instance.server_type
-  pi_number_of_processors    = local.powervs_aix_instance.number_of_processors
-  pi_memory_size             = local.powervs_aix_instance.memory_size
-  pi_cpu_proc_type           = local.powervs_aix_instance.cpu_proc_type
-  pi_boot_image_storage_tier = local.powervs_aix_instance.boot_image_storage_tier
-  pi_user_tags               = local.powervs_aix_instance.user_tags
+  pi_pin_policy              = local.pi_aix_instance.pin_policy
+  pi_server_type             = local.pi_aix_instance.server_type
+  pi_number_of_processors    = local.pi_aix_instance.number_of_processors
+  pi_memory_size             = local.pi_aix_instance.memory_size
+  pi_cpu_proc_type           = local.pi_aix_instance.cpu_proc_type
+  pi_boot_image_storage_tier = local.pi_aix_instance.boot_image_storage_tier
+  pi_user_tags               = local.pi_aix_instance.user_tags
   pi_storage_config          = local.powervs_aix_storage_config
 }
 
