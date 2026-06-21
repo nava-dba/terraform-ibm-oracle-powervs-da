@@ -10,7 +10,7 @@
 # Create RHEL Management VM
 
 locals {
-  nfs_mount      = "/repos"
+  nfs_mount      = "/nfs"
   no_proxy_list  = "localhost,127.0.0.1"
   pi_memory_size = "4"
 

@@ -17,3 +17,4 @@ solutions/oracle/si/input.auto.tfvars
 solutions/oracle/si/*.tfvars
 solutions/oracle/rac/*.tfvars
 common-dev-assets
+all_history_and_code.patch

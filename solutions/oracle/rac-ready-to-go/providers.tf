@@ -13,7 +13,18 @@ terraform {
       source  = "hashicorp/time"
       version = "0.13.1"
     }
+    restapi = {
+      source  = "mastercard/restapi"
+      version = ">= 2.0.1"
+    }
   }
+}
+
+########################################################
+# REST API Provider (required by nested modules)
+########################################################
+provider "restapi" {
+  uri = "https://api.example.com/"  # Placeholder - not actually used
 }
 
 ########################################################

@@ -62,15 +62,38 @@ locals {
   nfs_mount = "/nfs"
 
   # RAC-specific configuration
-  scan_name = "${var.prefix}-scan"
+  scan_name   = "${var.prefix}-scan"
   ora_version = "19c"
-  
+
   # AIX network interfaces for RAC
   aix_network_interfaces = {
     public   = "en1"
     private1 = "en2"
     private2 = "en3"
   }
+
+  # Automatically created RAC networks (public, private1, private2)
+  # Management network is added separately via concat in instance resource
+  powervs_rac_networks_auto = [
+    # Index 0: RAC Public network
+    {
+      name = ibm_pi_network.rac_public.pi_network_name
+      id   = ibm_pi_network.rac_public.network_id
+      cidr = ibm_pi_network.rac_public.pi_cidr
+    },
+    # Index 1: RAC Private1 network
+    {
+      name = ibm_pi_network.rac_private1.pi_network_name
+      id   = ibm_pi_network.rac_private1.network_id
+      cidr = ibm_pi_network.rac_private1.pi_cidr
+    },
+    # Index 2: RAC Private2 network
+    {
+      name = ibm_pi_network.rac_private2.pi_network_name
+      id   = ibm_pi_network.rac_private2.network_id
+      cidr = ibm_pi_network.rac_private2.pi_cidr
+    }
+  ]
 
   # Network services configuration for PowerVS instances
   powervs_network_services_config = {
@@ -96,7 +119,10 @@ locals {
     }
   }
 
+  ########################################################
   # Storage configuration
+  ########################################################
+
   pi_boot_volume = {
     name  = "rootvg"
     size  = "40"
@@ -104,6 +130,7 @@ locals {
     tier  = "tier1"
   }
 
+  # CRSDG volume configuration
   pi_crsdg_volume = {
     name  = "CRSDG"
     size  = "1"
@@ -114,8 +141,8 @@ locals {
   # Dynamic GIMR sizing based on RAC nodes
   # Formula: 20GB base + (5GB per additional node beyond 2)
   # 2 nodes = 40GB total, 4 nodes = 50GB total, 8 nodes = 70GB total
-  gimr_size_per_disk = var.rac_node_count <= 2 ? "20" : tostring(20 + ((var.rac_node_count - 2) * 5))
-  
+  gimr_size_per_disk = var.rac_nodes <= 2 ? "20" : tostring(20 + ((var.rac_nodes - 2) * 5))
+
   pi_gimr_volume = {
     name  = "GIMR"
     size  = local.gimr_size_per_disk
@@ -130,22 +157,35 @@ locals {
     tier  = "tier3"
   }
 
+  # Expand shared volumes into individual disks
+  expanded_shared_volumes = flatten([
+    for vol in [local.pi_crsdg_volume, var.pi_data_volume, var.pi_redo_volume, local.pi_gimr_volume] : [
+      for i in range(tonumber(vol.count)) : {
+        name = "${vol.name}-${i + 1}"
+        size = vol.size
+        tier = vol.tier
+      }
+    ]
+  ])
+
+  shared_asm_count = length(local.expanded_shared_volumes)
+
   # Calculate total sizes for Ansible (subtract 1GB for VG overhead)
-  oravg_total_size = tonumber(var.powervs_oravg_volume.size) * tonumber(var.powervs_oravg_volume.count)
-  data_total_size  = tonumber(var.powervs_data_volume.size) * tonumber(var.powervs_data_volume.count)
-  redo_total_size  = tonumber(var.powervs_redo_volume.size) * tonumber(var.powervs_redo_volume.count)
+  oravg_total_size = tonumber(var.pi_oravg_volume.size) * tonumber(var.pi_oravg_volume.count)
+  data_total_size  = tonumber(var.pi_data_volume.size) * tonumber(var.pi_data_volume.count)
+  redo_total_size  = tonumber(var.pi_redo_volume.size) * tonumber(var.pi_redo_volume.count)
   gimr_total_size  = tonumber(local.pi_gimr_volume.size) * tonumber(local.pi_gimr_volume.count)
   arch_total_size  = tonumber(local.pi_arc_volume.size) * tonumber(local.pi_arc_volume.count)
 
   # Storage configuration for each RAC node (ASM is mandatory for RAC)
   powervs_rac_storage_config = [
     local.pi_boot_volume,
-    var.powervs_oravg_volume,   # Oracle software VG
-    local.pi_crsdg_volume,       # ASM CRSDG
-    var.powervs_data_volume,     # ASM DATA diskgroup
-    var.powervs_redo_volume,     # ASM REDO diskgroup
-    local.pi_gimr_volume,        # ASM GIMR diskgroup
-    local.pi_arc_volume          # ASM ARCH diskgroup
+    var.pi_oravg_volume,    # Oracle software VG
+    local.pi_crsdg_volume,  # ASM CRSDG
+    var.pi_data_volume,     # ASM DATA diskgroup
+    var.pi_redo_volume,     # ASM REDO diskgroup
+    local.pi_gimr_volume,   # ASM GIMR diskgroup
+    local.pi_arc_volume     # ASM ARCH diskgroup
   ]
 
   # COS service credentials
@@ -156,55 +196,55 @@ locals {
   # COS configurations for Oracle binaries
   ibmcloud_cos_oracle_configuration = {
     cos_apikey               = local.cos_apikey
-    cos_region               = var.ibmcloud_cos_configuration.cos_region
+    cos_region                = var.ibmcloud_cos_configuration.cos_region
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
-    cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_database_sw_path
+    cos_dir_name              = var.ibmcloud_cos_configuration.cos_oracle_database_sw_path
     download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_grid_configuration = {
     cos_apikey               = local.cos_apikey
-    cos_region               = var.ibmcloud_cos_configuration.cos_region
+    cos_region                = var.ibmcloud_cos_configuration.cos_region
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
-    cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path
+    cos_dir_name              = var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path
     download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_patch_configuration = {
     cos_apikey               = local.cos_apikey
-    cos_region               = var.ibmcloud_cos_configuration.cos_region
+    cos_region                = var.ibmcloud_cos_configuration.cos_region
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
-    cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_ru_file_path
+    cos_dir_name              = var.ibmcloud_cos_configuration.cos_oracle_ru_file_path
     download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_opatch_configuration = {
     cos_apikey               = local.cos_apikey
-    cos_region               = var.ibmcloud_cos_configuration.cos_region
+    cos_region                = var.ibmcloud_cos_configuration.cos_region
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
-    cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path
+    cos_dir_name              = var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path
     download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_cluvfy_configuration = var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path != null ? {
     cos_apikey               = local.cos_apikey
-    cos_region               = var.ibmcloud_cos_configuration.cos_region
+    cos_region                = var.ibmcloud_cos_configuration.cos_region
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
-    cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path
+    cos_dir_name              = var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path
     download_dir_path        = local.nfs_mount
   } : null
 
   # Network details for RAC configuration
-  # Assuming network order: [0]=management, [1]=public, [2]=priv1, [3]=priv2
+  # Management network from landing zone, RAC networks: [0]=public, [1]=priv1, [2]=priv2
   mgmt_network   = module.landing_zone.powervs_management_subnet
-  public_network = length(var.powervs_rac_networks) > 0 ? var.powervs_rac_networks[0] : null
-  priv1_network  = length(var.powervs_rac_networks) > 1 ? var.powervs_rac_networks[1] : null
-  priv2_network  = length(var.powervs_rac_networks) > 2 ? var.powervs_rac_networks[2] : null
+  public_network = local.powervs_rac_networks_auto[0]
+  priv1_network  = local.powervs_rac_networks_auto[1]
+  priv2_network  = local.powervs_rac_networks_auto[2]
 
   # Auto-generate SCAN IPs from public network CIDR
   scan_ips_list = local.public_network != null ? [
@@ -214,20 +254,21 @@ locals {
   ] : []
 
   # Ansible playbook variables for Oracle RAC installation
+  # Uses File Storage NFS discovered from Network Services VSI
   playbook_oracle_rac_install_vars = {
-    ORA_NFS_HOST        = module.landing_zone.ansible_host_or_ip
-    ORA_NFS_DEVICE      = local.nfs_mount
-    DATABASE_SW         = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_database_sw_path}"
-    GRID_SW             = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path}"
-    RU_FILE             = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_ru_file_path}"
-    OPATCH_FILE         = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path}"
-    CLUVFY_FILE         = local.ibmcloud_cos_cluvfy_configuration != null ? "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path}" : ""
-    ORA_SID             = var.oracle_sid
-    ORA_DB_PASSWORD     = var.oracle_db_password
-    REDOLOG_SIZE_IN_MB  = var.oracle_redolog_size_in_mb
-    SCAN_NAME           = local.scan_name
-    SCAN_IPS            = join(",", local.scan_ips_list)
-    RAC_NODE_COUNT      = var.rac_node_count
+    ORA_NFS_HOST       = local.nfs_server
+    ORA_NFS_DEVICE     = local.nfs_device # NFS export path for mounting
+    DATABASE_SW        = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_database_sw_path}"
+    GRID_SW            = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path}"
+    RU_FILE            = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_ru_file_path}"
+    OPATCH_FILE        = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path}"
+    CLUVFY_FILE        = local.ibmcloud_cos_cluvfy_configuration != null ? "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path}" : ""
+    ORA_SID            = var.ora_sid
+    ORA_DB_PASSWORD    = var.ora_db_password
+    REDOLOG_SIZE_IN_MB = var.redolog_size_in_mb
+    SCAN_NAME          = local.scan_name
+    SCAN_IPS           = join(",", local.scan_ips_list)
+    RAC_NODE_COUNT     = var.rac_nodes
     # Pass calculated sizes to Ansible (subtract 1GB for VG overhead)
     ORAVG_SIZE = tostring(local.oravg_total_size - 1)
     DATA_SIZE  = tostring(local.data_total_size - 1)
