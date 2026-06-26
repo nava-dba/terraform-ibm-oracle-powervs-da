@@ -176,7 +176,9 @@ jobs:
           dtype        = "${DEPLOYMENT_TYPE}"
           install_type = "${INSTALL_TYPE}"
           prefix       = "${PREFIX}"
-          inputs_file = f"deploy/{variation}/{dtype}/inputs.json"
+          # Map variation key to the actual deploy folder name
+          folder_map   = {"si-rtg": "si-ready-to-go", "rac-rtg": "rac-ready-to-go"}
+          inputs_file  = f"deploy/{folder_map.get(variation, variation)}/{dtype}/inputs.json"
 
           try:
               with open(inputs_file) as f:
