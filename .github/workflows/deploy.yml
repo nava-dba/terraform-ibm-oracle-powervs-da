@@ -6,20 +6,32 @@
 #   - Manual only (workflow_dispatch)
 #
 # Inputs:
-#   - variation:       si | rac
-#   - install_type:    ASM | JFS2        (SI only)
-#   - deployment_type: public | private
+#   - variation:       si | rac | si-rtg | rac-rtg
+#   - install_type:    ASM | JFS2        (SI standard only)
+#   - deployment_type: public | private  (RTG supports public only)
 #   - action:          validate-only | validate-and-deploy | destroy
 #
 # Required secrets (one-time, never change):
-#   IC_API_KEY                               IBM Cloud API key
-#   TF_VAR_IBMCLOUD_API_KEY                  IBM Cloud API key for Terraform PUBLIC
-#   TF_VAR_IBMCLOUD_API_KEY_PRIVATE          IBM Cloud API key for Terraform PRIVATE
-#   TF_VAR_SSH_PRIVATE_KEY                   SSH private key (PEM) PUBLIC
-#   TF_VAR_SSH_PRIVATE_KEY_PRIVATE           SSH private key (PEM) PRIVATE
-#   TF_VAR_ORA_DB_PASSWORD                   Oracle SYS password
-#   TF_VAR_ROOT_PASSWORD                     AIX root password (RAC only)
-#   TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS  COS JSON credentials
+#   IC_API_KEY                               IBM Cloud API key (CLI login)
+#
+#   --- SI / RAC standard (uses existing PowerVS workspace + bastion) ---
+#   TF_VAR_IBMCLOUD_API_KEY                  IBM Cloud API key (public deployments)
+#   TF_VAR_IBMCLOUD_API_KEY_PRIVATE          IBM Cloud API key (private deployments)
+#   TF_VAR_SSH_PRIVATE_KEY                   Private key matching pi_ssh_public_key_name in PowerVS (public)
+#   TF_VAR_SSH_PRIVATE_KEY_PRIVATE           Private key matching pi_ssh_public_key_name in PowerVS (private)
+#
+#   --- SI-RTG / RAC-RTG (each gets its OWN keypair — simultaneous deployments in same region) ---
+#   TF_VAR_SSH_PUBLIC_KEY_JFS2_RTG           VPC SSH public key for SI-RTG JFS2  (unique fingerprint)
+#   TF_VAR_SSH_PRIVATE_KEY_JFS2_RTG          Matching private key for SI-RTG JFS2
+#   TF_VAR_SSH_PUBLIC_KEY_ASM_RTG            VPC SSH public key for SI-RTG ASM   (unique fingerprint)
+#   TF_VAR_SSH_PRIVATE_KEY_ASM_RTG           Matching private key for SI-RTG ASM
+#   TF_VAR_SSH_PUBLIC_KEY_RAC_RTG            VPC SSH public key for RAC-RTG       (unique fingerprint)
+#   TF_VAR_SSH_PRIVATE_KEY_RAC_RTG           Matching private key for RAC-RTG
+#
+#   --- Shared across all variations ---
+#   TF_VAR_ORA_DB_PASSWORD                   Oracle SYS/SYSTEM password
+#   TF_VAR_ROOT_PASSWORD                     AIX root password (RAC and RAC-RTG only)
+#   TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS  COS JSON service credentials
 #
 # Config IDs read from deploy/config.json (auto-updated by release pipeline)
 # Required GitHub Environment: production (approval gate for deploy + destroy)
@@ -36,6 +48,8 @@ on:
         options:
           - si
           - rac
+          - si-rtg
+          - rac-rtg
 
       install_type:
         description: "Oracle install type (SI only)"
@@ -46,12 +60,12 @@ on:
           - JFS2
 
       prefix:
-        description: "Resource prefix (SI only, e.g. cdasm or cdjfs)"
+        description: "Resource prefix (optional). Leave blank to use the default from inputs.json."
         required: false
         type: string
 
       deployment_type:
-        description: "Deployment type"
+        description: "Deployment type (RTG supports public only)"
         required: true
         type: choice
         options:
@@ -122,6 +136,10 @@ jobs:
           if variation == "si":
               section  = config.get(variation, {}).get(dtype, {}).get(install_type, {})
               key_path = f"{variation}/{dtype}/{install_type}"
+          elif variation in ("si-rtg", "rac-rtg"):
+              # RTG variations: no install_type sub-key, public only
+              section  = config.get(variation, {}).get(dtype, {})
+              key_path = f"{variation}/{dtype}"
           else:
               section  = config.get(variation, {}).get(dtype, {})
               key_path = f"{variation}/{dtype}"
@@ -168,14 +186,42 @@ jobs:
               sys.exit(1)
 
           # Inject dynamic workflow inputs
-          inputs["deployment_type"] = dtype
+          if variation not in ("si-rtg", "rac-rtg"):
+              inputs["deployment_type"] = dtype
           if variation == "si":
               inputs["oracle_install_type"] = install_type
               if prefix:
                   inputs["prefix"] = prefix
+          elif variation == "si-rtg":
+              inputs["oracle_install_type"] = install_type
+              # Always inject a collision-free default prefix per install_type;
+              # user-supplied prefix overrides if provided.
+              rtg_default_prefix = "rtjfs" if install_type.upper() == "JFS2" else "rtasm"
+              inputs["prefix"] = prefix if prefix else rtg_default_prefix
+          elif variation == "rac-rtg":
+              # Always inject a collision-free default prefix;
+              # user-supplied prefix overrides if provided.
+              inputs["prefix"] = prefix if prefix else "rtrac"
 
           # Inject secrets
-          if dtype == "private":
+          # Each RTG variation gets its own dedicated keypair so that all three can be
+          # deployed simultaneously in the same region without VPC SSH key fingerprint conflicts:
+          #   si-rtg  + install_type=JFS2 -> JFS2_RTG keypair
+          #   si-rtg  + install_type=ASM  -> ASM_RTG  keypair
+          #   rac-rtg                     -> RAC_RTG   keypair
+          if variation == "si-rtg" and install_type.upper() == "JFS2":
+              inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY"] # pragma: allowlist secret
+              inputs["ssh_public_key"]   = os.environ["TF_VAR_SSH_PUBLIC_KEY_JFS2_RTG"] # pragma: allowlist secret
+              inputs["ssh_private_key"]  = os.environ["TF_VAR_SSH_PRIVATE_KEY_JFS2_RTG"] # pragma: allowlist secret
+          elif variation == "si-rtg" and install_type.upper() == "ASM":
+              inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY"] # pragma: allowlist secret
+              inputs["ssh_public_key"]   = os.environ["TF_VAR_SSH_PUBLIC_KEY_ASM_RTG"] # pragma: allowlist secret
+              inputs["ssh_private_key"]  = os.environ["TF_VAR_SSH_PRIVATE_KEY_ASM_RTG"] # pragma: allowlist secret
+          elif variation == "rac-rtg":
+              inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY"] # pragma: allowlist secret
+              inputs["ssh_public_key"]   = os.environ["TF_VAR_SSH_PUBLIC_KEY_RAC_RTG"] # pragma: allowlist secret
+              inputs["ssh_private_key"]  = os.environ["TF_VAR_SSH_PRIVATE_KEY_RAC_RTG"] # pragma: allowlist secret
+          elif dtype == "private":
               inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY_PRIVATE"] # pragma: allowlist secret
               inputs["ssh_private_key"]  = os.environ["TF_VAR_SSH_PRIVATE_KEY_PRIVATE"] # pragma: allowlist secret
           else:
@@ -183,16 +229,16 @@ jobs:
               inputs["ssh_private_key"]  = os.environ["TF_VAR_SSH_PRIVATE_KEY"] # pragma: allowlist secret
           inputs["ora_db_password"]                  = os.environ["TF_VAR_ORA_DB_PASSWORD"]  # pragma: allowlist secret
           inputs["ibmcloud_cos_service_credentials"] = os.environ["TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS"]  # pragma: allowlist secret
-          if variation == "rac":
+          if variation in ("rac", "rac-rtg"):
               inputs["root_password"]                = os.environ["TF_VAR_ROOT_PASSWORD"]  # pragma: allowlist secret
 
           with open("/tmp/ibm_inputs.json", "w") as out:
               json.dump({"definition": {"inputs": inputs}}, out, indent=2)
 
           print(f"OK: {len(inputs)} keys loaded from {inputs_file}")
-          print(f"   deployment_type:      {dtype}")
+          print(f"   deployment_type:      {dtype if variation not in ('si-rtg', 'rac-rtg') else 'N/A (RTG)'}")
           print(f"   oracle_install_type:  {install_type if variation == 'si' else 'N/A'}")
-          print(f"   prefix:               {prefix if variation == 'si' and prefix else 'N/A (from inputs.json)'}")
+          print(f"   prefix:               {prefix if prefix else 'N/A (from inputs.json)'}")
           PYEOF
         env:
           TF_VAR_IBMCLOUD_API_KEY:                 ${{ secrets.TF_VAR_IBMCLOUD_API_KEY }}
@@ -202,6 +248,12 @@ jobs:
           TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS: ${{ secrets.TF_VAR_IBMCLOUD_COS_SERVICE_CREDENTIALS }}
           TF_VAR_IBMCLOUD_API_KEY_PRIVATE:         ${{ secrets.TF_VAR_IBMCLOUD_API_KEY_PRIVATE }}
           TF_VAR_SSH_PRIVATE_KEY_PRIVATE:          ${{ secrets.TF_VAR_SSH_PRIVATE_KEY_PRIVATE }}
+          TF_VAR_SSH_PUBLIC_KEY_JFS2_RTG:          ${{ secrets.TF_VAR_SSH_PUBLIC_KEY_JFS2_RTG }}
+          TF_VAR_SSH_PRIVATE_KEY_JFS2_RTG:         ${{ secrets.TF_VAR_SSH_PRIVATE_KEY_JFS2_RTG }}
+          TF_VAR_SSH_PUBLIC_KEY_ASM_RTG:           ${{ secrets.TF_VAR_SSH_PUBLIC_KEY_ASM_RTG }}
+          TF_VAR_SSH_PRIVATE_KEY_ASM_RTG:          ${{ secrets.TF_VAR_SSH_PRIVATE_KEY_ASM_RTG }}
+          TF_VAR_SSH_PUBLIC_KEY_RAC_RTG:           ${{ secrets.TF_VAR_SSH_PUBLIC_KEY_RAC_RTG }}
+          TF_VAR_SSH_PRIVATE_KEY_RAC_RTG:          ${{ secrets.TF_VAR_SSH_PRIVATE_KEY_RAC_RTG }}
 
       # -----------------------------------------------------------------------
       # PATCH project config with full inputs
@@ -417,7 +469,15 @@ jobs:
           CONFIG_ID="${{ needs.validate.outputs.config_id }}"
           PROJECT_ID="${{ needs.validate.outputs.project_id }}"
           VARIATION="${{ github.event.inputs.variation }}"
-          MAX_WAIT=$([ "${VARIATION}" == "si" ] && echo 10800 || echo 21600)
+          if [ "${VARIATION}" == "si" ]; then
+            MAX_WAIT=10800      # SI standard: 3 hrs
+          elif [ "${VARIATION}" == "si-rtg" ]; then
+            MAX_WAIT=14400      # SI RTG (includes landing zone): 4 hrs
+          elif [ "${VARIATION}" == "rac-rtg" ]; then
+            MAX_WAIT=28800      # RAC RTG (includes landing zone): 8 hrs
+          else
+            MAX_WAIT=21600      # RAC standard: 6 hrs
+          fi
           INTERVAL=60
           ELAPSED=0
           TOKEN_AGE=0
@@ -599,6 +659,9 @@ jobs:
           if variation == "si":
               section  = config.get(variation, {}).get(dtype, {}).get(install_type, {})
               key_path = f"{variation}/{dtype}/{install_type}"
+          elif variation in ("si-rtg", "rac-rtg"):
+              section  = config.get(variation, {}).get(dtype, {})
+              key_path = f"{variation}/{dtype}"
           else:
               section  = config.get(variation, {}).get(dtype, {})
               key_path = f"{variation}/{dtype}"

@@ -1,0 +1,65 @@
+{
+  "powervs_zone": "dal12",
+  "powervs_resource_group_name": "oracle-da",
+  "pi_aix_image_name": "7300-03-02",
+  "powervs_oracle_network_cidr": "10.51.0.0/24",
+  "external_access_ip": "0.0.0.0/0",
+  "ssh_public_key": "",
+  "redolog_size_in_mb": "1024",
+  "ora_sid": "orcl",
+  "pi_aix_instance": {
+    "memory_gb": 16,
+    "cores": 0.25,
+    "core_type": "shared",
+    "machine_type": "s1022",
+    "pin_policy": "hard",
+    "health_status": "OK"
+  },
+  "pi_oravg_volume": {
+    "name": "oravg",
+    "size": "100",
+    "count": "2",
+    "tier": "tier1"
+  },
+  "pi_data_volume": {
+    "name": "DATA",
+    "size": "5",
+    "count": "8",
+    "tier": "tier1"
+  },
+  "pi_redo_volume": {
+    "name": "REDO",
+    "size": "2",
+    "count": "4",
+    "tier": "tier5k"
+  },
+  "ibmcloud_cos_configuration": {
+    "cos_region": "us-south",
+    "cos_bucket_name": "oracle-sw-123",
+    "cos_oracle_database_sw_path": "V982583-01_193000_db.zip",
+    "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
+    "cos_oracle_ru_file_path": "p38629535_190000_AIX64-5L.zip",
+    "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
+  },
+  "nfs_server_config": {
+    "size": 200,
+    "iops": 600,
+    "mount_path": "/nfs"
+  },
+  "vpc_subnet_cidrs": {
+    "vpn": "10.10.10.0/24",
+    "mgmt": "10.20.10.0/24",
+    "vpe": "10.30.10.0/24",
+    "edge": "10.40.10.0/24"
+  },
+  "vpc_intel_images": {
+    "rhel_image": "ibm-redhat-9-4-amd64-sap-applications-5",
+    "sles_image": "ibm-sles-15-6-amd64-sap-applications-3"
+  },
+  "client_to_site_vpn": {
+    "enable": false,
+    "client_ip_pool": "192.168.0.0/16",
+    "vpn_client_access_group_users": []
+  },
+  "pi_user_tags": "[\"cd-pipeline\"]"
+}

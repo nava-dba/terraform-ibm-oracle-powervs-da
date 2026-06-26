@@ -18,3 +18,4 @@ solutions/oracle/si/*.tfvars*
 solutions/oracle/rac/*.tfvars*
 solutions/oracle/si-ready-to-go/*.tfvars*    
 solutions/oracle/rac-ready-to-go/*.tfvars*
+solutions/oracle/NETWORK_PLANNING.md
