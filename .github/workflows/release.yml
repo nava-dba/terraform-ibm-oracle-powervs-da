@@ -400,6 +400,10 @@ jobs:
           priv_si_jfs2_project_id = config["si"]["private"]["jfs2"]["project_id"]
           priv_rac_config_id      = config["rac"]["private"]["config_id"]
           priv_rac_project_id     = config["rac"]["private"]["project_id"]
+          si_rtg_config_id        = config.get("si-rtg", {}).get("public", {}).get("config_id", "")
+          si_rtg_project_id       = config.get("si-rtg", {}).get("public", {}).get("project_id", "")
+          rac_rtg_config_id       = config.get("rac-rtg", {}).get("public", {}).get("config_id", "")
+          rac_rtg_project_id      = config.get("rac-rtg", {}).get("public", {}).get("project_id", "")
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"si_asm_config_id={si_asm_config_id}\n")
@@ -414,6 +418,10 @@ jobs:
               f.write(f"priv_si_jfs2_project_id={priv_si_jfs2_project_id}\n")
               f.write(f"priv_rac_config_id={priv_rac_config_id}\n")
               f.write(f"priv_rac_project_id={priv_rac_project_id}\n")
+              f.write(f"si_rtg_config_id={si_rtg_config_id}\n")
+              f.write(f"si_rtg_project_id={si_rtg_project_id}\n")
+              f.write(f"rac_rtg_config_id={rac_rtg_config_id}\n")
+              f.write(f"rac_rtg_project_id={rac_rtg_project_id}\n")
 
           print(f"PUB SI ASM   config_id: {si_asm_config_id}")
           print(f"PUB SI JFS2  config_id: {si_jfs2_config_id}")
@@ -421,6 +429,8 @@ jobs:
           print(f"PRIV SI ASM  config_id: {priv_si_asm_config_id}")
           print(f"PRIV SI JFS2 config_id: {priv_si_jfs2_config_id}")
           print(f"PRIV RAC     config_id: {priv_rac_config_id}")
+          print(f"PUB SI RTG   config_id: {si_rtg_config_id}")
+          print(f"PUB RAC RTG  config_id: {rac_rtg_config_id}")
           PYEOF
 
       - name: Update SI ASM Project Config
@@ -604,6 +614,66 @@ jobs:
           fi
           echo "Private RAC project config updated"
 
+      - name: Update SI RTG Project Config
+        run: |
+          CONFIG_ID="${{ steps.read_config.outputs.si_rtg_config_id }}"
+          PROJECT_ID="${{ steps.read_config.outputs.si_rtg_project_id }}"
+          SI_RTG_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.si_rtg_version_id }}"
+
+          if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
+            echo "SI RTG config_id or project_id empty - skipping"
+            exit 0
+          fi
+
+          echo "Updating SI RTG config ${CONFIG_ID} -> locator ${SI_RTG_LOCATOR}"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
+            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+            -H "Authorization: Bearer ${IAM_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"definition\": {\"locator_id\": \"${SI_RTG_LOCATOR}\"}}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "HTTP: ${HTTP_CODE}"
+
+          if [[ "${HTTP_CODE}" != "200" ]]; then
+            echo "SI RTG config update failed:"
+            echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
+            exit 1
+          fi
+          echo "SI RTG project config updated"
+
+      - name: Update RAC RTG Project Config
+        run: |
+          CONFIG_ID="${{ steps.read_config.outputs.rac_rtg_config_id }}"
+          PROJECT_ID="${{ steps.read_config.outputs.rac_rtg_project_id }}"
+          RAC_RTG_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.rac_rtg_version_id }}"
+
+          if [ -z "${CONFIG_ID}" ] || [ -z "${PROJECT_ID}" ]; then
+            echo "RAC RTG config_id or project_id empty - skipping"
+            exit 0
+          fi
+
+          echo "Updating RAC RTG config ${CONFIG_ID} -> locator ${RAC_RTG_LOCATOR}"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X PATCH \
+            "${IBM_API_URL}/projects/${PROJECT_ID}/configs/${CONFIG_ID}" \
+            -H "Authorization: Bearer ${IAM_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"definition\": {\"locator_id\": \"${RAC_RTG_LOCATOR}\"}}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "HTTP: ${HTTP_CODE}"
+
+          if [[ "${HTTP_CODE}" != "200" ]]; then
+            echo "RAC RTG config update failed:"
+            echo "${BODY}" | python3 -m json.tool 2>/dev/null || echo "${BODY}"
+            exit 1
+          fi
+          echo "RAC RTG project config updated"
+
       # -----------------------------------------------------------------------
       # Write new locators + version back to deploy/config.json and commit
       # -----------------------------------------------------------------------
@@ -612,6 +682,8 @@ jobs:
           VERSION="${{ needs.semantic_release.outputs.version }}"
           SI_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.si_version_id }}"
           RAC_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.rac_version_id }}"
+          SI_RTG_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.si_rtg_version_id }}"
+          RAC_RTG_LOCATOR="${{ secrets.IBM_CATALOG_ID }}.${{ needs.publish_catalog.outputs.rac_rtg_version_id }}"
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
           python3 - <<PYEOF
@@ -646,14 +718,28 @@ jobs:
           config["rac"]["private"]["version"]         = "v${VERSION}"
           config["rac"]["private"]["last_updated"]    = "${TIMESTAMP}"
 
+          # SI RTG public
+          if config.get("si-rtg", {}).get("public") is not None:
+              config["si-rtg"]["public"]["version_locator"] = "${SI_RTG_LOCATOR}"
+              config["si-rtg"]["public"]["version"]         = "v${VERSION}"
+              config["si-rtg"]["public"]["last_updated"]    = "${TIMESTAMP}"
+
+          # RAC RTG public
+          if config.get("rac-rtg", {}).get("public") is not None:
+              config["rac-rtg"]["public"]["version_locator"] = "${RAC_RTG_LOCATOR}"
+              config["rac-rtg"]["public"]["version"]         = "v${VERSION}"
+              config["rac-rtg"]["public"]["last_updated"]    = "${TIMESTAMP}"
+
           with open("deploy/config.json", "w") as f:
               json.dump(config, f, indent=2)
               f.write("\n")
 
           print("deploy/config.json updated")
-          print(f"  SI  locator: ${SI_LOCATOR}")
-          print(f"  RAC locator: ${RAC_LOCATOR}")
-          print(f"  version:     v${VERSION}")
+          print(f"  SI      locator: ${SI_LOCATOR}")
+          print(f"  RAC     locator: ${RAC_LOCATOR}")
+          print(f"  SI RTG  locator: ${SI_RTG_LOCATOR}")
+          print(f"  RAC RTG locator: ${RAC_RTG_LOCATOR}")
+          print(f"  version:         v${VERSION}")
           PYEOF
 
       - name: Commit deploy/config.json to main

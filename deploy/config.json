@@ -49,6 +49,24 @@
       "last_updated": "2026-04-16T16:32:40Z"
     }
   },
+  "si-rtg": {
+    "public": {
+      "project_id": "",
+      "config_id": "",
+      "version_locator": "",
+      "version": "",
+      "last_updated": ""
+    }
+  },
+  "rac-rtg": {
+    "public": {
+      "project_id": "",
+      "config_id": "",
+      "version_locator": "",
+      "version": "",
+      "last_updated": ""
+    }
+  },
   "catalog_id": "7d140544-621d-4a3f-9009-c8d3ac9bea86",
   "offering_id": "4440a898-5e2f-464a-a10c-daab235315db"
 }

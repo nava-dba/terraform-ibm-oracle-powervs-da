@@ -85,6 +85,8 @@ jobs:
           - "modules/ansible"
           - "solutions/oracle/si"
           - "solutions/oracle/rac"
+          - "solutions/oracle/si-ready-to-go"
+          - "solutions/oracle/rac-ready-to-go"
       fail-fast: false
 
     steps:
