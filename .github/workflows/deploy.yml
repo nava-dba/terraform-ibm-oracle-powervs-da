@@ -20,7 +20,8 @@
 #   TF_VAR_SSH_PRIVATE_KEY                   Private key matching pi_ssh_public_key_name in PowerVS (public)
 #   TF_VAR_SSH_PRIVATE_KEY_PRIVATE           Private key matching pi_ssh_public_key_name in PowerVS (private)
 #
-#   --- SI-RTG / RAC-RTG (each gets its OWN keypair — simultaneous deployments in same region) ---
+#   --- SI-RTG / RAC-RTG (GSI account — different account from standard SI/RAC) ---
+#   TF_VAR_IBMCLOUD_API_KEY_GSI              IBM Cloud API key for GSI account (RTG deployments)
 #   TF_VAR_SSH_PUBLIC_KEY_JFS2_RTG           VPC SSH public key for SI-RTG JFS2  (unique fingerprint)
 #   TF_VAR_SSH_PRIVATE_KEY_JFS2_RTG          Matching private key for SI-RTG JFS2
 #   TF_VAR_SSH_PUBLIC_KEY_ASM_RTG            VPC SSH public key for SI-RTG ASM   (unique fingerprint)
@@ -212,15 +213,15 @@ jobs:
           #   si-rtg  + install_type=ASM  -> ASM_RTG  keypair
           #   rac-rtg                     -> RAC_RTG   keypair
           if variation == "si-rtg" and install_type.upper() == "JFS2":
-              inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY"] # pragma: allowlist secret
+              inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY_GSI"] # pragma: allowlist secret
               inputs["ssh_public_key"]   = os.environ["TF_VAR_SSH_PUBLIC_KEY_JFS2_RTG"] # pragma: allowlist secret
               inputs["ssh_private_key"]  = os.environ["TF_VAR_SSH_PRIVATE_KEY_JFS2_RTG"] # pragma: allowlist secret
           elif variation == "si-rtg" and install_type.upper() == "ASM":
-              inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY"] # pragma: allowlist secret
+              inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY_GSI"] # pragma: allowlist secret
               inputs["ssh_public_key"]   = os.environ["TF_VAR_SSH_PUBLIC_KEY_ASM_RTG"] # pragma: allowlist secret
               inputs["ssh_private_key"]  = os.environ["TF_VAR_SSH_PRIVATE_KEY_ASM_RTG"] # pragma: allowlist secret
           elif variation == "rac-rtg":
-              inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY"] # pragma: allowlist secret
+              inputs["ibmcloud_api_key"] = os.environ["TF_VAR_IBMCLOUD_API_KEY_GSI"] # pragma: allowlist secret
               inputs["ssh_public_key"]   = os.environ["TF_VAR_SSH_PUBLIC_KEY_RAC_RTG"] # pragma: allowlist secret
               inputs["ssh_private_key"]  = os.environ["TF_VAR_SSH_PRIVATE_KEY_RAC_RTG"] # pragma: allowlist secret
           elif dtype == "private":
@@ -244,6 +245,7 @@ jobs:
           PYEOF
         env:
           TF_VAR_IBMCLOUD_API_KEY:                 ${{ secrets.TF_VAR_IBMCLOUD_API_KEY }}
+          TF_VAR_IBMCLOUD_API_KEY_GSI:             ${{ secrets.TF_VAR_IBMCLOUD_API_KEY_GSI }}
           TF_VAR_SSH_PRIVATE_KEY:                  ${{ secrets.TF_VAR_SSH_PRIVATE_KEY }}
           TF_VAR_ORA_DB_PASSWORD:                  ${{ secrets.TF_VAR_ORA_DB_PASSWORD }}
           TF_VAR_ROOT_PASSWORD:                    ${{ secrets.TF_VAR_ROOT_PASSWORD }}
