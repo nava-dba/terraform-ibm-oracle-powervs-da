@@ -1,6 +1,6 @@
 {
   "powervs_zone": "dal12",
-  "powervs_resource_group_name": "oracle-da",
+  "powervs_resource_group_name": "Default",
   "pi_aix_image_name": "7300-03-02",
   "powervs_management_network_cidr": "10.55.0.0/24",
   "external_access_ip": "0.0.0.0/0",
