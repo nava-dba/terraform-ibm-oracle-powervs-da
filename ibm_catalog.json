@@ -1201,53 +1201,12 @@
               ]
             },
             {
-              "key": "region",
-              "display_name": "Deployment Region",
-              "type": "string",
-              "default_value": "",
-              "required": true,
-              "options": [
-                {
-                  "displayname": "Dallas (dallas)",
-                  "value": "us-south"
-                },
-                {
-                  "displayname": "Washington, D.C.",
-                  "value": "us-east"
-                },
-                {
-                  "displayname": "Frankfurt",
-                  "value": "eu-de"
-                },
-                {
-                  "displayname": "London",
-                  "value": "eu-gb"
-                },
-                {
-                  "displayname": "Tokyo",
-                  "value": "jp-tok"
-                },
-                {
-                  "displayname": "Sydney",
-                  "value": "au-syd"
-                },
-                {
-                  "displayname": "Sao Paulo",
-                  "value": "br-sao"
-                },
-                {
-                  "displayname": "Toronto",
-                  "value": "ca-tor"
-                }
-              ],
-              "custom_config": {}
-            },
-            {
-              "key": "zone",
+              "key": "powervs_zone",
               "display_name": "PowerVS Zone",
               "type": "string",
               "required": true,
-              "default_value": ""
+              "default_value": "",
+              "description": "IBM Cloud data center location where IBM PowerVS infrastructure will be created (e.g., dal10, eu-de-1, lon04). The VPC region is derived automatically from this zone."
             },
             {
               "key": "powervs_resource_group_name",
@@ -1264,8 +1223,8 @@
               "default_value": "[\"tag-001\", \"tag-002\"]"
             },
             {
-              "key": "powervs_management_network_cidr",
-              "display_name": "Management Network CIDR",
+              "key": "powervs_oracle_network_cidr",
+              "display_name": "Oracle Network CIDR",
               "type": "string",
               "default_value": "10.51.0.0/24",
               "required": false
@@ -1405,7 +1364,7 @@
               }
             },
             {
-              "key": "oracle_sid",
+              "key": "ora_sid",
               "display_name": "Oracle Database SID",
               "type": "string",
               "default_value": "",
@@ -1413,29 +1372,34 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[a-zA-Z][a-zA-Z0-9]{0,7}$",
-                  "description": "SID must start with a letter, be alphanumeric, max 8 characters"
+                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{3,8}$"
                 }
               ]
             },
             {
-              "key": "oracle_db_password",
+              "key": "ora_db_password",
               "display_name": "Oracle SYS Password",
+              "description": "Password for Oracle database administrative users (SYS, SYSTEM). Password must be 8-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.",
+              "default_value": "",
               "type": "password",
               "required": true,
-              "description": "Password for Oracle SYS and SYSTEM users (min 8 characters)",
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^.{8,}$",
-                  "description": "Password must be at least 8 characters"
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
+                  "description": "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{8,30}$",
+                  "description": "Password must be between 8 and 30 characters"
                 }
               ],
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "password"
-              }
+              "custom_config": {}
             },
             {
               "key": "redolog_size_in_mb",
@@ -1616,53 +1580,12 @@
               ]
             },
             {
-              "key": "region",
-              "display_name": "Deployment Region",
-              "type": "string",
-              "default_value": "",
-              "required": true,
-              "options": [
-                {
-                  "displayname": "Dallas (dallas)",
-                  "value": "us-south"
-                },
-                {
-                  "displayname": "Washington, D.C.",
-                  "value": "us-east"
-                },
-                {
-                  "displayname": "Frankfurt",
-                  "value": "eu-de"
-                },
-                {
-                  "displayname": "London",
-                  "value": "eu-gb"
-                },
-                {
-                  "displayname": "Tokyo",
-                  "value": "jp-tok"
-                },
-                {
-                  "displayname": "Sydney",
-                  "value": "au-syd"
-                },
-                {
-                  "displayname": "Sao Paulo",
-                  "value": "br-sao"
-                },
-                {
-                  "displayname": "Toronto",
-                  "value": "ca-tor"
-                }
-              ],
-              "custom_config": {}
-            },
-            {
-              "key": "zone",
+              "key": "powervs_zone",
               "display_name": "PowerVS Zone",
               "type": "string",
               "required": true,
-              "default_value": ""
+              "default_value": "",
+              "description": "IBM Cloud data center location where IBM PowerVS infrastructure will be created (e.g., dal10, eu-de-1, lon04). The VPC region is derived automatically from this zone."
             },
             {
               "key": "powervs_resource_group_name",
@@ -1672,11 +1595,11 @@
               "required": false
             },
             {
-              "key": "tags",
+              "key": "pi_user_tags",
               "display_name": "Resource Tags",
-              "type": "array",
               "required": false,
-              "default_value": []
+              "type": "string",
+              "default_value": "[\"tag-001\", \"tag-002\"]"
             },
             {
               "key": "powervs_management_network_cidr",
@@ -1713,39 +1636,23 @@
               }
             },
             {
-              "key": "rac_node_count",
+              "key": "rac_nodes",
               "display_name": "Number of RAC Nodes",
-              "type": "number",
+              "type": "int",
               "default_value": 2,
-              "required": true,
+              "required": false,
               "options": [
                 {
-                  "displayname": "2 nodes",
+                  "displayname": "2 Nodes",
                   "value": 2
                 },
                 {
-                  "displayname": "3 nodes",
+                  "displayname": "3 Nodes",
                   "value": 3
                 },
                 {
-                  "displayname": "4 nodes",
+                  "displayname": "4 Nodes",
                   "value": 4
-                },
-                {
-                  "displayname": "5 nodes",
-                  "value": 5
-                },
-                {
-                  "displayname": "6 nodes",
-                  "value": 6
-                },
-                {
-                  "displayname": "7 nodes",
-                  "value": 7
-                },
-                {
-                  "displayname": "8 nodes",
-                  "value": 8
                 }
               ]
             },
@@ -1861,44 +1768,49 @@
               }
             },
             {
-              "key": "oracle_sid",
-              "display_name": "Oracle Database SID",
-              "type": "string",
+              "key": "ora_sid",
+              "display_name": "Oracle Database Name (SID)",
               "default_value": "",
+              "type": "string",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[a-zA-Z][a-zA-Z0-9]{0,7}$",
-                  "description": "SID must start with a letter, be alphanumeric, max 8 characters"
+                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{3,8}$"
                 }
               ]
             },
             {
-              "key": "oracle_db_password",
+              "key": "ora_db_password",
               "display_name": "Oracle SYS Password",
+              "description": "Password for Oracle database administrative users (SYS, SYSTEM). Password must be 8-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.",
+              "default_value": "",
               "type": "password",
               "required": true,
-              "description": "Password for Oracle SYS and SYSTEM users (min 8 characters)",
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^.{8,}$",
-                  "description": "Password must be at least 8 characters"
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
+                  "description": "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{8,30}$",
+                  "description": "Password must be between 8 and 30 characters"
                 }
               ],
-              "custom_config": {
-                "grouping": "deployment",
-                "original_grouping": "deployment",
-                "type": "password"
-              }
+              "custom_config": {}
             },
             {
-              "key": "oracle_redolog_size_in_mb",
-              "display_name": "Redo Log Size (MB)",
-              "type": "number",
-              "default_value": 512,
-              "required": false
+              "key": "redolog_size_in_mb",
+              "display_name": "Redo log member size (MB)",
+              "type": "string",
+              "required": false,
+              "default_value": "1024"
             },
             {
               "key": "ibmcloud_cos_service_credentials",
