@@ -41,7 +41,7 @@
         "linux"
       ],
       "short_description": "Deploy Oracle Database on Power Virtual Server",
-      "long_description": "This automated deployable architecture deploys Oracle Database 19c on IBM Power Virtual Server (PowerVS). It supports both Single Instance (SI) and Real Application Clusters (RAC) configurations, and can be deployed in both public and private PowerVS environments.\n\nUsing Terraform, RHEL and AIX virtual server instances are provisioned. The RHEL instance acts as the Ansible controller and NFS server for staging Oracle binaries retrieved from IBM Cloud Object Storage (COS). The Oracle Database can be configured on Automatic Storage Management (ASM) or Journal File System (JFS2) for Single Instance deployments. RAC deployments use ASM exclusively for shared storage across cluster nodes.\n\nThe architecture provisions all required infrastructure first — compute, storage, and networking — followed by automated Oracle Grid Infrastructure and Database installation using Ansible playbooks.",
+      "long_description": "This automated deployable architecture deploys Oracle Database 19c on IBM Power Virtual Server (PowerVS). It supports both Single Instance (SI) and Real Application Clusters (RAC) configurations, and can be deployed in both public and private PowerVS environments.\n\nUsing Terraform, RHEL and AIX virtual server instances are provisioned. The RHEL instance acts as the Ansible controller and NFS server for staging Oracle binaries retrieved from IBM Cloud Object Storage (COS). The Oracle Database can be configured on Automatic Storage Management (ASM) or Journal File System (JFS2) for Single Instance deployments. RAC deployments use ASM exclusively for shared storage across cluster nodes.\n\nThe architecture provisions all required infrastructure first \u2014 compute, storage, and networking \u2014 followed by automated Oracle Grid Infrastructure and Database installation using Ansible playbooks.",
       "offering_docs_url": "https://github.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/blob/main/README.md",
       "offering_icon_url": "data:image/svg+xml;base64,PHN2ZyBpZD0iU0FQb25Qb3dlciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iMCAwIDMyIDMyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9IjB3cG82d2txd2EiIHgxPSItMTg1NS4yMDgiIHkxPSItMjUwMi41NjMiIHgyPSItMTg1NS4yMDgiIHkyPSItMjUyMi4xNzkiIGdyYWRpZW50VHJhbnNmb3JtPSJtYXRyaXgoMS4wNiAwIDAgLS40OTEgMTk3My42NzYgLTEyMjcuMjkzKSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIvPjxzdG9wIG9mZnNldD0iLjgiIHN0b3Atb3BhY2l0eT0iMCIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJwODB2MGMwMnZiIiB4MT0iMzI4LjUwMiIgeTE9Ii02NzY1LjY0NyIgeDI9IjMyOC41MDIiIHkyPSItNjc4NS4yNjMiIGdyYWRpZW50VHJhbnNmb3JtPSJtYXRyaXgoMS4wNiAwIDAgLjUxNSAtMzM5Ljk2NyAzNTEzLjI1KSIgeGxpbms6aHJlZj0iIzB3cG82d2txd2EiLz48bGluZWFyR3JhZGllbnQgaWQ9ImRrMDJ3NXQweWMiIHgxPSItOTUzLjI2NiIgeTE9Ii0yODI4LjY1OSIgeDI9Ii05NTMuMjY2IiB5Mj0iLTI4MzguNTMzIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDEuMDYgMCAwIC0uNjY5IDEwMzcuMjE4IC0xODc2LjQzOSkiIHhsaW5rOmhyZWY9IiMwd3BvNndrcXdhIi8+PGxpbmVhckdyYWRpZW50IGlkPSJvbjF6NG9xNmVkIiB4MT0iLTE5MjMuMjUiIHkxPSItMjYyMC4yOSIgeDI9Ii0xOTIzLjI1IiB5Mj0iLTI2MjcuODg1IiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDEuMDYgMCAwIC42NjkgMjA0OC4wOTEgMTc4Mi4zNjQpIiB4bGluazpocmVmPSIjMHdwbzZ3a3F3YSIvPjxsaW5lYXJHcmFkaWVudCBpZD0iZGw0OXc5YXdnZSIgeDE9Ii0xOTE1LjgwMiIgeTE9Ii0zMTkxLjI5NSIgeDI9Ii0xOTE1LjgwMiIgeTI9Ii0zMTk4Ljg4OSIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgxLjA2IDAgMCAuNjY5IDIwNDMuNDggMjE0MS4xMjgpIiB4bGluazpocmVmPSIjMHdwbzZ3a3F3YSIvPjxsaW5lYXJHcmFkaWVudCBpZD0iemI2Y3VlbnRsZyIgeDE9IjAiIHkxPSIzMiIgeDI9IjMyIiB5Mj0iMCIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iLjEiIHN0b3AtY29sb3I9IiMwOGJkYmEiLz48c3RvcCBvZmZzZXQ9Ii45IiBzdG9wLWNvbG9yPSIjMGY2MmZlIi8+PC9saW5lYXJHcmFkaWVudD48bWFzayBpZD0iOG5zZ3FxYnBjZiIgeD0iMCIgeT0iMCIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBtYXNrVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNMTUuOTgyIDMwYy03LjcyIDAtMTQtNi4yOC0xNC0xNHM2LjI4MS0xNCAxNC0xNCAxNCA2LjI4IDE0IDE0LTYuMjggMTQtMTQgMTR6bTAtMjZjLTYuNjE3IDAtMTIgNS4zODMtMTIgMTJzNS4zODMgMTIgMTIgMTIgMTItNS4zODMgMTItMTItNS4zODMtMTItMTItMTJ6IiBzdHlsZT0iZmlsbDojZmZmIi8+PHBhdGggZD0iTTMwLjY5MSAzMC43MDhIMTEuNzI5bDMtOC43MDggMTAuNDY1LjAxMSA1LjU3Ny0uMDIxLS4wOCA4LjcxOHpNNi45ODIgMjBsLTYgNS40OTRWNi44MDdsNiA1LjAxNVYyMHpNMTYuMDAzIDFoMTQuOTk5djEzLjAzMkgxNi4wMDN6Ii8+PHBhdGggdHJhbnNmb3JtPSJyb3RhdGUoLTEzNSA3Ljk0MyA2Ljc4NykiIHN0eWxlPSJmaWxsOnVybCgjMHdwbzZ3a3F3YSkiIGQ9Ik00Ljc2NCAxLjk3aDYuMzU3djkuNjM1SDQuNzY0eiIvPjxwYXRoIHRyYW5zZm9ybT0icm90YXRlKDEzNSA4LjEwNiAyNS4zNDQpIiBzdHlsZT0iZmlsbDp1cmwoI3A4MHYwYzAydmIpIiBkPSJNNC45MjggMjAuMjk1aDYuMzU3djEwLjA5OEg0LjkyOHoiLz48cGF0aCB0cmFuc2Zvcm09InJvdGF0ZSgxODAgMjcuMTYxIDE4Ljg2MykiIHN0eWxlPSJmaWxsOnVybCgjZGswMnc1dDB5YykiIGQ9Ik0yMy45ODIgMTUuNTYxaDYuMzU3djYuNjA0aC02LjM1N3oiLz48cGF0aCB0cmFuc2Zvcm09InJvdGF0ZSgtNzAuNzkgMTAuMjYyIDI3LjE5NSkiIHN0eWxlPSJmaWxsOnVybCgjb24xejRvcTZlZCkiIGQ9Ik03LjA4NCAyNC42NTVoNi4zNTd2NS4wOEg3LjA4NHoiLz48cGF0aCBkPSJNOC45ODIgMjAuOThoLTZjLTEuMTAzIDAtMi0uODk3LTItMnYtNmMwLTEuMTAzLjg5Ny0yIDItMmg2YzEuMTAzIDAgMiAuODk3IDIgMnY2YzAgMS4xMDMtLjg5NyAyLTIgMnptLTYtOHY2aDYuMDAxdi02SDIuOTgyek0yOS4wMDIgMzFoLTEzYy0xLjEwMyAwLTItLjg5Ny0yLTJ2LTRjMC0xLjEwMy44OTctMiAyLTJoMTNjMS4xMDMgMCAyIC44OTcgMiAydjRjMCAxLjEwMy0uODk3IDItMiAyem0tMTMtNnY0aDEzLjAwMXYtNEgxNi4wMDJ6IiBzdHlsZT0iZmlsbDojZmZmIi8+PGNpcmNsZSBjeD0iMTkuMDAyIiBjeT0iMjciIHI9IjEiIHN0eWxlPSJmaWxsOiNmZmYiLz48cGF0aCB0cmFuc2Zvcm09InJvdGF0ZSgtOTAgMTMuNTQzIDQuMDMyKSIgc3R5bGU9ImZpbGw6dXJsKCNkbDQ5dzlhd2dlKSIgZD0iTTEwLjM2NCAxLjQ5Mmg2LjM1N3Y1LjA4aC02LjM1N3oiLz48L21hc2s+PC9kZWZzPjxnIHN0eWxlPSJtYXNrOnVybCgjOG5zZ3FxYnBjZikiPjxwYXRoIHN0eWxlPSJmaWxsOnVybCgjemI2Y3VlbnRsZykiIGQ9Ik0wIDBoMzJ2MzJIMHoiLz48L2c+PHBhdGggZD0iTTI1LjQ2MiAxMkgxOWExIDEgMCAwIDEtMS0xVjQuMDM1YTEgMSAwIDAgMSAuOTk3LTFsMTItLjAzNUgzMWExIDEgMCAwIDEgLjc4NCAxLjYyMWwtNS41MzggN2EuOTk4Ljk5OCAwIDAgMS0uNzg0LjM3OXpNMjAgMTBoNC45NzhsMy45NTEtNC45OTRMMjAgNS4wMzJWMTB6IiBzdHlsZT0iZmlsbDojMDAxZDZjIi8+PC9zdmc+",
       "features": [
@@ -61,7 +61,7 @@
       "support_details": "This product is in the community registry, as such support is handled through the originated repo. If you experience issues please open an issue in that repository [https://github.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/issues](https://github.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/issues). Please note this product is not supported via the IBM Cloud Support Center.",
       "flavors": [
         {
-          "label": "Oracle Database – Single Instance (SI)",
+          "label": "Oracle Database \u2013 Single Instance (SI)",
           "name": "oracle-ready-to-go",
           "short_description": "Deploy Oracle Single Instance on IBM PowerVS",
           "install_type": "fullstack",
@@ -383,7 +383,8 @@
                 "cos_oracle_grid_sw_path": "",
                 "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
                 "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_aix_instance",
@@ -402,12 +403,13 @@
                 "machine_type": "s1022",
                 "pin_policy": "hard",
                 "health_status": "OK"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_oravg_volume",
               "display_name": "Oracle Software Binary Disks",
-              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size × count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB × count=2 = 200GB total.",
+              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size \u00d7 count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB \u00d7 count=2 = 200GB total.",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -418,7 +420,8 @@
                 "size": "100",
                 "count": "2",
                 "tier": "tier1"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_data_volume",
@@ -433,7 +436,8 @@
                 "size": "5",
                 "count": "8",
                 "tier": "tier1"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_redo_volume",
@@ -448,7 +452,8 @@
                 "size": "2",
                 "count": "4",
                 "tier": "tier5k"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "redolog_size_in_mb",
@@ -525,7 +530,7 @@
           "terraform_version": "1.10.5"
         },
         {
-          "label": "Oracle Database – Real Application Clusters (RAC)",
+          "label": "Oracle Database \u2013 Real Application Clusters (RAC)",
           "name": "oracle-real-application-cluster",
           "short_description": "Deploy Oracle RAC Database on IBM PowerVS",
           "install_type": "fullstack",
@@ -997,7 +1002,8 @@
                 "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
                 "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip",
                 "cos_oracle_cluvfy_file_path": "cvupack_aix_7_ppc64.zip"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_aix_instance",
@@ -1016,12 +1022,13 @@
                 "machine_type": "s1022",
                 "pin_policy": "hard",
                 "health_status": "OK"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_oravg_volume",
               "display_name": "Oracle Software Binary Disks",
-              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size × count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB × count=2 = 200GB total.",
+              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size \u00d7 count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB \u00d7 count=2 = 200GB total.",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1032,7 +1039,8 @@
                 "size": "100",
                 "count": "2",
                 "tier": "tier1"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_data_volume",
@@ -1047,7 +1055,8 @@
                 "size": "5",
                 "count": "8",
                 "tier": "tier1"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_redo_volume",
@@ -1062,7 +1071,8 @@
                 "size": "2",
                 "count": "4",
                 "tier": "tier5k"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "redolog_size_in_mb",
@@ -1082,59 +1092,33 @@
           "scripts": [],
           "iam_permissions": [
             {
+              "service_name": "schematics",
               "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
-              ],
-              "service_name": "appid"
+                "crn:v1:bluemix:public:iam::::role:Editor",
+                "crn:v1:bluemix:public:iam::::role:Manager"
+              ]
             },
             {
+              "service_name": "power-iaas",
               "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
-              ],
-              "service_name": "cloud-object-storage"
+                "crn:v1:bluemix:public:iam::::role:Editor",
+                "crn:v1:bluemix:public:iam::::role:Viewer",
+                "crn:v1:bluemix:public:iam::::role:Manager"
+              ]
             },
             {
-              "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
-              ],
-              "service_name": "hs-crypto"
-            },
-            {
-              "role_crns": [
-                "crn:v1:bluemix:public:iam::::role:Administrator"
-              ],
-              "service_name": "iam-identity"
-            },
-            {
-              "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
-              ],
-              "service_name": "kms"
-            },
-            {
+              "service_name": "cloud-object-storage",
               "role_crns": [
                 "crn:v1:bluemix:public:iam::::serviceRole:Manager",
-                "crn:v1:bluemix:public:iam::::role:Administrator"
-              ],
-              "service_name": "is.vpc"
+                "crn:v1:bluemix:public:iam::::role:Writer"
+              ]
             },
             {
+              "service_name": "resource-group",
               "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Viewer",
                 "crn:v1:bluemix:public:iam::::role:Editor"
-              ],
-              "service_name": "is.vpc"
-            },
-            {
-              "role_crns": [
-                "crn:v1:bluemix:public:iam::::role:Editor"
-              ],
-              "service_name": "transit.gateway"
-            },
-            {
-              "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
-              ],
-              "service_name": "power-iaas"
+              ]
             }
           ],
           "architecture": {
@@ -1162,7 +1146,7 @@
           "terraform_version": "1.10.5"
         },
         {
-          "label": "Oracle Database – Single Instance Ready-to-Go",
+          "label": "Oracle Database \u2013 Single Instance Ready-to-Go",
           "name": "oracle-si-ready-to-go",
           "short_description": "Fully automated Oracle SI deployment with VPC landing zone",
           "install_type": "fullstack",
@@ -1297,7 +1281,8 @@
                 "machine_type": "s1022",
                 "pin_policy": "hard",
                 "health_status": "OK"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "oracle_install_type",
@@ -1319,7 +1304,7 @@
             {
               "key": "pi_oravg_volume",
               "display_name": "Oracle Software Binary Disks",
-              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size × count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB × count=2 = 200GB total.",
+              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size \u00d7 count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB \u00d7 count=2 = 200GB total.",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1330,7 +1315,8 @@
                 "size": "100",
                 "count": "2",
                 "tier": "tier1"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_data_volume",
@@ -1345,7 +1331,8 @@
                 "size": "5",
                 "count": "8",
                 "tier": "tier1"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_redo_volume",
@@ -1360,7 +1347,8 @@
                 "size": "2",
                 "count": "4",
                 "tier": "tier5k"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "ora_sid",
@@ -1436,7 +1424,8 @@
                 "cos_oracle_grid_sw_path": "V982588-01_193000_grid.zip",
                 "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
                 "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "nfs_server_config",
@@ -1451,7 +1440,8 @@
                 "size": 200,
                 "iops": 600,
                 "mount_path": "/nfs"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "client_to_site_vpn",
@@ -1466,7 +1456,8 @@
                 "enable": false,
                 "client_ip_pool": "192.168.0.0/16",
                 "vpn_client_access_group_users": []
-              }
+              },
+              "type": "object"
             },
             {
               "key": "enable_monitoring",
@@ -1486,29 +1477,44 @@
           "scripts": [],
           "iam_permissions": [
             {
+              "service_name": "schematics",
               "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
-              ],
-              "service_name": "cloud-object-storage"
+                "crn:v1:bluemix:public:iam::::role:Editor",
+                "crn:v1:bluemix:public:iam::::role:Manager"
+              ]
             },
             {
+              "service_name": "power-iaas",
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ]
+            },
+            {
+              "service_name": "is.vpc",
               "role_crns": [
                 "crn:v1:bluemix:public:iam::::serviceRole:Manager",
                 "crn:v1:bluemix:public:iam::::role:Administrator"
-              ],
-              "service_name": "is.vpc"
+              ]
             },
             {
+              "service_name": "transit.gateway",
               "role_crns": [
                 "crn:v1:bluemix:public:iam::::role:Editor"
-              ],
-              "service_name": "transit.gateway"
+              ]
             },
             {
+              "service_name": "cloud-object-storage",
               "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
-              ],
-              "service_name": "power-iaas"
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager",
+                "crn:v1:bluemix:public:iam::::role:Writer"
+              ]
+            },
+            {
+              "service_name": "resource-group",
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Viewer",
+                "crn:v1:bluemix:public:iam::::role:Editor"
+              ]
             }
           ],
           "architecture": {
@@ -1540,7 +1546,7 @@
           "terraform_version": "1.10.5"
         },
         {
-          "label": "Oracle Database – RAC Ready-to-Go",
+          "label": "Oracle Database \u2013 RAC Ready-to-Go",
           "name": "oracle-rac-ready-to-go",
           "short_description": "Fully automated Oracle RAC deployment with VPC landing zone",
           "install_type": "fullstack",
@@ -1717,12 +1723,13 @@
                 "machine_type": "s1022",
                 "pin_policy": "hard",
                 "health_status": "OK"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_oravg_volume",
               "display_name": "Oracle Software Binary Disks",
-              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size × count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB × count=2 = 200GB total.",
+              "description": "Disk configuration for the Oracle software volume group (oravg). Total filesystem size (size \u00d7 count) must be at least 120GB to accommodate Oracle binaries, patches, and Grid Infrastructure. Fields: size (disk size in GB), count (number of disks), tier (storage tier, e.g., tier1 or tier3). Example: size=100GB \u00d7 count=2 = 200GB total.",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1733,7 +1740,8 @@
                 "size": "100",
                 "count": "2",
                 "tier": "tier1"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_data_volume",
@@ -1748,7 +1756,8 @@
                 "size": "5",
                 "count": "8",
                 "tier": "tier1"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "pi_redo_volume",
@@ -1763,7 +1772,8 @@
                 "size": "2",
                 "count": "4",
                 "tier": "tier5k"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "ora_sid",
@@ -1840,7 +1850,8 @@
                 "cos_oracle_ru_file_path": "p37641958_190000_AIX64-5L.zip",
                 "cos_oracle_opatch_file_path": "p6880880_190000_AIX64-5L.zip",
                 "cos_oracle_cluvfy_file_path": "cvupack_aix_7_ppc64.zip"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "nfs_server_config",
@@ -1855,7 +1866,8 @@
                 "size": 200,
                 "iops": 600,
                 "mount_path": "/nfs"
-              }
+              },
+              "type": "object"
             },
             {
               "key": "client_to_site_vpn",
@@ -1870,7 +1882,8 @@
                 "enable": false,
                 "client_ip_pool": "192.168.0.0/16",
                 "vpn_client_access_group_users": []
-              }
+              },
+              "type": "object"
             },
             {
               "key": "enable_monitoring",
@@ -1890,29 +1903,44 @@
           "scripts": [],
           "iam_permissions": [
             {
+              "service_name": "schematics",
               "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
-              ],
-              "service_name": "cloud-object-storage"
+                "crn:v1:bluemix:public:iam::::role:Editor",
+                "crn:v1:bluemix:public:iam::::role:Manager"
+              ]
             },
             {
+              "service_name": "power-iaas",
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
+              ]
+            },
+            {
+              "service_name": "is.vpc",
               "role_crns": [
                 "crn:v1:bluemix:public:iam::::serviceRole:Manager",
                 "crn:v1:bluemix:public:iam::::role:Administrator"
-              ],
-              "service_name": "is.vpc"
+              ]
             },
             {
+              "service_name": "transit.gateway",
               "role_crns": [
                 "crn:v1:bluemix:public:iam::::role:Editor"
-              ],
-              "service_name": "transit.gateway"
+              ]
             },
             {
+              "service_name": "cloud-object-storage",
               "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
-              ],
-              "service_name": "power-iaas"
+                "crn:v1:bluemix:public:iam::::serviceRole:Manager",
+                "crn:v1:bluemix:public:iam::::role:Writer"
+              ]
+            },
+            {
+              "service_name": "resource-group",
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::role:Viewer",
+                "crn:v1:bluemix:public:iam::::role:Editor"
+              ]
             }
           ],
           "architecture": {
