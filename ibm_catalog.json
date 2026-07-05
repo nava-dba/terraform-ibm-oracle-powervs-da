@@ -1517,7 +1517,7 @@
               "type": "string",
               "description": "GUID of an existing Secrets Manager instance. Leave blank to provision a new one.",
               "required": false,
-              "default_value": ""
+              "default_value": "__NULL__"
             },
             {
               "key": "existing_sm_instance_region",
@@ -1525,7 +1525,7 @@
               "type": "string",
               "description": "Region of the existing Secrets Manager instance. Required only when existing_sm_instance_guid is provided.",
               "required": false,
-              "default_value": ""
+              "default_value": "__NULL__"
             }
           ],
           "iam_permissions": [
@@ -2002,7 +2002,7 @@
               "type": "string",
               "description": "GUID of an existing Secrets Manager instance. Leave blank to provision a new one.",
               "required": false,
-              "default_value": ""
+              "default_value": "__NULL__"
             },
             {
               "key": "existing_sm_instance_region",
@@ -2010,7 +2010,7 @@
               "type": "string",
               "description": "Region of the existing Secrets Manager instance. Required only when existing_sm_instance_guid is provided.",
               "required": false,
-              "default_value": ""
+              "default_value": "__NULL__"
             },
             {
               "key": "root_password",
