@@ -1177,13 +1177,12 @@
             {
               "key": "ibmcloud_api_key",
               "display_name": "IBM Cloud API Key",
-              "type": "password",
+              "type": "multiline_secure_value",
               "required": true,
-              "description": "IBM Cloud API key used to authenticate and provision resources",
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "password"
+                "type": "multiline_secure_value"
               }
             },
             {
@@ -1195,8 +1194,8 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[a-z0-9-]{1,8}$",
-                  "description": "Prefix must be lowercase alphanumeric with hyphens, max 8 characters"
+                  "value": "^[a-zA-Z0-9-]{1,5}$",
+                  "description": "The prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
                 }
               ]
             },
@@ -1538,7 +1537,7 @@
               }
             ]
           },
-          "terraform_version": "1.9"
+          "terraform_version": "1.10.5"
         },
         {
           "label": "Oracle Database – RAC Ready-to-Go",
@@ -1556,13 +1555,12 @@
             {
               "key": "ibmcloud_api_key",
               "display_name": "IBM Cloud API Key",
-              "type": "password",
+              "type": "multiline_secure_value",
               "required": true,
-              "description": "IBM Cloud API key used to authenticate and provision resources",
               "custom_config": {
                 "grouping": "deployment",
                 "original_grouping": "deployment",
-                "type": "password"
+                "type": "multiline_secure_value"
               }
             },
             {
@@ -1574,8 +1572,8 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[a-z0-9-]{1,8}$",
-                  "description": "Prefix must be lowercase alphanumeric with hyphens, max 8 characters"
+                  "value": "^[a-zA-Z0-9-]{1,5}$",
+                  "description": "The prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
                 }
               ]
             },
@@ -1943,7 +1941,7 @@
               }
             ]
           },
-          "terraform_version": "1.9"
+          "terraform_version": "1.10.5"
         }
       ]
     }
