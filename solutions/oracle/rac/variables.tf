@@ -28,8 +28,12 @@ variable "zone" {
 #####################################################
 
 variable "prefix" {
-  description = "Unique identifier prepended to all resources created by this template. Use only lowercase letters the prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters"
+  description = "Unique identifier prepended to all resources created by this template. The prefix shall be between 1 to 5 characters and allows only alpha-numeric and hyphen characters."
   type        = string
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9-]{1,5}$", var.prefix))
+    error_message = "prefix must be 1 to 5 characters and contain only alphanumeric characters and hyphens."
+  }
 }
 
 variable "pi_existing_workspace_guid" {
