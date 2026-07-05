@@ -65,12 +65,8 @@
           "name": "oracle-ready-to-go",
           "short_description": "Deploy Oracle Single Instance on IBM PowerVS",
           "install_type": "fullstack",
-          "index": 1,
           "working_directory": "solutions/oracle/si",
-          "compliance": {
-            "authority": "",
-            "profiles": []
-          },
+          "compliance": null,
           "dependencies": [],
           "configuration": [
             {
@@ -527,19 +523,18 @@
               }
             ]
           },
-          "terraform_version": "1.10.5"
+          "terraform_version": "1.10.5",
+          "schematics_env_values": {
+            "value": "[{\"name\": \"API_DATA_IS_SENSITIVE\",\"value\": \"true\",\"secure\": false,\"hidden\": true}]"
+          }
         },
         {
           "label": "Oracle Database \u2013 Real Application Clusters (RAC)",
           "name": "oracle-real-application-cluster",
           "short_description": "Deploy Oracle RAC Database on IBM PowerVS",
           "install_type": "fullstack",
-          "index": 2,
           "working_directory": "solutions/oracle/rac",
-          "compliance": {
-            "authority": "",
-            "profiles": []
-          },
+          "compliance": null,
           "dependencies": [],
           "configuration": [
             {
@@ -1089,7 +1084,6 @@
               "default_value": "[\"tag-001\", \"tag-002\"]"
             }
           ],
-          "scripts": [],
           "iam_permissions": [
             {
               "service_name": "schematics",
@@ -1143,19 +1137,18 @@
               }
             ]
           },
-          "terraform_version": "1.10.5"
+          "terraform_version": "1.10.5",
+          "schematics_env_values": {
+            "value": "[{\"name\": \"API_DATA_IS_SENSITIVE\",\"value\": \"true\",\"secure\": false,\"hidden\": true}]"
+          }
         },
         {
           "label": "Oracle Database \u2013 Single Instance Ready-to-Go",
           "name": "oracle-si-ready-to-go",
           "short_description": "Fully automated Oracle SI deployment with VPC landing zone",
           "install_type": "fullstack",
-          "index": 3,
           "working_directory": "solutions/oracle/si-ready-to-go",
-          "compliance": {
-            "authority": "",
-            "profiles": []
-          },
+          "compliance": null,
           "dependencies": [],
           "configuration": [
             {
@@ -1193,10 +1186,17 @@
             },
             {
               "key": "powervs_resource_group_name",
-              "display_name": "Resource Group Name",
               "type": "string",
               "default_value": "oracle-da",
-              "required": false
+              "required": false,
+              "custom_config": {
+                "config_constraints": {
+                  "identifier": "rg_name"
+                },
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "resource_group"
+              }
             },
             {
               "key": "pi_user_tags",
@@ -1460,21 +1460,74 @@
               "type": "object"
             },
             {
-              "key": "enable_monitoring",
-              "display_name": "Enable IBM Cloud Monitoring",
-              "type": "boolean",
-              "default_value": false,
-              "required": false
+              "key": "vpc_subnet_cidrs",
+              "display_name": "VPC Subnet CIDRs",
+              "type": "object",
+              "description": "CIDR values for VPC subnets. Ensure none of these overlap with PowerVS subnets or VPN client pool. Fields: vpn, mgmt, vpe, edge.",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "vpn": "10.10.10.0/24",
+                "mgmt": "10.20.10.0/24",
+                "vpe": "10.30.10.0/24",
+                "edge": "10.40.10.0/24"
+              }
             },
             {
-              "key": "enable_scc_wp",
-              "display_name": "Enable Security and Compliance Center Workload Protection",
-              "type": "boolean",
-              "default_value": false,
-              "required": false
+              "key": "vpc_intel_images",
+              "display_name": "VPC Intel VSI OS Images",
+              "type": "object",
+              "description": "Stock OS image names for VPC landing zone VSI instances. Fields: rhel_image (management/network services), sles_image (monitoring).",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "rhel_image": "ibm-redhat-9-4-amd64-sap-applications-5",
+                "sles_image": "ibm-sles-15-6-amd64-sap-applications-3"
+              }
+            },
+            {
+              "key": "sm_service_plan",
+              "display_name": "Secrets Manager Service Plan",
+              "type": "string",
+              "description": "Service plan for a new Secrets Manager instance. Only used when existing_sm_instance_guid is not set.",
+              "required": false,
+              "default_value": "standard",
+              "options": [
+                {
+                  "displayname": "Standard",
+                  "value": "standard"
+                },
+                {
+                  "displayname": "Trial",
+                  "value": "trial"
+                }
+              ]
+            },
+            {
+              "key": "existing_sm_instance_guid",
+              "display_name": "Existing Secrets Manager GUID",
+              "type": "string",
+              "description": "GUID of an existing Secrets Manager instance. Leave blank to provision a new one.",
+              "required": false,
+              "default_value": ""
+            },
+            {
+              "key": "existing_sm_instance_region",
+              "display_name": "Existing Secrets Manager Region",
+              "type": "string",
+              "description": "Region of the existing Secrets Manager instance. Required only when existing_sm_instance_guid is provided.",
+              "required": false,
+              "default_value": ""
             }
           ],
-          "scripts": [],
           "iam_permissions": [
             {
               "service_name": "schematics",
@@ -1543,19 +1596,18 @@
               }
             ]
           },
-          "terraform_version": "1.10.5"
+          "terraform_version": "1.10.5",
+          "schematics_env_values": {
+            "value": "[{\"name\": \"API_DATA_IS_SENSITIVE\",\"value\": \"true\",\"secure\": false,\"hidden\": true}]"
+          }
         },
         {
           "label": "Oracle Database \u2013 RAC Ready-to-Go",
           "name": "oracle-rac-ready-to-go",
           "short_description": "Fully automated Oracle RAC deployment with VPC landing zone",
           "install_type": "fullstack",
-          "index": 4,
           "working_directory": "solutions/oracle/rac-ready-to-go",
-          "compliance": {
-            "authority": "",
-            "profiles": []
-          },
+          "compliance": null,
           "dependencies": [],
           "configuration": [
             {
@@ -1593,10 +1645,17 @@
             },
             {
               "key": "powervs_resource_group_name",
-              "display_name": "Resource Group Name",
               "type": "string",
               "default_value": "oracle-da",
-              "required": false
+              "required": false,
+              "custom_config": {
+                "config_constraints": {
+                  "identifier": "rg_name"
+                },
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "resource_group"
+              }
             },
             {
               "key": "pi_user_tags",
@@ -1886,21 +1945,191 @@
               "type": "object"
             },
             {
-              "key": "enable_monitoring",
-              "display_name": "Enable IBM Cloud Monitoring",
-              "type": "boolean",
-              "default_value": false,
+              "key": "vpc_subnet_cidrs",
+              "display_name": "VPC Subnet CIDRs",
+              "type": "object",
+              "description": "CIDR values for VPC subnets. Ensure none of these overlap with PowerVS subnets or VPN client pool. Fields: vpn, mgmt, vpe, edge.",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "vpn": "10.10.10.0/24",
+                "mgmt": "10.20.10.0/24",
+                "vpe": "10.30.10.0/24",
+                "edge": "10.40.10.0/24"
+              }
+            },
+            {
+              "key": "vpc_intel_images",
+              "display_name": "VPC Intel VSI OS Images",
+              "type": "object",
+              "description": "Stock OS image names for VPC landing zone VSI instances. Fields: rhel_image (management/network services), sles_image (monitoring).",
+              "required": false,
+              "custom_config": {
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "json_editor"
+              },
+              "default_value": {
+                "rhel_image": "ibm-redhat-9-4-amd64-sap-applications-5",
+                "sles_image": "ibm-sles-15-6-amd64-sap-applications-3"
+              }
+            },
+            {
+              "key": "sm_service_plan",
+              "display_name": "Secrets Manager Service Plan",
+              "type": "string",
+              "description": "Service plan for a new Secrets Manager instance. Only used when existing_sm_instance_guid is not set.",
+              "required": false,
+              "default_value": "standard",
+              "options": [
+                {
+                  "displayname": "Standard",
+                  "value": "standard"
+                },
+                {
+                  "displayname": "Trial",
+                  "value": "trial"
+                }
+              ]
+            },
+            {
+              "key": "existing_sm_instance_guid",
+              "display_name": "Existing Secrets Manager GUID",
+              "type": "string",
+              "description": "GUID of an existing Secrets Manager instance. Leave blank to provision a new one.",
+              "required": false,
+              "default_value": ""
+            },
+            {
+              "key": "existing_sm_instance_region",
+              "display_name": "Existing Secrets Manager Region",
+              "type": "string",
+              "description": "Region of the existing Secrets Manager instance. Required only when existing_sm_instance_guid is provided.",
+              "required": false,
+              "default_value": ""
+            },
+            {
+              "key": "root_password",
+              "display_name": "RAC Nodes Root User Password",
+              "description": "Root user password for all Oracle RAC AIX virtual server instances. Password must be 15-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.",
+              "type": "password",
+              "default_value": "",
+              "required": true,
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "value": "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
+                  "description": "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{15,30}$",
+                  "description": "Password must be between 15 and 30 characters"
+                }
+              ],
+              "custom_config": {}
+            },
+            {
+              "key": "ru_version",
+              "display_name": "Oracle Patch Version (RU)",
+              "type": "string",
+              "default_value": "19.30",
+              "required": true,
+              "options": [
+                {
+                  "displayname": "RU 19.20",
+                  "value": "19.20"
+                },
+                {
+                  "displayname": "RU 19.21",
+                  "value": "19.21"
+                },
+                {
+                  "displayname": "RU 19.22",
+                  "value": "19.22"
+                },
+                {
+                  "displayname": "RU 19.23",
+                  "value": "19.23"
+                },
+                {
+                  "displayname": "RU 19.24",
+                  "value": "19.24"
+                },
+                {
+                  "displayname": "RU 19.25",
+                  "value": "19.25"
+                },
+                {
+                  "displayname": "RU 19.26",
+                  "value": "19.26"
+                },
+                {
+                  "displayname": "RU 19.27",
+                  "value": "19.27"
+                },
+                {
+                  "displayname": "RU 19.28",
+                  "value": "19.28"
+                },
+                {
+                  "displayname": "RU 19.29",
+                  "value": "19.29"
+                },
+                {
+                  "displayname": "RU 19.30",
+                  "value": "19.30"
+                }
+              ]
+            },
+            {
+              "key": "time_zone",
+              "display_name": "Oracle Server Time Zone",
+              "type": "string",
+              "default_value": "America/Los_Angeles",
+              "required": false,
+              "options": [
+                {
+                  "displayname": "US Pacific (Los Angeles)",
+                  "value": "America/Los_Angeles"
+                },
+                {
+                  "displayname": "US Eastern (New York)",
+                  "value": "America/New_York"
+                },
+                {
+                  "displayname": "UTC",
+                  "value": "UTC"
+                },
+                {
+                  "displayname": "UK (London)",
+                  "value": "Europe/London"
+                },
+                {
+                  "displayname": "India (Kolkata)",
+                  "value": "Asia/Kolkata"
+                }
+              ]
+            },
+            {
+              "key": "cluster_domain",
+              "display_name": "Cluster Domain Name",
+              "type": "string",
+              "default_value": "example.com",
               "required": false
             },
             {
-              "key": "enable_scc_wp",
-              "display_name": "Enable Security and Compliance Center Workload Protection",
-              "type": "boolean",
-              "default_value": false,
-              "required": false
+              "key": "cluster_name",
+              "display_name": "RAC Cluster Name",
+              "type": "string",
+              "default_value": "orac-cluster",
+              "required": true
             }
           ],
-          "scripts": [],
           "iam_permissions": [
             {
               "service_name": "schematics",
@@ -1969,7 +2198,10 @@
               }
             ]
           },
-          "terraform_version": "1.10.5"
+          "terraform_version": "1.10.5",
+          "schematics_env_values": {
+            "value": "[{\"name\": \"API_DATA_IS_SENSITIVE\",\"value\": \"true\",\"secure\": false,\"hidden\": true}]"
+          }
         }
       ]
     }
