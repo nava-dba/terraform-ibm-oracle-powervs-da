@@ -252,7 +252,7 @@ variable "existing_sm_instance_region" {
 #####################################################
 
 variable "vpc_subnet_cidrs" {
-  description = "CIDR values for the VPC subnets to be created. It's customer responsibility that none of the defined networks collide, including the PowerVS subnets and VPN client pool."
+  description = "CIDR values for the VPC subnets to be created. It is customer responsibility that none of the defined networks collide, including the PowerVS subnets and VPN client pool."
   type = object({
     vpn  = string
     mgmt = string
