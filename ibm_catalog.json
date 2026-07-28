@@ -298,14 +298,14 @@
             {
               "key": "ora_sid",
               "display_name": "Oracle Database Name (SID)",
-              "description": "The database name must be between 3 and 8 characters.",
               "default_value": "",
               "type": "string",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$"
+                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$",
+                  "description": "The database name must be between 3 and 8 characters."
                 },
                 {
                   "type": "regex",
@@ -934,14 +934,14 @@
             {
               "key": "ora_sid",
               "display_name": "Oracle Database Name (SID)",
-              "description": "The database name must be between 3 and 8 characters.",
               "default_value": "",
               "type": "string",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$"
+                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$",
+                  "description": "The database name must be between 3 and 8 characters."
                 },
                 {
                   "type": "regex",
@@ -1355,14 +1355,14 @@
             {
               "key": "ora_sid",
               "display_name": "Oracle Database Name (SID)",
-              "description": "The database name must be between 3 and 8 characters.",
               "type": "string",
               "default_value": "",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$"
+                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$",
+                  "description": "The database name must be between 3 and 8 characters."
                 },
                 {
                   "type": "regex",
@@ -1840,14 +1840,14 @@
             {
               "key": "ora_sid",
               "display_name": "Oracle Database Name (SID)",
-              "description": "The database name must be between 3 and 8 characters.",
               "default_value": "",
               "type": "string",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$"
+                  "value": "^[A-Za-z_]+[A-Za-z0-9_]+$",
+                  "description": "The database name must be between 3 and 8 characters."
                 },
                 {
                   "type": "regex",
