@@ -298,14 +298,14 @@
             {
               "key": "ora_sid",
               "display_name": "Oracle Database Name (SID)",
-              "description": "Oracle Database name (SID). Must be 3–8 characters, start with a letter or underscore, and contain only letters, digits, or underscores.",
               "default_value": "",
               "type": "string",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$"
+                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$",
+                  "description": "Oracle Database name (SID) should contain 3 characters and should not exceed 8 characters."
                 }
               ]
             },
@@ -930,14 +930,14 @@
             {
               "key": "ora_sid",
               "display_name": "Oracle Database Name (SID)",
-              "description": "Oracle Database name (SID). Must be 3–8 characters, start with a letter or underscore, and contain only letters, digits, or underscores.",
               "default_value": "",
               "type": "string",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$"
+                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$",
+                  "description": "Oracle Database name (SID) should contain 3 characters and should not exceed 8 characters."
                 }
               ]
             },
@@ -1347,14 +1347,14 @@
             {
               "key": "ora_sid",
               "display_name": "Oracle Database Name (SID)",
-              "description": "Oracle Database name (SID). Must be 3–8 characters, start with a letter or underscore, and contain only letters, digits, or underscores.",
               "type": "string",
               "default_value": "",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$"
+                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$",
+                  "description": "Oracle Database name (SID) should contain 3 characters and should not exceed 8 characters."
                 }
               ]
             },
@@ -1828,14 +1828,14 @@
             {
               "key": "ora_sid",
               "display_name": "Oracle Database Name (SID)",
-              "description": "Oracle Database name (SID). Must be 3–8 characters, start with a letter or underscore, and contain only letters, digits, or underscores.",
               "default_value": "",
               "type": "string",
               "required": true,
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$"
+                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$",
+                  "description": "Oracle Database name (SID) should contain 3 characters and should not exceed 8 characters."
                 }
               ]
             },
