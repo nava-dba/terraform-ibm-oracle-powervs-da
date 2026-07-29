@@ -198,7 +198,7 @@ variable "nfs_server_config" {
 }
 
 variable "vpc_intel_images" {
-  description = "Stock OS image names for creating VPC landing zone VSI instances: RHEL (management and network services) and SLES (monitoring)."
+  description = "Stock OS image names for creating VPC landing zone VSI instances: RHEL (management and network services) and SLES (monitoring). Refer to [Stock Images](https://cloud.ibm.com/infrastructure/compute/stockImages) for the list of available images."
   type = object({
     rhel_image = string
     sles_image = string
@@ -252,7 +252,7 @@ variable "existing_sm_instance_region" {
 #####################################################
 
 variable "vpc_subnet_cidrs" {
-  description = "CIDR values for the VPC subnets to be created. It is customer responsibility that none of the defined networks collide, including the PowerVS subnets and VPN client pool."
+  description = "CIDR values for the VPC subnets to be created. It is customer responsibility that none of the defined networks collide, including the PowerVS subnets and VPN client pool. Refer to [Power Virtual Server Landing Zone] (https://cloud.ibm.com/docs/powervs-vpc?topic=powervs-vpc-landing-zone-preset)."
   type = object({
     vpn  = string
     mgmt = string
