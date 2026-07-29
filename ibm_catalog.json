@@ -304,8 +304,13 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$",
-                  "description": "Oracle Database name (SID) should contain 3 characters and should not exceed 8 characters."
+                  "value": "^[A-Za-z_][A-Za-z0-9_]+$",
+                  "description": "Oracle Database name (SID) should contain 3 characters"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{3,8}$",
+                  "description": "should not exceed 8 characters"
                 }
               ]
             },
@@ -936,8 +941,13 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$",
-                  "description": "Oracle Database name (SID) should contain 3 characters and should not exceed 8 characters."
+                  "value": "^[A-Za-z_][A-Za-z0-9_]+$",
+                  "description": "Oracle Database name (SID) should contain 3 characters"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{3,8}$",
+                  "description": "should not exceed 8 characters"
                 }
               ]
             },
@@ -1353,8 +1363,13 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$",
-                  "description": "Oracle Database name (SID) should contain 3 characters and should not exceed 8 characters."
+                  "value": "^[A-Za-z_][A-Za-z0-9_]+$",
+                  "description": "Oracle Database name (SID) should contain 3 characters"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{3,8}$",
+                  "description": "should not exceed 8 characters"
                 }
               ]
             },
@@ -1834,8 +1849,13 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "value": "^[A-Za-z_][A-Za-z0-9_]{2,7}$",
-                  "description": "Oracle Database name (SID) should contain 3 characters and should not exceed 8 characters."
+                  "value": "^[A-Za-z_][A-Za-z0-9_]+$",
+                  "description": "Oracle Database name (SID) should contain 3 characters"
+                },
+                {
+                  "type": "regex",
+                  "value": "^.{3,8}$",
+                  "description": "should not exceed 8 characters"
                 }
               ]
             },
