@@ -1222,7 +1222,7 @@
               "type": "string",
               "default_value": "0.0.0.0/0",
               "required": true,
-              "description": "Source IP/CIDR for SSH access. Use your public IP for security (e.g., 203.0.113.5/32)"
+              "description": "Source IP/CIDR for SSH access. Use your public IP for security (e.g., 203.0.113.5/32). The default value 0.0.0.0/0 makes the resources publicly accessible."
             },
             {
               "key": "ssh_public_key",
