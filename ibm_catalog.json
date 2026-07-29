@@ -1469,7 +1469,7 @@
               "key": "vpc_subnet_cidrs",
               "display_name": "VPC Subnet CIDRs",
               "type": "object",
-              "description": "CIDR values for VPC subnets. Ensure none of these overlap with PowerVS subnets or VPN client pool. Fields: vpn, mgmt, vpe, edge.",
+              "description": "CIDR values for the VPC subnets to be created. It is customer responsibility that none of the defined networks collide, including the PowerVS subnets and VPN client pool. Refer to [Power Virtual Server Landing Zone](https://cloud.ibm.com/docs/powervs-vpc?topic=powervs-vpc-landing-zone-preset).",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1487,7 +1487,7 @@
               "key": "vpc_intel_images",
               "display_name": "VPC Intel VSI OS Images",
               "type": "object",
-              "description": "Stock OS image names for VPC landing zone VSI instances. Fields: rhel_image (management/network services), sles_image (monitoring).",
+              "description": "Stock OS image names for creating VPC landing zone VSI instances: RHEL (management and network services) and SLES (monitoring). Refer to [Stock Images](https://cloud.ibm.com/infrastructure/compute/stockImages) for the list of available images.",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1956,7 +1956,7 @@
               "key": "vpc_subnet_cidrs",
               "display_name": "VPC Subnet CIDRs",
               "type": "object",
-              "description": "CIDR values for VPC subnets. Ensure none of these overlap with PowerVS subnets or VPN client pool. Fields: vpn, mgmt, vpe, edge.",
+              "description": "CIDR values for the VPC subnets to be created. It is customer responsibility that none of the defined networks collide, including the PowerVS subnets and VPN client pool. Refer to [Power Virtual Server Landing Zone](https://cloud.ibm.com/docs/powervs-vpc?topic=powervs-vpc-landing-zone-preset).",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
@@ -1974,7 +1974,7 @@
               "key": "vpc_intel_images",
               "display_name": "VPC Intel VSI OS Images",
               "type": "object",
-              "description": "Stock OS image names for VPC landing zone VSI instances. Fields: rhel_image (management/network services), sles_image (monitoring).",
+              "description": "Stock OS image names for creating VPC landing zone VSI instances: RHEL (management and network services) and SLES (monitoring). Refer to [Stock Images](https://cloud.ibm.com/infrastructure/compute/stockImages) for the list of available images.",
               "required": false,
               "custom_config": {
                 "grouping": "deployment",
