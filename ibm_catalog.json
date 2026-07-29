@@ -308,7 +308,8 @@
                 },
                 {
                   "type": "regex",
-                  "value": "^.{3,8}$"
+                  "value": "^.{3,8}$",
+                  "description": "Oracle Database name must be less than or equal to 8 characters."
                 }
               ]
             },
@@ -943,7 +944,8 @@
                 },
                 {
                   "type": "regex",
-                  "value": "^.{3,8}$"
+                  "value": "^.{3,8}$",
+                  "description": "Oracle Database name must be less than or equal to 8 characters."
                 }
               ]
             },
@@ -1363,7 +1365,8 @@
                 },
                 {
                   "type": "regex",
-                  "value": "^.{3,8}$"
+                  "value": "^.{3,8}$",
+                  "description": "Oracle Database name must be less than or equal to 8 characters."
                 }
               ]
             },
@@ -1847,7 +1850,8 @@
                 },
                 {
                   "type": "regex",
-                  "value": "^.{3,8}$"
+                  "value": "^.{3,8}$",
+                  "description": "Oracle Database name must be less than or equal to 8 characters."
                 }
               ]
             },
