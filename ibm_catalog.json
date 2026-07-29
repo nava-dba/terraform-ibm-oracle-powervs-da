@@ -62,7 +62,7 @@
       "flavors": [
         {
           "label": "Oracle Database \u2013 Single Instance (SI)",
-          "name": "oracle-ready-to-go",
+          "name": "oracle-si-one-click",
           "short_description": "Deploy Oracle Single Instance on IBM PowerVS",
           "install_type": "fullstack",
           "working_directory": "solutions/oracle/si",
@@ -1147,8 +1147,8 @@
           }
         },
         {
-          "label": "Oracle Database \u2013 Single Instance Ready-to-Go",
-          "name": "oracle-si-ready-to-go",
+          "label": "Oracle Database \u2013 Single Instance One Click",
+          "name": "oracle-si-one-click",
           "short_description": "Fully automated Oracle SI deployment with VPC landing zone",
           "install_type": "fullstack",
           "working_directory": "solutions/oracle/si-ready-to-go",
@@ -1594,7 +1594,7 @@
             "diagrams": [
               {
                 "diagram": {
-                  "caption": "Oracle Single Instance Ready-to-Go on Power Virtual Server with VPC Landing Zone",
+                  "caption": "Oracle SI One Click on Power Virtual Server with VPC Landing Zone",
                   "url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/main/images/Oracle_DA_SI_ReadyToGo.svg",
                   "type": "image/svg+xml"
                 },
@@ -1608,8 +1608,8 @@
           }
         },
         {
-          "label": "Oracle Database \u2013 RAC Ready-to-Go",
-          "name": "oracle-rac-ready-to-go",
+          "label": "Oracle Database \u2013 RAC One Click",
+          "name": "oracle-rac-one-click",
           "short_description": "Fully automated Oracle RAC deployment with VPC landing zone",
           "install_type": "fullstack",
           "working_directory": "solutions/oracle/rac-ready-to-go",
