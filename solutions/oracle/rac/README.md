@@ -29,7 +29,7 @@ This automated deployable architecture guide demonstrates how to deploy an Oracl
 
 ## Reference Architecture
 
-<img width="342" alt="image" src="https://raw.githubusercontenhttps://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-powervs-oracle/0859fa3a4c1581e6db02c0cc7f8e9cf104976e05/images/Oracle_DA_RAC.svg" />
+<img width="450" alt="image" src="https://github.com/nava-dba/terraform-ibm-oracle-powervs-da/blob/main/images/Oracle_DA_RAC.svg" />
 
 Using Terraform, both RHEL and AIX virtual machines are provisioned as part of the deployment. The RHEL VM acts as the Ansible controller, hosting the playbooks required to install and configure the Oracle Database on the AIX system. It is also configured with an NFS server to stage and provide access to the Oracle installation binaries for the AIX VMs and DNS server for the name resolution of RAC VIPs.
 
