@@ -1186,7 +1186,7 @@
               "type": "string",
               "required": true,
               "default_value": "",
-              "description": "IBM Cloud data center location where IBM PowerVS infrastructure will be created (e.g., dal10, eu-de-1, lon04). The VPC region is derived automatically from this zone."
+              "description": "IBM Cloud data center location where IBM PowerVS infrastructure will be created (e.g., dal10, eu-de-1, lon04). The VPC region is derived automatically from this zone. See all available zones at [IBM PowerVS Cloud Regions](https://www.ibm.com/docs/en/power-virtual-server?topic=locations-cloud-regions)"
             },
             {
               "key": "powervs_resource_group_name",
@@ -1247,7 +1247,7 @@
               "key": "pi_aix_image_name",
               "display_name": "AIX OS Image Name",
               "type": "string",
-              "default_value": "7300-03-02",
+              "default_value": "7300-04-00",
               "required": false,
               "options": [
                 {
@@ -1750,7 +1750,7 @@
               "key": "pi_aix_image_name",
               "display_name": "AIX OS Image Name",
               "type": "string",
-              "default_value": "7300-03-02",
+              "default_value": "7300-04-00",
               "required": false,
               "options": [
                 {
