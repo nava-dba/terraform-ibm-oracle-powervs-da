@@ -6,7 +6,7 @@ This fully automated deployable architecture creates a complete Oracle Database 
 
 ## Architecture
 
-This solution deploys:
+This solution deploys: 
 
 ### VPC Landing Zone Infrastructure
 - **Management VSI (Bastion Host)**: Secure SSH access point with floating IP
