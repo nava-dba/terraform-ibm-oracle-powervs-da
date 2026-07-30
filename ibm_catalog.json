@@ -62,7 +62,7 @@
       "flavors": [
         {
           "label": "Oracle Database \u2013 Single Instance (SI)",
-          "name": "oracle-si-one-click",
+          "name": "oracle-single-instance",
           "short_description": "Deploy Oracle Single Instance on IBM PowerVS",
           "install_type": "fullstack",
           "working_directory": "solutions/oracle/si",
