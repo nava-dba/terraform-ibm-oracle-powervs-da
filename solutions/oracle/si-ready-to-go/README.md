@@ -37,7 +37,7 @@ This solution deploys:
 - **Transit Gateway**: Connects VPC to PowerVS workspace
 - **VPC Networking**: Subnets, security groups, and network ACLs
 - **Optional Components**: Client-to-site VPN, IBM Cloud Monitoring, Security and Compliance Center Workload Protection
-  
+
 For more details refer to IBM Cloud docs [Power Virtual Server with VPC landing zone](https://cloud.ibm.com/docs/powervs-vpc?topic=powervs-vpc-automation-solution-overview)
 
 #### PowerVS Infrastructure
@@ -55,12 +55,12 @@ For more details refer to IBM Cloud docs [Power Virtual Server with VPC landing 
 
 ## Key Features
 
-✅ **Fully Automated**: No manual steps required after deployment  
-✅ **Production Ready**: Based on IBM's standard-plus-vsi reference architecture  
-✅ **No Pre-requisites**: Creates all infrastructure from scratch  
-✅ **Flexible Storage**: Supports both Oracle ASM and JFS2 filesystems  
-✅ **Secure**: Built-in VPN support, security groups, and compliance options  
-✅ **Scalable**: Configurable compute and storage resources  
+✅ **Fully Automated**: No manual steps required after deployment
+✅ **Production Ready**: Based on IBM's standard-plus-vsi reference architecture
+✅ **No Pre-requisites**: Creates all infrastructure from scratch
+✅ **Flexible Storage**: Supports both Oracle ASM and JFS2 filesystems
+✅ **Secure**: Built-in VPN support, security groups, and compliance options
+✅ **Scalable**: Configurable compute and storage resources
 
 ## Prerequisites
 
@@ -95,7 +95,7 @@ b) Download Oracle Binaries from [Oracle Site](https://edelivery.oracle.com/osdc
    - RDBMS Base software: V982583-01_193000_db.zip
    - Grid Infrastructure software: V982588-01_193000_grid.zip
    - Download the latest System Patch (Release Update) 19.X containing both grid and rdbms RU patches for AIX from My Oracle Support. Refer to this MOS note [2521164.1](https://support.oracle.com/epmos/faces/DocumentDisplay?parent=DOCUMENT&sourceId=2521164.1&id=2521164.1) and also refer to this [Oracle documentation](https://docs.oracle.com/en/database/oracle/oracle-database/19/ntdbi/downloading-and-installing-patch-updates.html) to understand more on Oracle patch updates.
-     
+
 c) Upload the Oracle binaries to IBM Cloud COS bucket. Please refer to this documentation to upload the files.
 [Upload data to COS Bucket](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-upload)
 
@@ -187,7 +187,7 @@ DV              Oracle Database Vault                              VALID
 | Storage Type (ASM or File System JFS2) | oracle_install_type | Oracle storage installation type. Use `ASM` for Automatic Storage Management (requires Grid Infrastructure binaries in COS and `cos_oracle_grid_sw_path` set) or `JFS2` for Journal File System. | ASM or JFS2 |
 | Oracle Database Name (SID) | ora_sid | Name for the Oracle database, must be atleast 3 characters and not more than 8 characters. | Example: orcldb |
 | Oracle SYS Password | ora_db_password | Password for Oracle database administrative users (SYS, SYSTEM). Password must be 8-30 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character. | n/a |
-| Cloud Object Storage (COS) Credentials | ibmcloud_cos_service_credentials | JSON service credentials for the IBM Cloud Object Storage instance used to access the COS bucket. To generate credentials: IBM Cloud Console > Cloud Object Storage > your instance > Service Credentials > New credential. See [COS Service Credentials](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials). | |
+| Cloud Object Storage (COS) Credentials | ibmcloud_cos_service_credentials | JSON service credentials for the IBM Cloud Object Storage instance used to access the COS bucket. To generate credentials: IBM Cloud Console > Cloud Object Storage > your instance > Service Credentials > New credential. See [COS Service Credentials](https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-service-credentials). | | <!-- pragma: allowlist secret -->
 | COS Oracle Software Storage Configuration | ibmcloud_cos_configuration | IBM Cloud Object Storage (COS) bucket details containing Oracle installation binaries. Do not add a leading `/` to any path. | |
 | powervs_resource_group_name (Optional) | powervs_resource_group_name | Existing IBM Cloud resource group name. | Example: oracle-da |
 | Resource Tags (Optional) | pi_user_tags | List of tag names to apply to all IBM Cloud PowerVS instances and volumes created by this module. Can be set to null to skip tagging. | Example: ["oracledb"] |
@@ -215,7 +215,7 @@ DV              Oracle Database Vault                              VALID
    ssh -i <rsa-prvt-key> root@<access_host_or_ip>
    ```
   If you are using client-to-site vpn, you can directly login to Management Host
-  
+
 2. **SSH to Oracle AIX Instance**:
    ```bash
    ssh -i <rsa-prvt-key> root@<oracle_aix_instance_management_ip>

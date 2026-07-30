@@ -62,8 +62,7 @@ locals {
   nfs_mount = "/nfs"
 
   # RAC-specific configuration
-  scan_name   = "${var.prefix}-scan"
-  ora_version = "19c"
+  scan_name = "${var.prefix}-scan"
 
   # AIX network interfaces for RAC
   aix_network_interfaces = {
@@ -95,40 +94,9 @@ locals {
     }
   ]
 
-  # Network services configuration for PowerVS instances
-  powervs_network_services_config = {
-    squid = {
-      enable               = true
-      squid_server_ip_port = module.landing_zone.proxy_host_or_ip_port
-      no_proxy_hosts       = "161.0.0.0/8,10.0.0.0/8,localhost,127.0.0.1"
-    }
-    nfs = {
-      enable          = true
-      nfs_server_path = module.landing_zone.nfs_host_or_ip_path
-      nfs_client_path = var.nfs_server_config.mount_path
-      opts            = module.landing_zone.network_services_config.nfs.opts
-      fstype          = module.landing_zone.network_services_config.nfs.fstype
-    }
-    dns = {
-      enable        = true
-      dns_server_ip = module.landing_zone.dns_host_or_ip
-    }
-    ntp = {
-      enable        = module.landing_zone.ntp_host_or_ip != "" ? true : false
-      ntp_server_ip = module.landing_zone.ntp_host_or_ip
-    }
-  }
-
   ########################################################
   # Storage configuration
   ########################################################
-
-  pi_boot_volume = {
-    name  = "rootvg"
-    size  = "40"
-    count = "1"
-    tier  = "tier1"
-  }
 
   # CRSDG volume configuration
   pi_crsdg_volume = {
@@ -177,17 +145,6 @@ locals {
   gimr_total_size  = tonumber(local.pi_gimr_volume.size) * tonumber(local.pi_gimr_volume.count)
   arch_total_size  = tonumber(local.pi_arc_volume.size) * tonumber(local.pi_arc_volume.count)
 
-  # Storage configuration for each RAC node (ASM is mandatory for RAC)
-  powervs_rac_storage_config = [
-    local.pi_boot_volume,
-    var.pi_oravg_volume,    # Oracle software VG
-    local.pi_crsdg_volume,  # ASM CRSDG
-    var.pi_data_volume,     # ASM DATA diskgroup
-    var.pi_redo_volume,     # ASM REDO diskgroup
-    local.pi_gimr_volume,   # ASM GIMR diskgroup
-    local.pi_arc_volume     # ASM ARCH diskgroup
-  ]
-
   # COS service credentials
   cos_service_credentials  = jsondecode(var.ibmcloud_cos_service_credentials)
   cos_apikey               = local.cos_service_credentials.apikey
@@ -196,52 +153,51 @@ locals {
   # COS configurations for Oracle binaries
   ibmcloud_cos_oracle_configuration = {
     cos_apikey               = local.cos_apikey
-    cos_region                = var.ibmcloud_cos_configuration.cos_region
+    cos_region               = var.ibmcloud_cos_configuration.cos_region
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
-    cos_dir_name              = var.ibmcloud_cos_configuration.cos_oracle_database_sw_path
+    cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_database_sw_path
     download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_grid_configuration = {
     cos_apikey               = local.cos_apikey
-    cos_region                = var.ibmcloud_cos_configuration.cos_region
+    cos_region               = var.ibmcloud_cos_configuration.cos_region
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
-    cos_dir_name              = var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path
+    cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path
     download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_patch_configuration = {
     cos_apikey               = local.cos_apikey
-    cos_region                = var.ibmcloud_cos_configuration.cos_region
+    cos_region               = var.ibmcloud_cos_configuration.cos_region
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
-    cos_dir_name              = var.ibmcloud_cos_configuration.cos_oracle_ru_file_path
+    cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_ru_file_path
     download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_opatch_configuration = {
     cos_apikey               = local.cos_apikey
-    cos_region                = var.ibmcloud_cos_configuration.cos_region
+    cos_region               = var.ibmcloud_cos_configuration.cos_region
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
-    cos_dir_name              = var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path
+    cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_opatch_file_path
     download_dir_path        = local.nfs_mount
   }
 
   ibmcloud_cos_cluvfy_configuration = var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path != null ? {
     cos_apikey               = local.cos_apikey
-    cos_region                = var.ibmcloud_cos_configuration.cos_region
+    cos_region               = var.ibmcloud_cos_configuration.cos_region
     cos_resource_instance_id = local.cos_resource_instance_id
     cos_bucket_name          = var.ibmcloud_cos_configuration.cos_bucket_name
-    cos_dir_name              = var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path
+    cos_dir_name             = var.ibmcloud_cos_configuration.cos_oracle_cluvfy_file_path
     download_dir_path        = local.nfs_mount
   } : null
 
   # Network details for RAC configuration
-  # Management network from landing zone, RAC networks: [0]=public, [1]=priv1, [2]=priv2
-  mgmt_network   = module.landing_zone.powervs_management_subnet
+  # RAC networks: [0]=public, [1]=priv1, [2]=priv2
   public_network = local.powervs_rac_networks_auto[0]
   priv1_network  = local.powervs_rac_networks_auto[1]
   priv2_network  = local.powervs_rac_networks_auto[2]

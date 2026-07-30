@@ -181,30 +181,6 @@ variable "root_password" {
   sensitive   = true
 }
 
-variable "time_zone" {
-  description = "Time zone to configure on all Oracle RAC AIX virtual server instances (e.g., UTC, America/New_York, America/Los_Angeles). All RAC nodes must use the same time zone."
-  type        = string
-  default     = "America/Los_Angeles"
-}
-# ===========================
-# Database Configuration
-# ===========================
-
-variable "ru_version" {
-  description = "Oracle Release Update (RU) patch version to apply to both Grid Infrastructure and the Database (e.g., 19.20.0.0). This must match the RU patch zip uploaded to the COS bucket at 'cos_oracle_ru_file_path'. Find available RU patches on [Oracle MOS (note 2521164.1)](https://support.oracle.com/epmos/faces/DocumentDisplay?id=2521164.1)."
-  type        = string
-}
-
-variable "cluster_domain" {
-  description = "DNS domain name for the Oracle RAC cluster (e.g., example.com). Used to construct fully qualified hostnames for cluster nodes and the SCAN name. This domain must be resolvable within your network."
-  type        = string
-}
-
-variable "cluster_name" {
-  description = "Name for the Oracle RAC cluster (e.g., orac-cluster). Used internally by Oracle Clusterware to identify the cluster. Must be unique within the domain and contain only alphanumeric characters and hyphens. For more information, see [Oracle Clusterware Administration](https://docs.oracle.com/en/database/oracle/oracle-database/19/cwadd/oracle-clusterware-administration.html)."
-  type        = string
-}
-
 #####################################################
 # Ready-to-Go Specific Parameters
 #####################################################

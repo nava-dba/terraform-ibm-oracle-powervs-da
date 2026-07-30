@@ -24,7 +24,7 @@ terraform {
 # REST API Provider (required by nested modules)
 ########################################################
 provider "restapi" {
-  uri = "https://api.example.com/"  # Placeholder - not actually used
+  uri = "https://api.example.com/" # Placeholder - not actually used
 }
 
 ########################################################
