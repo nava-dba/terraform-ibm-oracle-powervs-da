@@ -284,7 +284,7 @@ jobs:
               for v in kind.get("versions", []):
                   if v.get("version") == target_version:
                       flavor_label = v.get("flavor", {}).get("label", "")
-                      if "ready-to-go" in flavor_label.lower() and "single instance" in flavor_label.lower():
+                      if "one click" in flavor_label.lower() and "single instance" in flavor_label.lower():
                           print(v.get("version_locator", ""))
                           sys.exit(0)
           ')
@@ -330,7 +330,7 @@ jobs:
               for v in kind.get("versions", []):
                   if v.get("version") == target_version:
                       flavor_label = v.get("flavor", {}).get("label", "")
-                      if "ready-to-go" in flavor_label.lower() and "rac" in flavor_label.lower():
+                      if "one click" in flavor_label.lower() and "rac" in flavor_label.lower():
                           print(v.get("version_locator", ""))
                           sys.exit(0)
           ')
