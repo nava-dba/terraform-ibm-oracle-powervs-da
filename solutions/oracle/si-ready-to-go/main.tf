@@ -1,6 +1,6 @@
-  ########################################################
+########################################################
 # Oracle Database Single Instance (SI) - Ready to Go
-# 
+#
 # This solution creates:
 # 1. VPC Landing Zone with 2 VSIs (Management + Network Services)
 # 2. PowerVS Workspace with networks
@@ -136,7 +136,7 @@ locals {
     PROXY_IP_PORT          = module.standard.proxy_host_or_ip_port
     NO_PROXY               = local.powervs_network_services_config.squid.no_proxy_hosts
     ORA_NFS_HOST           = local.nfs_server
-    ORA_NFS_DEVICE         = local.nfs_device  # NFS export path for mounting
+    ORA_NFS_DEVICE         = local.nfs_device # NFS export path for mounting
     EXTEND_ROOT_VOLUME_WWN = module.pi_instance_aix.pi_storage_configuration[0].wwns
     AIX_INIT_MODE          = ""
     ROOT_PASSWORD          = ""
