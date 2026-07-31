@@ -73,7 +73,7 @@
               "key": "deployment_type",
               "display_name": "Deployment Type",
               "type": "string",
-              "default_value": "",
+              "default_value": "public",
               "required": true,
               "options": [
                 {
@@ -543,7 +543,7 @@
               "key": "deployment_type",
               "display_name": "Deployment Type",
               "type": "string",
-              "default_value": "",
+              "default_value": "public",
               "required": true,
               "options": [
                 {
