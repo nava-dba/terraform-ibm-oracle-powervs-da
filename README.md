@@ -25,4 +25,4 @@ This module deploys an **Oracle 19c Database** as a Single Instance (SI) or Real
 
 **Note 1:** Versions not listed in the table above can also be used with this Deployment Architecture.
 
-**Note 2:** One prequisite step for all deployment variations is, we need to have oracle binaries uploaded to COS bucket before starting deployment
+**Note 2:** One prerequisite step for all deployment variations is, we need to have oracle binaries uploaded to COS bucket before starting deployment

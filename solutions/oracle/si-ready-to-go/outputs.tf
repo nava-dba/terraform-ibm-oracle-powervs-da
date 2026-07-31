@@ -185,28 +185,28 @@ output "scc_wp_instance" {
 
 output "ssh_access_instructions" {
   description = "Instructions for SSH access to the Oracle AIX instance."
-  value = <<-EOT
-    
+  value       = <<-EOT
+
     ========================================
     SSH Access Instructions
     ========================================
-    
+
     1. Access Management (Bastion) Host:
        ssh root@${module.standard.access_host_or_ip}
-    
+
     2. From Bastion, access Oracle AIX instance:
        ssh root@${module.pi_instance_aix.pi_instance_primary_ip}
-    
+
     3. Oracle Database Connection:
        - SID: ${var.ora_sid}
        - Connect as SYSDBA: sqlplus / as sysdba
-    
+
     4. Network Services:
        - Proxy: ${module.standard.proxy_host_or_ip_port}
        - DNS: ${module.standard.dns_host_or_ip}
        - NTP: ${module.standard.ntp_host_or_ip}
        - NFS: ${module.standard.nfs_host_or_ip_path}
-    
+
     ========================================
   EOT
 }

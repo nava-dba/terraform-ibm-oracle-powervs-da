@@ -16,7 +16,7 @@ solutions/oracle/si/input.auto.tfvars
 .vscode
 solutions/oracle/si/*.tfvars*
 solutions/oracle/rac/*.tfvars*
-solutions/oracle/si-ready-to-go/*.tfvars*    
+solutions/oracle/si-ready-to-go/*.tfvars*
 solutions/oracle/rac-ready-to-go/*.tfvars*
 solutions/oracle/NETWORK_PLANNING.md
 log

@@ -137,18 +137,18 @@ locals {
     var.oracle_install_type == "ASM" ?
     [
       local.pi_boot_volume,
-      var.pi_oravg_volume, # Oracle software VG
-      local.pi_crsdg_volume,    # ASM CRSDG
-      var.pi_data_volume,  # ASM DATA diskgroup
-      var.pi_redo_volume,  # ASM REDO diskgroup
-      local.pi_arc_volume       # ASM ARCH diskgroup
+      var.pi_oravg_volume,   # Oracle software VG
+      local.pi_crsdg_volume, # ASM CRSDG
+      var.pi_data_volume,    # ASM DATA diskgroup
+      var.pi_redo_volume,    # ASM REDO diskgroup
+      local.pi_arc_volume    # ASM ARCH diskgroup
     ] :
     [
       local.pi_boot_volume,
       var.pi_oravg_volume, # Oracle software VG
       var.pi_data_volume,  # JFS2 DATAVG (for datafiles)
       var.pi_redo_volume,  # JFS2 REDOVG (for redo + control files)
-      local.pi_arc_volume       # JFS2 ARCHVG (for archives)
+      local.pi_arc_volume  # JFS2 ARCHVG (for archives)
     ]
   )
 
@@ -206,7 +206,7 @@ locals {
   # Uses File Storage NFS discovered from Network Services VSI
   playbook_oracle_install_vars = {
     ORA_NFS_HOST        = local.nfs_server
-    ORA_NFS_DEVICE      = local.nfs_device  # NFS export path for mounting
+    ORA_NFS_DEVICE      = local.nfs_device # NFS export path for mounting
     DATABASE_SW         = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_database_sw_path}"
     GRID_SW             = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_grid_sw_path}"
     RU_FILE             = "${local.nfs_mount}/${var.ibmcloud_cos_configuration.cos_oracle_ru_file_path}"

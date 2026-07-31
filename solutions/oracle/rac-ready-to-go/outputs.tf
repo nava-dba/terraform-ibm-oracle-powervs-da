@@ -131,8 +131,8 @@ output "rac_cluster_nodes" {
   description = "List of RAC cluster node details."
   value = [
     for idx in range(var.rac_nodes) : {
-      name         = local.rac_instances[idx].server_name
-      id           = local.rac_instances[idx].pvm_instance_id
+      name          = local.rac_instances[idx].server_name
+      id            = local.rac_instances[idx].pvm_instance_id
       management_ip = local.rac_node_ips[idx].management
       public_ip     = local.rac_node_ips[idx].public
       private1_ip   = local.rac_node_ips[idx].private1
@@ -203,36 +203,36 @@ output "scc_wp_instance" {
 
 output "ssh_access_instructions" {
   description = "Instructions for SSH access to the Oracle RAC cluster."
-  value = <<-EOT
-    
+  value       = <<-EOT
+
     ========================================
     SSH Access Instructions - Oracle RAC
     ========================================
-    
+
     1. Access Management (Bastion) Host:
        ssh root@${module.landing_zone.access_host_or_ip}
-    
+
     2. From Bastion, access RAC nodes:
        ${join("\n       ", [for idx in range(var.rac_nodes) : "ssh root@${local.rac_node_ips[idx].management}  # ${local.rac_instances[idx].server_name}"])}
-    
+
     3. Oracle RAC Database Connection:
        - Database Name: ${var.ora_sid}
        - SCAN Name: ${local.scan_name}
        - SCAN IPs: ${join(", ", local.scan_ips_list)}
        - Connect String: ${var.ora_sid}/${var.ora_sid}@${local.scan_name}:1521/${var.ora_sid}
        - Connect as SYSDBA: sqlplus / as sysdba
-    
+
     4. Network Services:
        - Proxy: ${module.landing_zone.proxy_host_or_ip_port}
        - DNS: ${module.landing_zone.dns_host_or_ip}
        - NTP: ${module.landing_zone.ntp_host_or_ip}
        - NFS: ${module.landing_zone.nfs_host_or_ip_path}
-    
+
     5. RAC Cluster Management:
        - Check cluster status: crsctl stat res -t
        - Check ASM status: asmcmd lsdg
        - Check database status: srvctl status database -d ${var.ora_sid}
-    
+
     ========================================
   EOT
 }

@@ -1,6 +1,6 @@
 ########################################################
 # Oracle Database Real Application Clusters (RAC) - Ready to Go
-# 
+#
 # This solution creates:
 # 1. VPC Landing Zone with 2 VSIs (Management + Network Services)
 # 2. PowerVS Workspace with 4 networks (mgmt, public, priv1, priv2)
@@ -132,7 +132,7 @@ resource "terraform_data" "setup_jump_box_ssh" {
 
   # Configure SSH client to disable host key checking
   provisioner "file" {
-    content = <<-EOF
+    content     = <<-EOF
       Host *
         StrictHostKeyChecking no
         UserKnownHostsFile=/dev/null
@@ -177,7 +177,7 @@ data "ibm_pi_workspace" "workspace" {
 # Note: ARP must be enabled at PowerVS workspace level via IBM Support ticket
 resource "ibm_pi_network" "rac_public" {
   provider = ibm.ibm-pi
-  
+
   depends_on = [data.ibm_pi_workspace.workspace]
 
   pi_cloud_instance_id = module.landing_zone.powervs_workspace_guid
@@ -187,7 +187,7 @@ resource "ibm_pi_network" "rac_public" {
   pi_gateway           = "172.16.10.1"
   pi_dns               = [module.landing_zone.dns_host_or_ip]
   pi_network_mtu       = 1450
-  
+
   timeouts {
     create = "10m"
   }
@@ -197,7 +197,7 @@ resource "ibm_pi_network" "rac_public" {
 # Note: ARP must be enabled at PowerVS workspace level via IBM Support ticket
 resource "ibm_pi_network" "rac_private1" {
   provider = ibm.ibm-pi
-  
+
   depends_on = [data.ibm_pi_workspace.workspace]
 
   pi_cloud_instance_id = module.landing_zone.powervs_workspace_guid
@@ -207,7 +207,7 @@ resource "ibm_pi_network" "rac_private1" {
   pi_gateway           = "10.60.30.1"
   pi_dns               = [module.landing_zone.dns_host_or_ip]
   pi_network_mtu       = 9000
-  
+
   timeouts {
     create = "10m"
   }
@@ -217,7 +217,7 @@ resource "ibm_pi_network" "rac_private1" {
 # Note: ARP must be enabled at PowerVS workspace level via IBM Support ticket
 resource "ibm_pi_network" "rac_private2" {
   provider = ibm.ibm-pi
-  
+
   depends_on = [data.ibm_pi_workspace.workspace]
 
   pi_cloud_instance_id = module.landing_zone.powervs_workspace_guid
@@ -227,7 +227,7 @@ resource "ibm_pi_network" "rac_private2" {
   pi_gateway           = "10.50.20.1"
   pi_dns               = [module.landing_zone.dns_host_or_ip]
   pi_network_mtu       = 9000
-  
+
   timeouts {
     create = "10m"
   }
@@ -240,7 +240,7 @@ resource "ibm_pi_network" "rac_private2" {
 
 resource "ibm_pi_instance" "rac_nodes" {
   provider = ibm.ibm-pi
-  
+
   pi_cloud_instance_id = module.landing_zone.powervs_workspace_guid
   pi_instance_name     = "${var.prefix}-rac-aix"
   pi_image_id          = var.pi_aix_image_name
@@ -265,7 +265,7 @@ resource "ibm_pi_instance" "rac_nodes" {
   pi_pin_policy            = var.pi_aix_instance.pin_policy
   pi_health_status         = var.pi_aix_instance.health_status
   pi_storage_pool_affinity = false
-  
+
   # Create multiple instances with replication
   pi_replicants         = var.rac_nodes
   pi_replication_scheme = "suffix"
@@ -295,8 +295,8 @@ resource "time_sleep" "wait_after_rac_vm_creation" {
 
 # Fetch all instances in the workspace to get IPs
 data "ibm_pi_instances" "workspace_instances" {
-  provider             = ibm.ibm-pi
-  
+  provider = ibm.ibm-pi
+
   depends_on           = [time_sleep.wait_after_rac_vm_creation]
   pi_cloud_instance_id = module.landing_zone.powervs_workspace_guid
 }
@@ -325,13 +325,13 @@ locals {
       private2   = local.rac_instances[idx].networks[3].ip
     }
   }
-  
+
   # Management IPs list for Ansible inventory
   aix_management_ips = [
     for idx in range(var.rac_nodes) :
     local.rac_instances[idx].networks[0].ip
   ]
-  
+
   # hosts_and_vars map for Ansible inventory (matching RAC standard solution)
   hosts_and_vars = {
     for idx in range(var.rac_nodes) :
@@ -349,7 +349,7 @@ locals {
 
 resource "ibm_pi_volume" "node_storage" {
   provider = ibm.ibm-pi
-  
+
   for_each = {
     for idx in range(var.rac_nodes) :
     idx => local.rac_instances[idx]
@@ -363,8 +363,8 @@ resource "ibm_pi_volume" "node_storage" {
 
   timeouts {
     create = "30m"
-  } 
-    lifecycle {
+  }
+  lifecycle {
     ignore_changes = [pi_volume_size]
   }
 }
@@ -372,7 +372,7 @@ resource "ibm_pi_volume" "node_storage" {
 # Attach node-local rootvg volumes
 resource "ibm_pi_volume_attach" "node_storage_attach" {
   provider = ibm.ibm-pi
-  
+
   for_each = ibm_pi_volume.node_storage
 
   pi_cloud_instance_id = module.landing_zone.powervs_workspace_guid
@@ -391,7 +391,7 @@ resource "ibm_pi_volume_attach" "node_storage_attach" {
 
 resource "ibm_pi_volume" "shared_asm" {
   provider = ibm.ibm-pi
-  
+
   depends_on = [data.ibm_pi_instances.workspace_instances]
   count      = local.shared_asm_count
 
@@ -409,7 +409,7 @@ resource "ibm_pi_volume" "shared_asm" {
 # Attach shared ASM volumes to first node
 resource "ibm_pi_volume_attach" "shared_asm_attach_node0" {
   provider = ibm.ibm-pi
-  
+
   count      = local.shared_asm_count
   depends_on = [ibm_pi_volume_attach.node_storage_attach]
 
@@ -425,17 +425,17 @@ resource "ibm_pi_volume_attach" "shared_asm_attach_node0" {
 # Attach shared ASM volumes to other nodes
 resource "ibm_pi_volume_attach" "shared_asm_attach_other_nodes" {
   provider = ibm.ibm-pi
-  
+
   count      = (var.rac_nodes - 1) * local.shared_asm_count
   depends_on = [ibm_pi_volume_attach.shared_asm_attach_node0]
 
   pi_cloud_instance_id = module.landing_zone.powervs_workspace_guid
-  
+
   # Calculate which node (1, 2, 3, ...)
   pi_instance_id = local.rac_instances[
     1 + floor(count.index / local.shared_asm_count)
   ].pvm_instance_id
-  
+
   # Calculate which volume (0..shared_asm_count-1)
   pi_volume_id = ibm_pi_volume.shared_asm[
     count.index % local.shared_asm_count
@@ -459,9 +459,9 @@ module "pi_instances_aix_init" {
   depends_on = [ibm_pi_volume_attach.node_storage_attach, terraform_data.reconfigure_ansible_host]
 
   # Required parameters
-  deployment_type        = "public"  # Always public for ready-to-go solution
+  deployment_type        = "public" # Always public for ready-to-go solution
   bastion_host_ip        = module.landing_zone.access_host_or_ip
-  squid_server_ip        = split(":", module.landing_zone.proxy_host_or_ip_port)[0]  # Extract IP from IP:PORT
+  squid_server_ip        = split(":", module.landing_zone.proxy_host_or_ip_port)[0] # Extract IP from IP:PORT
   ansible_host_or_ip     = module.landing_zone.ansible_host_or_ip
   ssh_private_key        = var.ssh_private_key
   configure_ansible_host = false
@@ -472,13 +472,13 @@ module "pi_instances_aix_init" {
 
   src_playbook_template_name = "aix-init/playbook-aix-init.yml.tftpl"
   dst_playbook_file_name     = "aix-init-rac-playbook.yml"
-  
+
   playbook_template_vars = {
     PROXY_IP_PORT          = module.landing_zone.proxy_host_or_ip_port
     NO_PROXY               = "localhost,127.0.0.1"
     ORA_NFS_HOST           = local.nfs_server
-    ORA_NFS_DEVICE         = local.nfs_device  # NFS export path for mounting
-    EXTEND_ROOT_VOLUME_WWN = "" # Will be set per node via hosts_and_vars
+    ORA_NFS_DEVICE         = local.nfs_device # NFS export path for mounting
+    EXTEND_ROOT_VOLUME_WWN = ""               # Will be set per node via hosts_and_vars
     AIX_INIT_MODE          = "rac"
     ROOT_PASSWORD          = var.root_password
   }
@@ -557,9 +557,9 @@ module "oracle_rac_install" {
   depends_on = [module.ibmcloud_cos_cluvfy, module.pi_instances_aix_init]
 
   # Required parameters
-  deployment_type        = "public"  # Always public for ready-to-go solution
+  deployment_type        = "public" # Always public for ready-to-go solution
   bastion_host_ip        = module.landing_zone.access_host_or_ip
-  squid_server_ip        = split(":", module.landing_zone.proxy_host_or_ip_port)[0]  # Extract IP from IP:PORT
+  squid_server_ip        = split(":", module.landing_zone.proxy_host_or_ip_port)[0] # Extract IP from IP:PORT
   ansible_host_or_ip     = module.landing_zone.ansible_host_or_ip
   ssh_private_key        = var.ssh_private_key
   configure_ansible_host = false

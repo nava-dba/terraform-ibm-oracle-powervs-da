@@ -37,8 +37,8 @@ env:
   IBM_API_URL:                "https://projects.api.cloud.ibm.com/v1"
   SI_VARIATION_LABEL:         "Oracle Database – Single Instance (SI)"
   RAC_VARIATION_LABEL:        "Oracle Database – Real Application Clusters (RAC)"
-  SI_RTG_VARIATION_LABEL:     "Oracle Database – Single Instance Ready-to-Go"
-  RAC_RTG_VARIATION_LABEL:    "Oracle Database – RAC Ready-to-Go"
+  SI_RTG_VARIATION_LABEL:     "Oracle Database – Single Instance One Click"
+  RAC_RTG_VARIATION_LABEL:    "Oracle Database – RAC One Click"
   SI_WORKING_DIR:             "solutions/oracle/si"
   RAC_WORKING_DIR:            "solutions/oracle/rac"
   SI_RTG_WORKING_DIR:         "solutions/oracle/si-ready-to-go"
@@ -284,7 +284,7 @@ jobs:
               for v in kind.get("versions", []):
                   if v.get("version") == target_version:
                       flavor_label = v.get("flavor", {}).get("label", "")
-                      if "ready-to-go" in flavor_label.lower() and "single instance" in flavor_label.lower():
+                      if "one click" in flavor_label.lower() and "single instance" in flavor_label.lower():
                           print(v.get("version_locator", ""))
                           sys.exit(0)
           ')
@@ -330,7 +330,7 @@ jobs:
               for v in kind.get("versions", []):
                   if v.get("version") == target_version:
                       flavor_label = v.get("flavor", {}).get("label", "")
-                      if "ready-to-go" in flavor_label.lower() and "rac" in flavor_label.lower():
+                      if "one click" in flavor_label.lower() and "rac" in flavor_label.lower():
                           print(v.get("version_locator", ""))
                           sys.exit(0)
           ')
